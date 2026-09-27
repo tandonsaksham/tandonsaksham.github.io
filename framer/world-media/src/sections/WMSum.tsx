@@ -14,7 +14,6 @@ type SumProps = {
     greyWord: string
     footnote: string
     totals: Total[]
-    pageLabel: string
     style?: React.CSSProperties
 }
 
@@ -49,7 +48,6 @@ export default function WMSum(props: SumProps) {
             { label: "Views generated", value: "[__]M" },
             { label: "Brands we've partnered with", value: "[__]" },
         ],
-        pageLabel = "04 — What we've done",
         style,
     } = props
 
@@ -73,7 +71,6 @@ export default function WMSum(props: SumProps) {
                         ))}
                     </Stagger>
                 </div>
-                <PageLabel text={pageLabel} />
             </div>
         </Section>
     )
@@ -107,5 +104,4 @@ addPropertyControls(WMSum, {
             { label: "Brands we've partnered with", value: "[__]" },
         ],
     },
-    pageLabel: { type: ControlType.String, title: "Page label", defaultValue: "04 — What we've done" },
 })

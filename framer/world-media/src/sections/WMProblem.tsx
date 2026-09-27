@@ -14,7 +14,6 @@ type ProblemProps = {
     rest: string
     note: string
     items: ProblemItem[]
-    pageLabel: string
     style?: React.CSSProperties
 }
 
@@ -46,7 +45,6 @@ export default function WMProblem(props: ProblemProps) {
             { title: "One post, then silence", body: "A single sponsored post with no story behind it, forgotten by next week." },
             { title: "Reports full of vanity", body: "Likes and impressions, with no line back to what the business needed." },
         ],
-        pageLabel = "01 — The shift",
         style,
     } = props
 
@@ -77,7 +75,6 @@ export default function WMProblem(props: ProblemProps) {
                         <Rule strong delay={0.1 + items.length * 0.12} />
                     </div>
                 </div>
-                <PageLabel text={pageLabel} />
             </div>
         </Section>
     )
@@ -104,5 +101,4 @@ addPropertyControls(WMProblem, {
             { title: "Reports full of vanity", body: "Likes and impressions, with no line back to what the business needed." },
         ],
     },
-    pageLabel: { type: ControlType.String, title: "Page label", defaultValue: "01 — The shift" },
 })

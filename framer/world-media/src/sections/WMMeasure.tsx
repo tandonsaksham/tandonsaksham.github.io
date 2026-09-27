@@ -15,7 +15,6 @@ type MeasureProps = {
     questions: Question[]
     note: string
     footnote: string
-    pageLabel: string
     style?: React.CSSProperties
 }
 
@@ -56,7 +55,6 @@ export default function WMMeasure(props: MeasureProps) {
         ],
         note = "no vanity metrics without context",
         footnote = "Live dashboard while the campaign runs. Full impact report within [__] days of wrap.",
-        pageLabel = "03 — What we do",
         style,
     } = props
 
@@ -93,7 +91,6 @@ export default function WMMeasure(props: MeasureProps) {
                         {fill(footnote)}
                     </Rise>
                 </div>
-                <PageLabel text={pageLabel} />
             </div>
         </Section>
     )
@@ -126,5 +123,4 @@ addPropertyControls(WMMeasure, {
         displayTextArea: true,
         defaultValue: "Live dashboard while the campaign runs. Full impact report within [__] days of wrap.",
     },
-    pageLabel: { type: ControlType.String, title: "Page label", defaultValue: "03 — What we do" },
 })

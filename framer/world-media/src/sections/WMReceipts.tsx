@@ -20,7 +20,6 @@ type ReceiptsProps = {
     statsHero: Stat[]
     changedLabel: string
     changedText: string
-    pageLabel: string
     style?: React.CSSProperties
 }
 
@@ -95,7 +94,6 @@ export default function WMReceipts(props: ReceiptsProps) {
         ],
         changedLabel = "What changed for [brand]",
         changedText = "[The business outcome in one line: sell-out, app installs, search lift, store footfall.]",
-        pageLabel = "04 — What we've done",
         style,
     } = props
 
@@ -132,7 +130,6 @@ export default function WMReceipts(props: ReceiptsProps) {
                             </div>
                         </Stagger>
                     </div>
-                    <PageLabel text={pageLabel} />
                 </div>
             </Section>
         )
@@ -159,7 +156,6 @@ export default function WMReceipts(props: ReceiptsProps) {
                         </div>
                     ))}
                 </Stagger>
-                <PageLabel text={pageLabel} />
             </div>
         </Section>
     )
@@ -225,5 +221,4 @@ addPropertyControls(WMReceipts, {
         defaultValue: "[The business outcome in one line: sell-out, app installs, search lift, store footfall.]",
         hidden: (p: any) => p.variant === "hero",
     },
-    pageLabel: { type: ControlType.String, title: "Page label", defaultValue: "04 — What we've done" },
 })

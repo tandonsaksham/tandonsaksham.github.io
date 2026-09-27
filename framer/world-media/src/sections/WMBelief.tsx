@@ -14,7 +14,6 @@ type BeliefProps = {
     rented: string
     earned: string
     cards: Belief[]
-    pageLabel: string
     style?: React.CSSProperties
 }
 
@@ -55,7 +54,6 @@ export default function WMBelief(props: BeliefProps) {
             { title: "Stories that stick", body: "Series, moments and formats people follow, share and remember." },
             { title: "Measured to the rupee", body: "Every campaign ends with a report your finance team will actually read." },
         ],
-        pageLabel = "02 — Who we are",
         style,
     } = props
 
@@ -98,7 +96,6 @@ export default function WMBelief(props: BeliefProps) {
                         </article>
                     ))}
                 </Stagger>
-                <PageLabel text={pageLabel} />
             </div>
         </Section>
     )
@@ -130,5 +127,4 @@ addPropertyControls(WMBelief, {
             { title: "Measured to the rupee", body: "Every campaign ends with a report your finance team will actually read." },
         ],
     },
-    pageLabel: { type: ControlType.String, title: "Page label", defaultValue: "02 — Who we are" },
 })

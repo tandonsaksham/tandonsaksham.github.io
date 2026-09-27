@@ -13,7 +13,6 @@ type ProcessProps = {
     headline: string
     note: string
     steps: Step[]
-    pageLabel: string
     style?: React.CSSProperties
 }
 
@@ -68,7 +67,6 @@ export default function WMProcess(props: ProcessProps) {
             { week: "04 · Week 3–6", title: "Amplify", body: "Top posts get paid boost, whitelisting and cross-posting." },
             { week: "05 · Week 6+", title: "Measure", body: "Live dashboard, then a full read of what worked and why." },
         ],
-        pageLabel = "03 — What we do",
         style,
     } = props
 
@@ -104,7 +102,6 @@ export default function WMProcess(props: ProcessProps) {
                         ))}
                     </Stagger>
                 </div>
-                <PageLabel text={pageLabel} />
             </div>
         </Section>
     )
@@ -137,5 +134,4 @@ addPropertyControls(WMProcess, {
             { week: "05 · Week 6+", title: "Measure", body: "Live dashboard, then a full read of what worked and why." },
         ],
     },
-    pageLabel: { type: ControlType.String, title: "Page label", defaultValue: "03 — What we do" },
 })

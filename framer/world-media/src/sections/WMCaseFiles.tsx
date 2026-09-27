@@ -13,7 +13,6 @@ type CaseFilesProps = {
     headline: string
     note: string
     files: CaseFile[]
-    pageLabel: string
     style?: React.CSSProperties
 }
 
@@ -53,7 +52,6 @@ export default function WMCaseFiles(props: CaseFilesProps) {
             { code: "CF-005", stat: "[__]x ROAS", title: "[Brand] — [Campaign name]", href: "#quick-reads" },
             { code: "CF-006", stat: "[__]M reach", title: "[Brand] — [Campaign name]", href: "#lets-talk" },
         ],
-        pageLabel = "04 — What we've done",
         style,
     } = props
 
@@ -83,7 +81,6 @@ export default function WMCaseFiles(props: CaseFilesProps) {
                         </a>
                     ))}
                 </Stagger>
-                <PageLabel text={pageLabel} />
             </div>
         </Section>
     )
@@ -114,5 +111,4 @@ addPropertyControls(WMCaseFiles, {
             { code: "CF-006", stat: "[__]M reach", title: "[Brand] — [Campaign name]", href: "#lets-talk" },
         ],
     },
-    pageLabel: { type: ControlType.String, title: "Page label", defaultValue: "04 — What we've done" },
 })

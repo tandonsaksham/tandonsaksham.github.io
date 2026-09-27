@@ -14,7 +14,6 @@ type QuickReadsProps = {
     headline: string
     note: string
     reads: QuickRead[]
-    pageLabel: string
     style?: React.CSSProperties
 }
 
@@ -51,7 +50,6 @@ export default function WMQuickReads(props: QuickReadsProps) {
             { code: "CF-004 · [Brand]", title: "[Campaign name]", line: "[One line: the idea and who we cast.]", m1: "UGC posts", v1: "[__]K", m2: "Reach", v2: "[__]M" },
             { code: "CF-005 · [Brand]", title: "[Campaign name]", line: "[One line: the idea and who we cast.]", m1: "ROAS", v1: "[__]x", m2: "Sales", v2: "₹[__]L" },
         ],
-        pageLabel = "04 — What we've done",
         style,
     } = props
 
@@ -84,7 +82,6 @@ export default function WMQuickReads(props: QuickReadsProps) {
                         </article>
                     ))}
                 </Stagger>
-                <PageLabel text={pageLabel} />
             </div>
         </Section>
     )
@@ -116,5 +113,4 @@ addPropertyControls(WMQuickReads, {
             { code: "CF-005 · [Brand]", title: "[Campaign name]", line: "[One line: the idea and who we cast.]", m1: "ROAS", v1: "[__]x", m2: "Sales", v2: "₹[__]L" },
         ],
     },
-    pageLabel: { type: ControlType.String, title: "Page label", defaultValue: "04 — What we've done" },
 })

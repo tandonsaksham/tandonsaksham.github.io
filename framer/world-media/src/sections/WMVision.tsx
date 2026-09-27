@@ -13,7 +13,6 @@ type VisionProps = {
     headline: string
     note: string
     milestones: Milestone[]
-    pageLabel: string
     style?: React.CSSProperties
 }
 
@@ -60,7 +59,6 @@ export default function WMVision(props: VisionProps) {
             { year: "2028", title: "Creator IP", body: "Co-owned formats, series and products built with our creators." },
             { year: "2030", title: "Culture Lab", body: "Creators plus data in one studio, spotting trends before they peak." },
         ],
-        pageLabel = "05 — What's next",
         style,
     } = props
 
@@ -95,7 +93,6 @@ export default function WMVision(props: VisionProps) {
                         ))}
                     </Stagger>
                 </div>
-                <PageLabel text={pageLabel} />
             </div>
         </Section>
     )
@@ -123,5 +120,4 @@ addPropertyControls(WMVision, {
             { year: "2030", title: "Culture Lab", body: "Creators plus data in one studio, spotting trends before they peak." },
         ],
     },
-    pageLabel: { type: ControlType.String, title: "Page label", defaultValue: "05 — What's next" },
 })

@@ -18,7 +18,6 @@ type CrewProps = {
     founded: string
     origin: string
     stats: string
-    pageLabel: string
     style?: React.CSSProperties
 }
 
@@ -70,7 +69,6 @@ export default function WMCrew(props: CrewProps) {
         founded = "Founded in [year]",
         origin = "[One-line origin story: who started World Media, and why.]",
         stats = "[__] people · [__] cities",
-        pageLabel = "02 — Who we are",
         style,
     } = props
 
@@ -128,7 +126,6 @@ export default function WMCrew(props: CrewProps) {
                         </div>
                     </div>
                 </div>
-                <PageLabel text={pageLabel} />
             </div>
         </Section>
     )
@@ -161,5 +158,4 @@ addPropertyControls(WMCrew, {
     founded: { type: ControlType.String, title: "Note title", defaultValue: "Founded in [year]" },
     origin: { type: ControlType.String, title: "Origin", displayTextArea: true, defaultValue: "[One-line origin story: who started World Media, and why.]" },
     stats: { type: ControlType.String, title: "Stats", defaultValue: "[__] people · [__] cities" },
-    pageLabel: { type: ControlType.String, title: "Page label", defaultValue: "02 — Who we are" },
 })

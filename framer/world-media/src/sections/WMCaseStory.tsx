@@ -21,7 +21,6 @@ type CaseStoryProps = {
     rowsCreators: StoryRow[]
     noteLines: string
     creators: Creator[]
-    pageLabel: string
     style?: React.CSSProperties
 }
 
@@ -85,7 +84,6 @@ export default function WMCaseStory(props: CaseStoryProps) {
             { handle: "@[creator_handle]", stat: "[__]K · [platform]" },
             { handle: "@[creator_handle]", stat: "[__]K · [platform]" },
         ],
-        pageLabel = "04 — What we've done",
         style,
     } = props
 
@@ -152,7 +150,6 @@ export default function WMCaseStory(props: CaseStoryProps) {
                         </div>
                     )}
                 </div>
-                <PageLabel text={pageLabel} />
             </div>
         </Section>
     )
@@ -230,5 +227,4 @@ addPropertyControls(WMCaseStory, {
         ],
         hidden: (p: any) => p.variant !== "creators",
     },
-    pageLabel: { type: ControlType.String, title: "Page label", defaultValue: "04 — What we've done" },
 })

@@ -109,7 +109,7 @@ export default function WMFooter(props: FooterProps) {
                 <span ref={markRef} className={"wmf-mark" + markIn} aria-label="world media.">
                     {Array.from(word).map((ch, k) => (
                         <span className="l" key={k} style={cssVars({ "--k": k })} aria-hidden="true">
-                            {ch === " " ? " " : ch}
+                            {ch === " " ? String.fromCharCode(160) : ch}
                         </span>
                     ))}
                     <span className="l dot" style={cssVars({ "--k": word.length })} aria-hidden="true">

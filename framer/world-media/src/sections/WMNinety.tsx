@@ -13,7 +13,6 @@ type NinetyProps = {
     headline: string
     phases: Phase[]
     note: string
-    pageLabel: string
     style?: React.CSSProperties
 }
 
@@ -48,7 +47,6 @@ export default function WMNinety(props: NinetyProps) {
             { days: "Day 60–90", title: "Scale", body: "Double down on what worked, add paid amplification and report the impact." },
         ],
         note = "…then we go again, bigger.",
-        pageLabel = "05 — What's next",
         style,
     } = props
 
@@ -76,7 +74,6 @@ export default function WMNinety(props: NinetyProps) {
                 <Script className="wmn9-note" delay={0.3} rotate={-2}>
                     {note}
                 </Script>
-                <PageLabel text={pageLabel} />
             </div>
         </Section>
     )
@@ -104,5 +101,4 @@ addPropertyControls(WMNinety, {
         ],
     },
     note: { type: ControlType.String, title: "Handwritten", defaultValue: "…then we go again, bigger." },
-    pageLabel: { type: ControlType.String, title: "Page label", defaultValue: "05 — What's next" },
 })

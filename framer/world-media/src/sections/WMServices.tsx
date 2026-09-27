@@ -14,7 +14,6 @@ type ServicesProps = {
     items: Service[]
     talkLabel: string
     talkHref: string
-    pageLabel: string
     style?: React.CSSProperties
 }
 
@@ -55,7 +54,6 @@ export default function WMServices(props: ServicesProps) {
         ],
         talkLabel = "Let's talk",
         talkHref = "#lets-talk",
-        pageLabel = "03 — What we do",
         style,
     } = props
 
@@ -89,7 +87,6 @@ export default function WMServices(props: ServicesProps) {
                 <Stagger className="wms-grid" step={0.07} delay={0.1}>
                     {cards}
                 </Stagger>
-                <PageLabel text={pageLabel} />
             </div>
         </Section>
     )
@@ -120,5 +117,4 @@ addPropertyControls(WMServices, {
     },
     talkLabel: { type: ControlType.String, title: "Talk card", defaultValue: "Let's talk" },
     talkHref: { type: ControlType.String, title: "Talk link", defaultValue: "#lets-talk" },
-    pageLabel: { type: ControlType.String, title: "Page label", defaultValue: "03 — What we do" },
 })

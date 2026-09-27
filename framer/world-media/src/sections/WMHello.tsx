@@ -14,7 +14,6 @@ type HelloProps = {
     name: string
     note: string
     rows: HelloRow[]
-    pageLabel: string
     style?: React.CSSProperties
 }
 
@@ -58,7 +57,6 @@ export default function WMHello(props: HelloProps) {
             { title: "What's next", hint: "vision, 90 days", href: "#whats-next" },
             { title: "Let's talk", hint: "contact", href: "#lets-talk" },
         ],
-        pageLabel = "00 — Hello",
         style,
     } = props
 
@@ -96,7 +94,6 @@ export default function WMHello(props: HelloProps) {
                         </Stagger>
                     </nav>
                 </div>
-                <PageLabel text={pageLabel} />
             </div>
         </Section>
     )
@@ -127,5 +124,4 @@ addPropertyControls(WMHello, {
             { title: "Let's talk", hint: "contact", href: "#lets-talk" },
         ],
     },
-    pageLabel: { type: ControlType.String, title: "Page label", defaultValue: "00 — Hello" },
 })

@@ -14,7 +14,6 @@ type ClientsProps = {
     quotes: Quote[]
     trusted: string
     logoCount: number
-    pageLabel: string
     style?: React.CSSProperties
 }
 
@@ -47,7 +46,6 @@ export default function WMClients(props: ClientsProps) {
         ],
         trusted = "trusted by:",
         logoCount = 12,
-        pageLabel = "04 — What we've done",
         style,
     } = props
 
@@ -76,7 +74,6 @@ export default function WMClients(props: ClientsProps) {
                         <div className="wmcl-logo" key={i} />
                     ))}
                 </Stagger>
-                <PageLabel text={pageLabel} />
             </div>
         </Section>
     )
@@ -105,5 +102,4 @@ addPropertyControls(WMClients, {
     },
     trusted: { type: ControlType.String, title: "Handwritten", defaultValue: "trusted by:" },
     logoCount: { type: ControlType.Number, title: "Logo slots", defaultValue: 12, min: 0, max: 24, step: 1 },
-    pageLabel: { type: ControlType.String, title: "Page label", defaultValue: "04 — What we've done" },
 })

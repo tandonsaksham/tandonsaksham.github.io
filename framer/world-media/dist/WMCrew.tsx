@@ -46,7 +46,7 @@ background:var(--bg);color:var(--fg)}
 .wm-sec :where(h1,h2,h3,h4,p,ul,ol,li,figure,blockquote){margin:0;padding:0;list-style:none}
 .wm-sec a{color:inherit;text-decoration:none}
 .wm-sec ::selection{background:var(--red);color:var(--ink)}
-.wm-wrap{position:relative;width:100%;max-width:1400px;margin:0 auto;padding:clamp(72px,8cqw,118px) clamp(20px,5.2cqw,80px) clamp(40px,4.4cqw,60px)}
+.wm-wrap{position:relative;width:100%;max-width:1400px;margin:0 auto;padding:clamp(72px,8cqw,118px) clamp(20px,5.2cqw,80px) clamp(64px,7cqw,104px)}
 .wm-mono{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:400;font-size:12px;letter-spacing:.02em;line-height:1.45}
 .wm-cap{text-transform:uppercase;letter-spacing:.08em}
 .wm-script{font-family:"Caveat","Bradley Hand","Segoe Print",cursive;font-weight:500;line-height:1.05;letter-spacing:.004em;font-size:clamp(20px,2.05cqw,30px);text-wrap:balance}
@@ -58,10 +58,6 @@ background:var(--bg);color:var(--fg)}
 .wm-body{font-size:clamp(15.5px,1.28cqw,18px);line-height:1.55;letter-spacing:-.006em}
 .wm-small{font-size:14.5px;line-height:1.5;letter-spacing:-.004em}
 .wm-top{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
-.wm-foot{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-top:clamp(56px,6.4cqw,96px)}
-.wm-foot b{font-weight:800;font-size:13.5px;letter-spacing:-.03em;color:var(--fg)}
-.wm-foot b i{font-style:normal;color:var(--red)}
-.wm-sec[data-wm-theme="red"] .wm-foot b i{color:var(--cream)}
 .wm-chrome{display:inline-flex;align-items:center;gap:9px}
 .wm-dots{display:inline-flex;gap:5px}
 .wm-dots i{width:9px;height:9px;border-radius:50%;background:var(--fg);display:block;transform:scale(0);transition:transform .7s var(--ease);transition-delay:var(--d,0s)}
@@ -244,17 +240,6 @@ type BoxProps = {
     [k: string]: any
 }
 
-function Fade(p: BoxProps) {
-    const { as, className, style, delay, amount, children, ...rest } = p
-    const Tag = as || "div"
-    const [ref, inCls] = useIn<HTMLElement>(amount ?? 0.25)
-    return (
-        <Tag ref={ref} className={"wm-fade " + (className || "") + inCls} style={{ ...cssVars({ "--d": (delay || 0) + "s" }), ...style }} {...rest}>
-            {children}
-        </Tag>
-    )
-}
-
 /** Staggers its direct children in, one after another. */
 function Stagger(p: BoxProps & { step?: number }) {
     const { as, className, style, delay, amount, children, step, ...rest } = p
@@ -371,19 +356,6 @@ function useDrift(ref: React.RefObject<HTMLElement>, distance: number) {
     return useTransform(scrollYProgress, [0, 1], still ? [0, 0] : [distance, -distance])
 }
 
-/** Slide footer from the deck: "world media." left, page label right. */
-function PageLabel(p: { text: string }) {
-    if (!p.text) return null
-    return (
-        <Fade className="wm-foot" delay={0.15} aria-hidden="true">
-            <b>
-                world media<i>.</i>
-            </b>
-            <span className="wm-mono wm-mut">{p.text}</span>
-        </Fade>
-    )
-}
-
 type Person = { name: string; role: string }
 
 type CrewProps = {
@@ -395,7 +367,6 @@ type CrewProps = {
     founded: string
     origin: string
     stats: string
-    pageLabel: string
     style?: React.CSSProperties
 }
 
@@ -447,7 +418,6 @@ export default function WMCrew(props: CrewProps) {
         founded = "Founded in [year]",
         origin = "[One-line origin story: who started World Media, and why.]",
         stats = "[__] people · [__] cities",
-        pageLabel = "02 — Who we are",
         style,
     } = props
 
@@ -505,7 +475,6 @@ export default function WMCrew(props: CrewProps) {
                         </div>
                     </div>
                 </div>
-                <PageLabel text={pageLabel} />
             </div>
         </Section>
     )
@@ -538,5 +507,4 @@ addPropertyControls(WMCrew, {
     founded: { type: ControlType.String, title: "Note title", defaultValue: "Founded in [year]" },
     origin: { type: ControlType.String, title: "Origin", displayTextArea: true, defaultValue: "[One-line origin story: who started World Media, and why.]" },
     stats: { type: ControlType.String, title: "Stats", defaultValue: "[__] people · [__] cities" },
-    pageLabel: { type: ControlType.String, title: "Page label", defaultValue: "02 — Who we are" },
 })

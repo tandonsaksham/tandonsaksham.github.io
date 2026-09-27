@@ -19,7 +19,7 @@ type ChapterProps = {
 
 const CHAPTER_CSS = `
 .wmc.wm-sec{background:radial-gradient(60% 55% at 70% 52%,rgba(242,238,229,.05),rgba(242,238,229,.018) 55%,transparent 88%),var(--ink)}
-.wmc .wm-wrap{padding-top:clamp(88px,9cqw,136px)}
+.wmc .wm-wrap{padding-top:clamp(88px,9cqw,136px);padding-bottom:clamp(88px,9cqw,136px)}
 .wmc-grid{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,4cqw,64px);align-items:stretch}
 .wmc-rule{position:absolute;left:0;right:0;top:50%;z-index:0}
 .wmc-num{position:relative;z-index:1;display:flex;align-items:center;min-height:clamp(150px,24cqw,380px);padding-left:clamp(56px,7cqw,112px)}
@@ -104,7 +104,6 @@ export default function WMChapter(props: ChapterProps) {
                         </Rise>
                     </div>
                 </div>
-                <PageLabel text={"Chapter " + number + " / " + String(total).padStart(2, "0")} />
             </div>
         </Section>
     )
