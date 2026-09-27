@@ -7,11 +7,13 @@
 // vermilion section underneath, hides on scroll down, and opens a full-screen menu on phones.
 // Place the instance at the top of the page, width 100%. On the live site the bar pins itself
 // to the top of the window, so the layer itself needs no Fixed or Sticky setting.
-// The chapters live in one place only: a folder-tab index at the top centre. Every chapter you
-// reach files in as a small numbered tab; the front tab shows the chapter, the section you're
-// reading and how far through it you are, and opens the full chapter list. It sits inside the
-// bar while the bar is showing and hangs from the top edge once the bar slides away. On phones
-// the same index is a tab rising from the bottom edge with a growing stack of chapter chips.
+// The chapters live in one place only: a folder-tab index at the top centre. It stays out of
+// sight at the top of the page and drops in once the reader reaches the first chapter. Every
+// chapter you reach files in as a small numbered tab; the front tab shows the chapter, the
+// section you're reading and how far through it you are, and opens the full chapter list. It
+// sits inside the bar while the bar is showing and hangs from the top edge once the bar slides
+// away. On phones the same index is a tab rising from the bottom edge with a growing stack of
+// chapter chips.
 //@@ BODY
 
 type NavLink = { label: string; href: string }
@@ -83,8 +85,7 @@ transition:border-radius .6s var(--ease),background-color .5s var(--ease),color 
 .wmn-ft-tab.cur{z-index:6;padding:0 12px 0 14px;background:var(--tb0)}
 .wmn-ft-tab.cur em{color:var(--red)}
 .wmn-ft-tab.cur b{max-width:none;min-width:84px;text-align:left}
-.wmn-ft-x{display:flex;align-items:center;max-width:0;overflow:hidden;opacity:0;transition:max-width .7s var(--ease),opacity .45s}
-.wmn-ft-tab[data-on="1"] .wmn-ft-x{max-width:260px;opacity:1}
+.wmn-ft-x{display:flex;align-items:center}
 .wmn-ft-sub{display:flex;align-items:center;gap:8px;padding-left:12px;font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px;color:var(--tm)}
 .wmn-ft-sub::before{content:"";flex:none;width:14px;height:1px;background:currentColor;opacity:.7}
 .wmn-ft-sub span{display:block;width:16ch;overflow:hidden;text-overflow:ellipsis;text-align:left}
@@ -94,9 +95,8 @@ transition:border-radius .6s var(--ease),background-color .5s var(--ease),color 
 .wmn-ft-tab[aria-expanded="true"] .wmn-ft-car{transform:rotate(180deg)}
 .wmn-bt-car{transform:rotate(180deg)}
 .wmn-bt-tab[aria-expanded="true"] .wmn-bt-car{transform:none}
-.wmn-ft-line,.wmn-bt-line{position:absolute;height:2px;border-radius:2px;background:var(--tl);overflow:hidden;transition:opacity .4s}
+.wmn-ft-line,.wmn-bt-line{position:absolute;height:2px;border-radius:2px;background:var(--tl);overflow:hidden}
 .wmn-ft-line{left:14px;right:12px;bottom:5px}
-.wmn-ft-tab:not([data-on="1"]) .wmn-ft-line{opacity:0}
 .wmn-ft-line i,.wmn-bt-line i{display:block;height:100%;background:var(--red);transform-origin:0 50%}
 .wmn-ft-panel,.wmn-bt-sheet{position:absolute;left:50%;padding:8px;border-radius:20px;border:1px solid var(--tl);background:var(--tb0);color:var(--tf);box-shadow:0 28px 56px -24px rgba(0,0,0,.6)}
 .wmn-ft-panel{top:calc(100% + 14px);width:344px;margin-left:-172px;transform-origin:50% 0}
@@ -337,10 +337,11 @@ export default function WMNav(props: NavProps) {
 
     const allLinks = links.concat([{ label: ctaLabel, href: ctaHref }])
 
-    // Scroll index: the chapters reached so far, newest last.
+    // Scroll index: the chapters reached so far, newest last. Nothing shows before the first chapter.
     const reached = index && !isStatic && active >= 0 ? links.slice(0, active + 1) : []
     const current = reached.length ? reached[reached.length - 1] : null
-    const dockOn = reached.length > 0 && !atEnd && !open && !typing
+    const on = current !== null
+    const dockOn = on && !atEnd && !open && !typing
     const sub = section || "Intro"
 
     // The phone tab steps aside while someone is typing into a form, so it never covers a field.
@@ -366,8 +367,8 @@ export default function WMNav(props: NavProps) {
     }, [dockOn])
 
     React.useEffect(() => {
-        if (open) React.startTransition(() => setFolder(false))
-    }, [open])
+        if (open || !on) React.startTransition(() => setFolder(false))
+    }, [open, on])
 
     React.useEffect(() => {
         if (!sheet || typeof window === "undefined") return
@@ -411,8 +412,7 @@ export default function WMNav(props: NavProps) {
 
     const ease = [0.16, 1, 0.3, 1] as const
     const docked = hidden && !open
-    const on = reached.length > 0
-    const past = on ? reached.slice(0, -1) : []
+    const past = reached.slice(0, -1)
 
     // Every chapter, ticked once read, with the one you're in highlighted — shared by the folder panel and the phone sheet.
     const rows = (onPick: () => void) => (
@@ -441,77 +441,83 @@ export default function WMNav(props: NavProps) {
         </>
     )
 
+    // Hidden at the top of the page; drops in from the top edge (or rises into the bar) with the first chapter.
     const strip = (
-        <motion.div
-            className="wmn-ft"
-            data-t={tabTheme}
-            data-dock={docked ? "top" : "bar"}
-            initial={false}
-            animate={{ y: docked ? 0 : 26 }}
-            transition={{ duration: reduce ? 0 : 0.7, ease }}
-        >
-            <div className="wmn-ft-in" ref={ftRef}>
-                <AnimatePresence initial={false}>
-                    {past.map((l, i) => (
-                        <motion.div
-                            key={l.href || "t" + i}
-                            className="wmn-ft-w"
-                            style={{ zIndex: i + 1 }}
-                            initial={{ width: 0, marginRight: 0, opacity: 0 }}
-                            animate={{ width: "auto", marginRight: -7, opacity: 1 }}
-                            exit={{ width: 0, marginRight: 0, opacity: 0 }}
-                            transition={{ duration: reduce ? 0 : 0.6, ease }}
-                        >
-                            <a className="wmn-ft-tab" href={l.href} aria-label={"Chapter " + pad2(i) + ", " + l.label}>
-                                <em>{pad2(i)}</em>
-                                <b>
-                                    <span>{l.label}</span>
-                                </b>
-                            </a>
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
-                <button
-                    ref={curRef}
-                    type="button"
-                    className="wmn-ft-tab cur"
-                    data-on={on ? "1" : undefined}
-                    onClick={toggleFolder}
-                    aria-expanded={folder}
-                    aria-label={current ? "Chapter " + pad2(active) + ", " + current.label + ", " + sub + ". Show all chapters" : "Show all chapters"}
+        <AnimatePresence initial={false}>
+            {current ? (
+                <motion.div
+                    key="ft"
+                    className="wmn-ft"
+                    data-t={tabTheme}
+                    data-dock={docked ? "top" : "bar"}
+                    initial={{ y: docked ? -44 : 12, opacity: 0 }}
+                    animate={{ y: docked ? 0 : 26, opacity: 1 }}
+                    exit={{ y: docked ? -44 : 12, opacity: 0 }}
+                    transition={{ duration: reduce ? 0 : 0.7, ease, opacity: { duration: reduce ? 0 : 0.35 } }}
                 >
-                    <em>{on ? pad2(active) : "00"}</em>
-                    <b>
-                        <span>{current ? current.label : "Chapters"}</span>
-                    </b>
-                    <span className="wmn-ft-x" aria-hidden="true">
-                        <span className="wmn-ft-sub">
-                            <span>{sub}</span>
-                        </span>
-                        <motion.span className="wmn-ft-pct">{percent}</motion.span>
-                    </span>
-                    <Caret className="wmn-ft-car" />
-                    <span className="wmn-ft-line" aria-hidden="true">
-                        <motion.i style={{ scaleX: progress }} />
-                    </span>
-                </button>
-                <AnimatePresence>
-                    {folder ? (
-                        <motion.nav
-                            className="wmn-ft-panel"
-                            aria-label="Chapters"
-                            initial={{ opacity: 0, y: -8, scale: 0.97 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: -8, scale: 0.97 }}
-                            transition={{ duration: reduce ? 0 : 0.35, ease }}
+                    <div className="wmn-ft-in" ref={ftRef}>
+                        <AnimatePresence initial={false}>
+                            {past.map((l, i) => (
+                                <motion.div
+                                    key={l.href || "t" + i}
+                                    className="wmn-ft-w"
+                                    style={{ zIndex: i + 1 }}
+                                    initial={{ width: 0, marginRight: 0, opacity: 0 }}
+                                    animate={{ width: "auto", marginRight: -7, opacity: 1 }}
+                                    exit={{ width: 0, marginRight: 0, opacity: 0 }}
+                                    transition={{ duration: reduce ? 0 : 0.6, ease }}
+                                >
+                                    <a className="wmn-ft-tab" href={l.href} aria-label={"Chapter " + pad2(i) + ", " + l.label}>
+                                        <em>{pad2(i)}</em>
+                                        <b>
+                                            <span>{l.label}</span>
+                                        </b>
+                                    </a>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                        <button
+                            ref={curRef}
+                            type="button"
+                            className="wmn-ft-tab cur"
+                            onClick={toggleFolder}
+                            aria-expanded={folder}
+                            aria-label={"Chapter " + pad2(active) + ", " + current.label + ", " + sub + ". Show all chapters"}
                         >
-                            <p>Chapters</p>
-                            {rows(closeFolder)}
-                        </motion.nav>
-                    ) : null}
-                </AnimatePresence>
-            </div>
-        </motion.div>
+                            <em>{pad2(active)}</em>
+                            <b>
+                                <span>{current.label}</span>
+                            </b>
+                            <span className="wmn-ft-x" aria-hidden="true">
+                                <span className="wmn-ft-sub">
+                                    <span>{sub}</span>
+                                </span>
+                                <motion.span className="wmn-ft-pct">{percent}</motion.span>
+                            </span>
+                            <Caret className="wmn-ft-car" />
+                            <span className="wmn-ft-line" aria-hidden="true">
+                                <motion.i style={{ scaleX: progress }} />
+                            </span>
+                        </button>
+                        <AnimatePresence>
+                            {folder ? (
+                                <motion.nav
+                                    className="wmn-ft-panel"
+                                    aria-label="Chapters"
+                                    initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                                    transition={{ duration: reduce ? 0 : 0.35, ease }}
+                                >
+                                    <p>Chapters</p>
+                                    {rows(closeFolder)}
+                                </motion.nav>
+                            ) : null}
+                        </AnimatePresence>
+                    </div>
+                </motion.div>
+            ) : null}
+        </AnimatePresence>
     )
 
     const tab = (
