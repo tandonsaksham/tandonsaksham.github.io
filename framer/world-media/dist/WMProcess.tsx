@@ -1,12 +1,13 @@
 // User instructions: build the World Media website on world-class parameters while staying
 // true to the pitch deck — its colours, hand-drawn arrow markers and cursive notes.
 // Award-level but classy animation, classy-yet-fun fonts, image placeholders left blank.
-// This file: slide 10, "How a campaign runs" — the timeline draws itself as you scroll and
-// each week's node lights up when the line reaches it; five step cards, Measure in vermilion.
+// This file: slide 10, "How a campaign runs". The red dot of the section tag hops down onto the
+// timeline and rolls along it as you scroll, drawing the line behind it; each week's node lights up
+// with a ripple and its card swings down from the line like a hanging tag. Measure is in vermilion.
 
 import * as React from "react"
 import { addPropertyControls, ControlType, useIsStaticRenderer } from "framer"
-import { motion, useInView, useReducedMotion, useScroll, useTransform } from "framer-motion"
+import { motion, useInView, useReducedMotion, useMotionValue, animate } from "framer-motion"
 
 /* ───────────────────────── WORLD MEDIA · DESIGN SYSTEM ─────────────────────────
    Shared tokens and motion primitives. Framer code components must each be a
@@ -229,39 +230,6 @@ function Words(p: WordsProps) {
     )
 }
 
-type BoxProps = {
-    as?: any
-    className?: string
-    style?: React.CSSProperties
-    delay?: number
-    amount?: number
-    children?: React.ReactNode
-    [k: string]: any
-}
-
-/** Staggers its direct children in, one after another. */
-function Stagger(p: BoxProps & { step?: number }) {
-    const { as, className, style, delay, amount, children, step, ...rest } = p
-    const Tag = as || "div"
-    const [ref, inCls] = useIn<HTMLElement>(amount ?? 0.15)
-    let n = 0
-    const kids = React.Children.map(children, (child) => {
-        if (!React.isValidElement(child)) return child
-        const el = child as React.ReactElement<any>
-        return React.cloneElement(el, { style: { ...(el.props.style || {}), ...cssVars({ "--i": n++ }) } })
-    })
-    return (
-        <Tag
-            ref={ref}
-            className={"wm-stag " + (className || "") + inCls}
-            style={{ ...cssVars({ "--d0": (delay || 0) + "s", "--st": (step ?? 0.09) + "s" }), ...style }}
-            {...rest}
-        >
-            {kids}
-        </Tag>
-    )
-}
-
 type ScriptProps = {
     children?: React.ReactNode
     className?: string
@@ -304,6 +272,183 @@ function Chrome(p: { label: string; className?: string; style?: React.CSSPropert
     )
 }
 
+type BallGeo = { v: boolean; dot: { x: number; y: number } | null; s: { x: number; y: number }; len: number; at: number[] }
+
+/** Timeline choreography for "How a campaign runs" and "The road ahead". The red dot of the section
+    tag hops down onto the rail, then rolls along it as you scroll; each step lights up and drops in as
+    the dot passes, and at the last step the dot settles into place. Progress only ever moves forward.
+    The rail runs across on wide layouts and down the left edge when the track stacks (--vt: 1). */
+function useBallTrack(count: number, still: boolean) {
+    const wrapRef = React.useRef<HTMLDivElement>(null)
+    const chromeRef = React.useRef<HTMLDivElement>(null)
+    const trackRef = React.useRef<HTMLDivElement>(null)
+    const geo = React.useRef<BallGeo | null>(null)
+    const phase = React.useRef(still ? 3 : 0)
+    const goal = React.useRef(0)
+    const litRef = React.useRef(still ? count : 0)
+    const [lay, setLay] = React.useState<BallGeo | null>(null)
+    const [lit, setLit] = React.useState(still ? count : 0)
+    const [stage, setStage] = React.useState(still ? 3 : 0)
+    const x = useMotionValue(0)
+    const y = useMotionValue(0)
+    const sx = useMotionValue(0.64)
+    const sy = useMotionValue(0.64)
+    const o = useMotionValue(0)
+    const along = useMotionValue(still ? 1 : 0)
+
+    React.useEffect(() => {
+        if (!still) return
+        phase.current = 3
+        litRef.current = count
+        setStage(3)
+        setLit(count)
+        along.set(1)
+    }, [still, count, along])
+
+    React.useEffect(() => {
+        const wrap = wrapRef.current
+        const track = trackRef.current
+        if (!wrap || !track) return
+        let raf = 0
+        const spring = { type: "spring" as const, stiffness: 70, damping: 17, mass: 1 }
+        const pointAt = (t: number) => {
+            const g = geo.current as BallGeo
+            return g.v ? { x: g.s.x, y: g.s.y + g.len * t } : { x: g.s.x + g.len * t, y: g.s.y }
+        }
+        const measure = () => {
+            const wr = wrap.getBoundingClientRect()
+            const nodes = Array.from(track.querySelectorAll<HTMLElement>("[data-node]"))
+            if (!nodes.length) return
+            const pts = nodes.map((el) => {
+                const r = el.getBoundingClientRect()
+                return { x: r.left + r.width / 2 - wr.left, y: r.top + r.height / 2 - wr.top }
+            })
+            const v = getComputedStyle(track).getPropertyValue("--vt").trim() === "1"
+            const tr = track.getBoundingClientRect()
+            const dotEl = chromeRef.current ? chromeRef.current.querySelector<HTMLElement>(".wm-dots i:last-child") : null
+            const dr = dotEl ? dotEl.getBoundingClientRect() : null
+            const s = v ? { x: pts[0].x, y: tr.top - wr.top } : { x: tr.left - wr.left, y: pts[0].y }
+            const last = pts[pts.length - 1]
+            const len = Math.max(1, v ? last.y - s.y : last.x - s.x)
+            geo.current = {
+                v,
+                dot: dr ? { x: dr.left + dr.width / 2 - wr.left, y: dr.top + dr.height / 2 - wr.top } : null,
+                s,
+                len,
+                at: pts.map((p) => (v ? p.y - s.y : p.x - s.x) / len),
+            }
+            setLay(geo.current)
+            if (phase.current >= 2) {
+                const p = pointAt(phase.current === 3 ? 1 : along.get())
+                x.set(p.x)
+                y.set(p.y)
+            }
+        }
+        const follow = () => {
+            if (phase.current !== 2 || !geo.current) return
+            const p = pointAt(goal.current)
+            animate(x, p.x, spring)
+            animate(y, p.y, spring)
+        }
+        const land = () => {
+            phase.current = 2
+            setStage(2)
+            follow()
+        }
+        const hop = () => {
+            const g = geo.current
+            if (!g) return
+            phase.current = 1
+            setStage(1)
+            const top = wrap.getBoundingClientRect().top
+            const d = g.dot
+            const L = pointAt(0)
+            o.set(1)
+            if (!d || top + d.y < 0 || top + d.y > window.innerHeight) {
+                x.set(L.x)
+                y.set(L.y)
+                sx.set(1)
+                sy.set(1)
+                land()
+                return
+            }
+            x.set(d.x)
+            y.set(d.y)
+            const T = 0.82
+            const peak = d.y - Math.min(64, Math.max(30, (L.y - d.y) * 0.2))
+            animate(sx, 1, { duration: T * 0.5 })
+            animate(sy, 1, { duration: T * 0.5 })
+            animate(x, [d.x, d.x - 12, L.x], { duration: T, times: [0, 0.34, 1], ease: ["easeOut", "easeInOut"] })
+            animate(y, [d.y, peak, L.y], { duration: T, times: [0, 0.34, 1], ease: ["easeOut", "easeIn"] }).then(() => {
+                animate(sx, [1.55, 0.88, 1.04, 1], { duration: 0.5, times: [0, 0.32, 0.68, 1] })
+                animate(sy, [0.52, 1.16, 0.97, 1], { duration: 0.5, times: [0, 0.32, 0.68, 1] })
+                land()
+            })
+        }
+        const read = () => {
+            raf = 0
+            const g = geo.current
+            if (!g || phase.current === 3) return
+            const vh = window.innerHeight
+            const wr = wrap.getBoundingClientRect()
+            const tr = track.getBoundingClientRect()
+            // Across: the dot finishes as the whole track comes into view. Down: it rides a line 80% down the screen.
+            let p = g.v ? (vh * 0.8 - (wr.top + g.s.y)) / g.len : (vh - tr.top) / (vh * 0.08 + tr.height)
+            p = Math.max(0, Math.min(1, p))
+            // Near the very end of a page there may be no room left to scroll, so finish the run there.
+            if (tr.top < vh && window.scrollY + vh >= document.documentElement.scrollHeight - 4) p = 1
+            if (phase.current === 0 && tr.top < vh * 0.98) hop()
+            if (p > goal.current) {
+                goal.current = p
+                follow()
+            }
+        }
+        const onScroll = () => {
+            if (!raf) raf = requestAnimationFrame(read)
+        }
+        const watch = () => {
+            const g = geo.current
+            if (!g || phase.current !== 2) return
+            const t = Math.max(0, Math.min(1, g.v ? (y.get() - g.s.y) / g.len : (x.get() - g.s.x) / g.len))
+            along.set(t)
+            const n = g.at.filter((a) => t >= a - 0.003).length
+            if (n !== litRef.current) {
+                litRef.current = n
+                setLit(n)
+            }
+            if (t >= 0.997) {
+                phase.current = 3
+                setStage(3)
+                along.set(1)
+                animate(sx, 0, { duration: 0.35, delay: 0.1 })
+                animate(sy, 0, { duration: 0.35, delay: 0.1 })
+            }
+        }
+        measure()
+        const ro = new ResizeObserver(() => {
+            measure()
+            onScroll()
+        })
+        ro.observe(wrap)
+        if (still) return () => ro.disconnect()
+        const ux = x.on("change", watch)
+        const uy = y.on("change", watch)
+        window.addEventListener("scroll", onScroll, { passive: true })
+        window.addEventListener("resize", onScroll)
+        onScroll()
+        return () => {
+            cancelAnimationFrame(raf)
+            ro.disconnect()
+            ux()
+            uy()
+            window.removeEventListener("scroll", onScroll)
+            window.removeEventListener("resize", onScroll)
+        }
+    }, [still, x, y, sx, sy, o, along])
+
+    return { wrapRef, chromeRef, trackRef, lay, lit, stage, x, y, sx, sy, o, along }
+}
+
 type Step = { week: string; title: string; body: string }
 
 type ProcessProps = {
@@ -315,39 +460,54 @@ type ProcessProps = {
 }
 
 const PROCESS_CSS = `
+.wmpr-tag{display:block}
 .wmpr-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-top:clamp(22px,2.6cqw,36px)}
 .wmpr-h{font-weight:780;font-size:clamp(40px,6.2cqw,98px);line-height:.96;letter-spacing:-.045em}
 .wmpr-note{color:var(--red);max-width:9.5em;font-size:clamp(21px,2.1cqw,31px);margin-bottom:.3em}
-.wmpr-track{position:relative;margin-top:clamp(40px,5cqw,72px)}
+.wmpr-track{--vt:0;position:relative;margin-top:clamp(44px,5.4cqw,80px)}
 .wmpr-rail{position:absolute;left:calc(-50vw + 50%);right:calc(-50vw + 50%);top:6px;height:1.5px;background:var(--line)}
-.wmpr-fill{position:absolute;left:0;right:0;top:6px;height:1.5px;background:var(--ink);transform-origin:0 50%}
-.wmpr-cols{position:relative;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(8px,1cqw,14px)}
-.wmpr-col{display:flex;flex-direction:column;align-items:stretch}
-.wmpr-node{align-self:center;width:13px;height:13px;border-radius:50%;background:var(--cream);border:1.5px solid var(--ink);margin-bottom:18px;position:relative}
-.wmpr-node i{position:absolute;inset:-1.5px;border-radius:50%;background:var(--ink)}
-.wmpr-col:last-child .wmpr-node{border-color:var(--red)}
+.wmpr-fill{position:absolute;z-index:3;display:block;width:1.5px;height:1.5px;background:var(--ink);transform-origin:0 0;pointer-events:none}
+.wmpr-cols{position:relative;z-index:2;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(8px,1cqw,14px)}
+.wmpr-col{position:relative;display:flex;flex-direction:column;align-items:stretch}
+.wmpr-node{position:relative;z-index:4;align-self:center;width:13px;height:13px;border-radius:50%;background:var(--cream);border:1.5px solid var(--ink);margin-bottom:18px}
+.wmpr-node i{position:absolute;inset:-1.5px;border-radius:50%;background:var(--ink);transform:scale(0)}
+.wmpr-node::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:1.5px solid var(--ink);opacity:0;pointer-events:none}
+.wmpr-col:last-child .wmpr-node,.wmpr-col:last-child .wmpr-node::after{border-color:var(--red)}
 .wmpr-col:last-child .wmpr-node i{background:var(--red)}
-.wmpr-week{align-self:stretch;text-align:center;font-family:"DM Mono",ui-monospace,monospace;font-size:11.5px;padding:6px 8px;border-radius:99px;background:var(--cream2);margin-bottom:10px;white-space:nowrap}
+.wmpr-week{align-self:stretch;text-align:center;font-family:"DM Mono",ui-monospace,monospace;font-size:11.5px;padding:6px 8px;border-radius:99px;background:var(--cream2);margin-bottom:10px;white-space:nowrap;opacity:0}
 .wmpr-col:last-child .wmpr-week{background:var(--red);color:var(--ink)}
-.wmpr-card{display:flex;flex-direction:column;justify-content:space-between;min-height:clamp(200px,17cqw,250px);padding:clamp(16px,1.6cqw,22px);border-radius:16px;background:var(--ink);color:var(--cream);transition:transform .7s var(--ease)}
-.wmpr-card:hover{transform:translateY(-6px)}
+.wmpr-card{display:flex;flex-direction:column;justify-content:space-between;min-height:clamp(200px,17cqw,250px);padding:clamp(16px,1.6cqw,22px);border-radius:16px;background:var(--ink);color:var(--cream);opacity:0;transform-origin:50% 0;transition:transform .7s var(--ease)}
 .wmpr-col:last-child .wmpr-card{background:var(--red);color:var(--ink)}
 .wmpr-card h3{font-weight:760;font-size:clamp(20px,1.9cqw,27px);letter-spacing:-.025em}
 .wmpr-card p{font-size:13.5px;line-height:1.45;color:rgba(242,238,229,.66)}
 .wmpr-col:last-child .wmpr-card p{color:rgba(15,15,15,.78)}
-@container (max-width:860px){.wmpr-head{flex-direction:column;align-items:flex-start}.wmpr-rail,.wmpr-fill,.wmpr-node{display:none}
-.wmpr-cols{grid-template-columns:1fr 1fr}.wmpr-week{align-self:flex-start}}
-@container (max-width:480px){.wmpr-cols{grid-template-columns:1fr}.wmpr-card{min-height:0;gap:28px}}
-`
-
-function Node(p: { progress: any; at: number; still: boolean }) {
-    const s = useTransform(p.progress, [p.at - 0.06, p.at], [0, 1])
-    return (
-        <span className="wmpr-node" aria-hidden="true">
-            {p.still ? <i /> : <motion.i style={{ scale: s }} />}
-        </span>
-    )
+.wmpr-col.on .wmpr-node i{transform:none;animation:wmpr-pop .7s cubic-bezier(.34,1.56,.64,1) backwards}
+.wmpr-col.on .wmpr-node::after{animation:wmpr-ring .9s var(--ease) backwards}
+.wmpr-col.end .wmpr-node::after{animation:wmpr-ring 1.1s var(--ease) .15s 2 backwards}
+.wmpr-col.on .wmpr-week{opacity:1;animation:wmpr-pill .55s var(--ease) backwards}
+.wmpr-col.on .wmpr-card{opacity:1;animation:wmpr-drop 1.3s linear .06s backwards}
+.wmpr-col.on .wmpr-card:hover{transform:translateY(-6px)}
+.wmpr-ball{position:absolute;left:0;top:0;z-index:6;display:block;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--red);box-shadow:0 0 0 5px rgba(233,67,27,.14),0 8px 18px -4px rgba(233,67,27,.55);pointer-events:none}
+.wmpr.hop .wm-chrome .wm-dots i:last-child{background:transparent;box-shadow:inset 0 0 0 1.5px var(--red)}
+.wmpr.done .wm-chrome .wm-dots i:last-child{animation:wmpr-pop .6s cubic-bezier(.34,1.56,.64,1) .35s backwards}
+.wmpr.still *{animation:none!important}
+@keyframes wmpr-pop{from{transform:scale(0)}}
+@keyframes wmpr-ring{from{transform:scale(.3);opacity:.9}to{transform:scale(1.5);opacity:0}}
+@keyframes wmpr-pill{from{opacity:0;transform:translateY(-12px)}}
+@keyframes wmpr-drop{0%{opacity:0;transform:perspective(1000px) rotateX(-84deg);animation-timing-function:cubic-bezier(.3,0,.6,1)}40%{opacity:1;transform:perspective(1000px) rotateX(15deg);animation-timing-function:cubic-bezier(.4,0,.5,1)}62%{transform:perspective(1000px) rotateX(-6deg);animation-timing-function:cubic-bezier(.4,0,.5,1)}82%{transform:perspective(1000px) rotateX(2deg);animation-timing-function:cubic-bezier(.4,0,.5,1)}100%{opacity:1;transform:perspective(1000px) rotateX(0)}}
+@keyframes wmpr-slide{from{opacity:0;transform:translateX(-22px)}}
+@container (max-width:860px){
+.wmpr-head{flex-direction:column;align-items:flex-start}
+.wmpr-track{--vt:1;padding-left:40px}
+.wmpr-rail{left:6px;right:auto;top:0;bottom:0;width:1.5px;height:auto}
+.wmpr-cols{grid-template-columns:1fr;gap:22px}
+.wmpr-node{position:absolute;left:-40px;top:6px;margin:0}
+.wmpr-week{align-self:flex-start;padding:6px 14px}
+.wmpr-card{min-height:0;gap:22px}
+.wmpr-col.on .wmpr-card,.wmpr-col.on .wmpr-week{animation:wmpr-slide .8s var(--ease) backwards}
+.wmpr-col.on .wmpr-card{animation-delay:.08s}
 }
+`
 
 /**
  * @framerSupportedLayoutWidth fixed
@@ -369,28 +529,30 @@ export default function WMProcess(props: ProcessProps) {
     } = props
 
     const still = useStill()
-    const trackRef = React.useRef<HTMLDivElement>(null)
-    const { scrollYProgress } = useScroll({ target: trackRef, offset: ["start 88%", "end 62%"] })
-    const fill = useTransform(scrollYProgress, [0, 1], [0, 1])
     const n = Math.max(1, steps.length)
+    const t = useBallTrack(n, still)
+    const L = t.lay
 
     return (
-        <Section theme="cream" className="wmpr" css={PROCESS_CSS} style={style} label={headline}>
-            <div className="wm-wrap">
-                <Chrome label={tag} />
+        <Section theme="cream" className={"wmpr" + (still ? " still" : "") + (t.stage >= 1 && t.stage < 3 ? " hop" : "") + (t.stage === 3 && !still ? " done" : "")} css={PROCESS_CSS} style={style} label={headline}>
+            <div className="wm-wrap" ref={t.wrapRef}>
+                <div className="wmpr-tag" ref={t.chromeRef}>
+                    <Chrome label={tag} />
+                </div>
                 <div className="wmpr-head">
                     <Words as="h2" className="wmpr-h" text={headline} stagger={0.06} />
                     <Script className="wmpr-note" delay={0.6} rotate={-5}>
-                        {fillBlank(note)}
+                        {fill(note)}
                     </Script>
                 </div>
-                <div className="wmpr-track" ref={trackRef}>
+                <div className="wmpr-track" ref={t.trackRef}>
                     <span className="wmpr-rail" aria-hidden="true" />
-                    {still ? <span className="wmpr-fill" aria-hidden="true" /> : <motion.span className="wmpr-fill" aria-hidden="true" style={{ scaleX: fill }} />}
-                    <Stagger as="ol" className="wmpr-cols" step={0.09}>
+                    <ol className="wmpr-cols">
                         {steps.map((s, i) => (
-                            <li className="wmpr-col" key={i}>
-                                <Node progress={scrollYProgress} at={(i + 0.5) / n} still={still} />
+                            <li className={"wmpr-col" + (i < t.lit ? " on" : "") + (i === n - 1 && t.stage === 3 && !still ? " end" : "")} key={i}>
+                                <span className="wmpr-node" data-node="" aria-hidden="true">
+                                    <i />
+                                </span>
                                 <span className="wmpr-week">{s.week}</span>
                                 <div className="wmpr-card">
                                     <h3>{s.title}</h3>
@@ -398,15 +560,19 @@ export default function WMProcess(props: ProcessProps) {
                                 </div>
                             </li>
                         ))}
-                    </Stagger>
+                    </ol>
                 </div>
+                {L ? (
+                    <motion.span
+                        className="wmpr-fill"
+                        aria-hidden="true"
+                        style={L.v ? { left: L.s.x - 0.75, top: L.s.y, height: L.len, scaleY: t.along } : { left: L.s.x, top: L.s.y - 0.75, width: L.len, scaleX: t.along }}
+                    />
+                ) : null}
+                {!still ? <motion.span className="wmpr-ball" aria-hidden="true" style={{ x: t.x, y: t.y, scaleX: t.sx, scaleY: t.sy, opacity: t.o }} /> : null}
             </div>
         </Section>
     )
-}
-
-function fillBlank(t: string) {
-    return fill(t)
 }
 
 addPropertyControls(WMProcess, {

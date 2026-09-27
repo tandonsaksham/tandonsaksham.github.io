@@ -416,3 +416,214 @@ function useDrift(ref: React.RefObject<HTMLElement>, distance: number) {
 }
 
 const toneFor = (s: string): Tone | undefined => (s === "stone" || s === "red" || s === "mut" ? (s as Tone) : undefined)
+
+/** True on devices with a mouse or trackpad, where hover and cursor effects make sense. */
+function useFinePointer(): boolean {
+    const [fine, setFine] = React.useState(false)
+    React.useEffect(() => {
+        if (typeof window === "undefined" || !window.matchMedia) return
+        const mq = window.matchMedia("(hover: hover) and (pointer: fine)")
+        const sync = () => setFine(mq.matches)
+        sync()
+        if (mq.addEventListener) mq.addEventListener("change", sync)
+        return () => {
+            if (mq.removeEventListener) mq.removeEventListener("change", sync)
+        }
+    }, [])
+    return fine
+}
+
+const GRAIN_CSS = `
+.wm-grain{position:absolute;inset:-6%;z-index:3;pointer-events:none;opacity:var(--gr,.07);mix-blend-mode:overlay;
+background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
+animation:wm-grain .9s steps(5) infinite}
+.wm-grain.still{animation:none}
+@keyframes wm-grain{0%{transform:translate3d(0,0,0)}20%{transform:translate3d(-3%,2%,0)}40%{transform:translate3d(2%,-3%,0)}60%{transform:translate3d(-2%,-2%,0)}80%{transform:translate3d(3%,3%,0)}100%{transform:translate3d(0,0,0)}}
+@media (prefers-reduced-motion:reduce){.wm-grain{animation:none}}
+`
+
+/** Film grain for ink sections: a quiet texture that keeps flat colour from feeling digital. */
+function Grain(p: { still?: boolean; amount?: number }) {
+    return (
+        <div aria-hidden="true" className={"wm-grain" + (p.still ? " still" : "")} style={cssVars({ "--gr": p.amount ?? 0.07 })}>
+            <style>{GRAIN_CSS}</style>
+        </div>
+    )
+}
+
+type BallGeo = { v: boolean; dot: { x: number; y: number } | null; s: { x: number; y: number }; len: number; at: number[] }
+
+/** Timeline choreography for "How a campaign runs" and "The road ahead". The red dot of the section
+    tag hops down onto the rail, then rolls along it as you scroll; each step lights up and drops in as
+    the dot passes, and at the last step the dot settles into place. Progress only ever moves forward.
+    The rail runs across on wide layouts and down the left edge when the track stacks (--vt: 1). */
+function useBallTrack(count: number, still: boolean) {
+    const wrapRef = React.useRef<HTMLDivElement>(null)
+    const chromeRef = React.useRef<HTMLDivElement>(null)
+    const trackRef = React.useRef<HTMLDivElement>(null)
+    const geo = React.useRef<BallGeo | null>(null)
+    const phase = React.useRef(still ? 3 : 0)
+    const goal = React.useRef(0)
+    const litRef = React.useRef(still ? count : 0)
+    const [lay, setLay] = React.useState<BallGeo | null>(null)
+    const [lit, setLit] = React.useState(still ? count : 0)
+    const [stage, setStage] = React.useState(still ? 3 : 0)
+    const x = useMotionValue(0)
+    const y = useMotionValue(0)
+    const sx = useMotionValue(0.64)
+    const sy = useMotionValue(0.64)
+    const o = useMotionValue(0)
+    const along = useMotionValue(still ? 1 : 0)
+
+    React.useEffect(() => {
+        if (!still) return
+        phase.current = 3
+        litRef.current = count
+        setStage(3)
+        setLit(count)
+        along.set(1)
+    }, [still, count, along])
+
+    React.useEffect(() => {
+        const wrap = wrapRef.current
+        const track = trackRef.current
+        if (!wrap || !track) return
+        let raf = 0
+        const spring = { type: "spring" as const, stiffness: 70, damping: 17, mass: 1 }
+        const pointAt = (t: number) => {
+            const g = geo.current as BallGeo
+            return g.v ? { x: g.s.x, y: g.s.y + g.len * t } : { x: g.s.x + g.len * t, y: g.s.y }
+        }
+        const measure = () => {
+            const wr = wrap.getBoundingClientRect()
+            const nodes = Array.from(track.querySelectorAll<HTMLElement>("[data-node]"))
+            if (!nodes.length) return
+            const pts = nodes.map((el) => {
+                const r = el.getBoundingClientRect()
+                return { x: r.left + r.width / 2 - wr.left, y: r.top + r.height / 2 - wr.top }
+            })
+            const v = getComputedStyle(track).getPropertyValue("--vt").trim() === "1"
+            const tr = track.getBoundingClientRect()
+            const dotEl = chromeRef.current ? chromeRef.current.querySelector<HTMLElement>(".wm-dots i:last-child") : null
+            const dr = dotEl ? dotEl.getBoundingClientRect() : null
+            const s = v ? { x: pts[0].x, y: tr.top - wr.top } : { x: tr.left - wr.left, y: pts[0].y }
+            const last = pts[pts.length - 1]
+            const len = Math.max(1, v ? last.y - s.y : last.x - s.x)
+            geo.current = {
+                v,
+                dot: dr ? { x: dr.left + dr.width / 2 - wr.left, y: dr.top + dr.height / 2 - wr.top } : null,
+                s,
+                len,
+                at: pts.map((p) => (v ? p.y - s.y : p.x - s.x) / len),
+            }
+            setLay(geo.current)
+            if (phase.current >= 2) {
+                const p = pointAt(phase.current === 3 ? 1 : along.get())
+                x.set(p.x)
+                y.set(p.y)
+            }
+        }
+        const follow = () => {
+            if (phase.current !== 2 || !geo.current) return
+            const p = pointAt(goal.current)
+            animate(x, p.x, spring)
+            animate(y, p.y, spring)
+        }
+        const land = () => {
+            phase.current = 2
+            setStage(2)
+            follow()
+        }
+        const hop = () => {
+            const g = geo.current
+            if (!g) return
+            phase.current = 1
+            setStage(1)
+            const top = wrap.getBoundingClientRect().top
+            const d = g.dot
+            const L = pointAt(0)
+            o.set(1)
+            if (!d || top + d.y < 0 || top + d.y > window.innerHeight) {
+                x.set(L.x)
+                y.set(L.y)
+                sx.set(1)
+                sy.set(1)
+                land()
+                return
+            }
+            x.set(d.x)
+            y.set(d.y)
+            const T = 0.82
+            const peak = d.y - Math.min(64, Math.max(30, (L.y - d.y) * 0.2))
+            animate(sx, 1, { duration: T * 0.5 })
+            animate(sy, 1, { duration: T * 0.5 })
+            animate(x, [d.x, d.x - 12, L.x], { duration: T, times: [0, 0.34, 1], ease: ["easeOut", "easeInOut"] })
+            animate(y, [d.y, peak, L.y], { duration: T, times: [0, 0.34, 1], ease: ["easeOut", "easeIn"] }).then(() => {
+                animate(sx, [1.55, 0.88, 1.04, 1], { duration: 0.5, times: [0, 0.32, 0.68, 1] })
+                animate(sy, [0.52, 1.16, 0.97, 1], { duration: 0.5, times: [0, 0.32, 0.68, 1] })
+                land()
+            })
+        }
+        const read = () => {
+            raf = 0
+            const g = geo.current
+            if (!g || phase.current === 3) return
+            const vh = window.innerHeight
+            const wr = wrap.getBoundingClientRect()
+            const tr = track.getBoundingClientRect()
+            // Across: the dot finishes as the whole track comes into view. Down: it rides a line 80% down the screen.
+            let p = g.v ? (vh * 0.8 - (wr.top + g.s.y)) / g.len : (vh - tr.top) / (vh * 0.08 + tr.height)
+            p = Math.max(0, Math.min(1, p))
+            // Near the very end of a page there may be no room left to scroll, so finish the run there.
+            if (tr.top < vh && window.scrollY + vh >= document.documentElement.scrollHeight - 4) p = 1
+            if (phase.current === 0 && tr.top < vh * 0.98) hop()
+            if (p > goal.current) {
+                goal.current = p
+                follow()
+            }
+        }
+        const onScroll = () => {
+            if (!raf) raf = requestAnimationFrame(read)
+        }
+        const watch = () => {
+            const g = geo.current
+            if (!g || phase.current !== 2) return
+            const t = Math.max(0, Math.min(1, g.v ? (y.get() - g.s.y) / g.len : (x.get() - g.s.x) / g.len))
+            along.set(t)
+            const n = g.at.filter((a) => t >= a - 0.003).length
+            if (n !== litRef.current) {
+                litRef.current = n
+                setLit(n)
+            }
+            if (t >= 0.997) {
+                phase.current = 3
+                setStage(3)
+                along.set(1)
+                animate(sx, 0, { duration: 0.35, delay: 0.1 })
+                animate(sy, 0, { duration: 0.35, delay: 0.1 })
+            }
+        }
+        measure()
+        const ro = new ResizeObserver(() => {
+            measure()
+            onScroll()
+        })
+        ro.observe(wrap)
+        if (still) return () => ro.disconnect()
+        const ux = x.on("change", watch)
+        const uy = y.on("change", watch)
+        window.addEventListener("scroll", onScroll, { passive: true })
+        window.addEventListener("resize", onScroll)
+        onScroll()
+        return () => {
+            cancelAnimationFrame(raf)
+            ro.disconnect()
+            ux()
+            uy()
+            window.removeEventListener("scroll", onScroll)
+            window.removeEventListener("resize", onScroll)
+        }
+    }, [still, x, y, sx, sy, o, along])
+
+    return { wrapRef, chromeRef, trackRef, lay, lit, stage, x, y, sx, sy, o, along }
+}

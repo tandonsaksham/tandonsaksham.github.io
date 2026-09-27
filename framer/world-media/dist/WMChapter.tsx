@@ -1,9 +1,11 @@
 // User instructions: build the World Media website on world-class parameters while staying
 // true to the pitch deck — its colours, hand-drawn arrow markers and cursive notes.
 // Award-level but classy animation, classy-yet-fun fonts, image placeholders left blank.
-// This file: the chapter opener used five times (01 The shift … 05 What's next). Giant
-// vermilion numeral, spaced label across it, the stack of short lines whose vermilion line
-// marks the chapter's position, and the long rule dividing headline from body.
+// This file: the chapter opener used five times (01 The shift … 05 What's next). The giant
+// vermilion numeral is cut into eleven slices that fly in from alternating sides and lock
+// together over a faint outline of itself. The cursor smears the slices sideways like wet paint
+// and they spring back; scrolling sends a ripple through them. The spaced label blurs into focus,
+// the stack of short lines marks the chapter's position, and the long rule divides headline from body.
 
 import * as React from "react"
 import { addPropertyControls, ControlType, useIsStaticRenderer } from "framer"
@@ -270,6 +272,40 @@ function useDrift(ref: React.RefObject<HTMLElement>, distance: number) {
     return useTransform(scrollYProgress, [0, 1], still ? [0, 0] : [distance, -distance])
 }
 
+/** True on devices with a mouse or trackpad, where hover and cursor effects make sense. */
+function useFinePointer(): boolean {
+    const [fine, setFine] = React.useState(false)
+    React.useEffect(() => {
+        if (typeof window === "undefined" || !window.matchMedia) return
+        const mq = window.matchMedia("(hover: hover) and (pointer: fine)")
+        const sync = () => setFine(mq.matches)
+        sync()
+        if (mq.addEventListener) mq.addEventListener("change", sync)
+        return () => {
+            if (mq.removeEventListener) mq.removeEventListener("change", sync)
+        }
+    }, [])
+    return fine
+}
+
+const GRAIN_CSS = `
+.wm-grain{position:absolute;inset:-6%;z-index:3;pointer-events:none;opacity:var(--gr,.07);mix-blend-mode:overlay;
+background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
+animation:wm-grain .9s steps(5) infinite}
+.wm-grain.still{animation:none}
+@keyframes wm-grain{0%{transform:translate3d(0,0,0)}20%{transform:translate3d(-3%,2%,0)}40%{transform:translate3d(2%,-3%,0)}60%{transform:translate3d(-2%,-2%,0)}80%{transform:translate3d(3%,3%,0)}100%{transform:translate3d(0,0,0)}}
+@media (prefers-reduced-motion:reduce){.wm-grain{animation:none}}
+`
+
+/** Film grain for ink sections: a quiet texture that keeps flat colour from feeling digital. */
+function Grain(p: { still?: boolean; amount?: number }) {
+    return (
+        <div aria-hidden="true" className={"wm-grain" + (p.still ? " still" : "")} style={cssVars({ "--gr": p.amount ?? 0.07 })}>
+            <style>{GRAIN_CSS}</style>
+        </div>
+    )
+}
+
 type ChapterProps = {
     number: string
     label: string
@@ -279,6 +315,8 @@ type ChapterProps = {
     anchor: string
     style?: React.CSSProperties
 }
+
+const SLICES = 11
 
 const CHAPTER_CSS = `
 .wmc.wm-sec{background:radial-gradient(60% 55% at 70% 52%,rgba(242,238,229,.05),rgba(242,238,229,.018) 55%,transparent 88%),var(--ink)}
@@ -291,13 +329,18 @@ const CHAPTER_CSS = `
 .wmc-lines i.on{height:2px;width:100%;background:var(--red)}
 .wmc-lines.wm-in i{transform:none}
 .wmc-drift{position:relative;z-index:0}
-.wmc-digits{display:flex;font-weight:800;font-size:clamp(150px,24cqw,380px);line-height:.78;letter-spacing:-.06em;color:var(--red)}
-.wmc-d{display:inline-block;overflow:hidden;padding:.06em .02em .04em;margin:-.06em -.02em -.04em}
-.wmc-d span{display:inline-block;transform:translate3d(0,105%,0);transition:transform 1.3s var(--ease);transition-delay:calc(var(--k) * .1s)}
-.wmc-digits.wm-in .wmc-d span{transform:none}
-.wmc-label{position:absolute;left:clamp(80px,10cqw,160px);top:50%;transform:translateY(-50%);z-index:2;white-space:nowrap;font-weight:300;font-size:clamp(14px,1.55cqw,23px);text-transform:uppercase;letter-spacing:.34em;color:var(--cream);
-opacity:0;letter-spacing:.7em;transition:opacity 1.2s var(--ease) .5s,letter-spacing 1.6s var(--ease) .5s}
-.wmc-label.wm-in{opacity:1;letter-spacing:.34em}
+.wmc-obj{position:relative;display:block;font-weight:800;font-size:clamp(150px,24cqw,380px);line-height:.78;letter-spacing:-.06em;color:var(--red);--sh:calc(.9em / 11)}
+.wmc-size{display:block;visibility:hidden;white-space:nowrap;padding:.08em .03em .04em}
+.wmc-ghost{position:absolute;left:0;top:0;white-space:nowrap;padding:.08em .03em .04em;color:transparent;-webkit-text-stroke:1.5px rgba(233,67,27,.45);opacity:0;transform:translate3d(.07em,.07em,0);transition:opacity 1.2s var(--ease) .95s,transform 1.8s var(--ease) .95s}
+.wmc-obj.wm-in .wmc-ghost{opacity:1;transform:translate3d(.035em,.035em,0)}
+.wmc-slice{position:absolute;left:-.25em;right:-.25em;top:calc(var(--k) * var(--sh));height:calc(var(--sh) + 1px);overflow:hidden;will-change:transform}
+.wmc-sl{position:absolute;left:.25em;top:calc(var(--k) * var(--sh) * -1);white-space:nowrap;padding:.08em .03em .04em;transform:translate3d(calc(var(--dir) * 140%),0,0);transition:transform 1.35s cubic-bezier(.16,1,.3,1);transition-delay:calc(60ms + var(--k) * 55ms)}
+.wmc-obj.wm-in .wmc-sl{transform:none}
+.wmc-obj.wm-now .wmc-sl,.wmc-obj.wm-now .wmc-ghost{transition:none}
+.wmc-label{position:absolute;left:clamp(80px,10cqw,160px);top:50%;transform:translateY(-50%);z-index:2;white-space:nowrap;font-weight:300;font-size:clamp(14px,1.55cqw,23px);text-transform:uppercase;letter-spacing:.34em;color:var(--cream);pointer-events:none}
+.wmc-label>span{display:inline-block;opacity:0;filter:blur(10px);transform:translate3d(0,.45em,0);transition:opacity .9s var(--ease),filter 1.1s var(--ease),transform 1.1s var(--ease);transition-delay:calc(.8s + var(--k) * 45ms)}
+.wmc-label.wm-in>span{opacity:1;filter:blur(0);transform:none}
+.wmc-label.wm-now>span{transition:none}
 .wmc-text{position:relative;z-index:1;display:grid;grid-template-rows:1fr 1fr}
 .wmc-h{align-self:end;padding-bottom:clamp(28px,3.4cqw,52px);font-weight:760;font-size:clamp(30px,3.7cqw,58px);line-height:1;letter-spacing:-.035em;max-width:14em}
 .wmc-b{align-self:start;padding-top:clamp(20px,2.2cqw,32px);max-width:34em;color:var(--mut)}
@@ -305,12 +348,13 @@ opacity:0;letter-spacing:.7em;transition:opacity 1.2s var(--ease) .5s,letter-spa
 .wmc-grid{grid-template-columns:1fr;gap:28px}
 .wmc-rule{top:clamp(75px,24cqw,190px)}
 .wmc-num{min-height:0;padding-left:clamp(48px,14cqw,72px)}
-.wmc-digits{font-size:clamp(130px,40cqw,300px)}
+.wmc-obj{font-size:clamp(130px,40cqw,300px)}
 .wmc-label{left:clamp(64px,20cqw,110px)}
 .wmc-text{grid-template-rows:auto auto}
 .wmc-h{padding-bottom:16px}.wmc-b{padding-top:0}
 }
 @container (max-width:560px){.wmc-h br{display:none}}
+@media (prefers-reduced-motion:reduce){.wmc-sl,.wmc-lines i{transform:none!important}.wmc-ghost{opacity:1!important}.wmc-label>span{opacity:1!important;filter:none!important;transform:none!important}}
 `
 
 /**
@@ -328,16 +372,98 @@ export default function WMChapter(props: ChapterProps) {
         style,
     } = props
 
+    const still = useStill()
+    const fine = useFinePointer()
     const pos = Math.max(1, Math.min(total, parseInt(number, 10) || 1))
     const numRef = React.useRef<HTMLDivElement>(null)
     const drift = useDrift(numRef, 28)
     const [linesRef, linesIn] = useIn<HTMLDivElement>(0.5)
-    const [digitsRef, digitsIn] = useIn<HTMLDivElement>(0.4)
+    const [objRef, objIn] = useIn<HTMLDivElement>(0.35)
     const [labelRef, labelIn] = useIn<HTMLSpanElement>(0.5)
-    const digits = Array.from(number)
+    const slices = React.useRef<(HTMLDivElement | null)[]>([])
+
+    // Wet-paint slices: the cursor's sideways speed pushes nearby slices, scroll speed sends a ripple
+    // down them, and each slice springs back on its own.
+    React.useEffect(() => {
+        const obj = objRef.current
+        const sec = obj ? (obj.closest("section") as HTMLElement | null) : null
+        if (!obj || !sec || still) return
+        const off = new Float32Array(SLICES)
+        const vel = new Float32Array(SLICES)
+        let raf = 0
+        let last = 0
+        let lx: number | null = null
+        const run = (now: number) => {
+            const dt = Math.min(0.034, (now - last) / 1000 || 0.016)
+            last = now
+            let busy = false
+            for (let i = 0; i < SLICES; i++) {
+                vel[i] += (-190 * off[i] - 13 * vel[i]) * dt
+                off[i] = Math.max(-140, Math.min(140, off[i] + vel[i] * dt))
+                if (Math.abs(off[i]) > 0.2 || Math.abs(vel[i]) > 2) busy = true
+                else {
+                    off[i] = 0
+                    vel[i] = 0
+                }
+                const el = slices.current[i]
+                if (el) el.style.transform = off[i] ? "translate3d(" + off[i].toFixed(2) + "px,0,0)" : ""
+            }
+            raf = busy ? requestAnimationFrame(run) : 0
+        }
+        const kick = () => {
+            if (!raf) {
+                last = performance.now()
+                raf = requestAnimationFrame(run)
+            }
+        }
+        const onMove = (e: PointerEvent) => {
+            if (e.pointerType !== "mouse") return
+            const dx = lx === null ? 0 : e.clientX - lx
+            lx = e.clientX
+            const r = obj.getBoundingClientRect()
+            if (!dx || e.clientY < r.top - 60 || e.clientY > r.bottom + 60) return
+            const y = e.clientY - r.top
+            const h = r.height / SLICES
+            const sig = r.height * 0.13
+            const push = Math.max(-40, Math.min(40, dx)) * 9
+            for (let i = 0; i < SLICES; i++) {
+                const d = y - (i + 0.5) * h
+                vel[i] += push * Math.exp(-(d * d) / (2 * sig * sig))
+            }
+            kick()
+        }
+        const onLeave = () => {
+            lx = null
+        }
+        let sy = window.scrollY
+        const onScroll = () => {
+            const ny = window.scrollY
+            const dy = Math.max(-80, Math.min(80, ny - sy))
+            sy = ny
+            const r = obj.getBoundingClientRect()
+            if (!dy || r.bottom < 0 || r.top > window.innerHeight) return
+            for (let i = 0; i < SLICES; i++) vel[i] += Math.sin(i * 0.9 + ny * 0.01) * dy * 5
+            kick()
+        }
+        if (fine) {
+            sec.addEventListener("pointermove", onMove)
+            sec.addEventListener("pointerleave", onLeave)
+        }
+        window.addEventListener("scroll", onScroll, { passive: true })
+        return () => {
+            cancelAnimationFrame(raf)
+            sec.removeEventListener("pointermove", onMove)
+            sec.removeEventListener("pointerleave", onLeave)
+            window.removeEventListener("scroll", onScroll)
+            slices.current.forEach((el) => {
+                if (el) el.style.transform = ""
+            })
+        }
+    }, [still, fine])
 
     return (
         <Section theme="ink" id={anchor} className="wmc" css={CHAPTER_CSS} style={style} label={"Chapter " + number + " — " + label}>
+            <Grain still={still} amount={0.06} />
             <div className="wm-wrap">
                 <div className="wmc-grid">
                     <Rule className="wmc-rule" delay={0.35} />
@@ -348,16 +474,29 @@ export default function WMChapter(props: ChapterProps) {
                             ))}
                         </div>
                         <motion.div className="wmc-drift" style={{ y: drift }}>
-                            <div ref={digitsRef} className={"wmc-digits" + digitsIn} aria-hidden="true">
-                                {digits.map((d, k) => (
-                                    <span className="wmc-d" key={k}>
-                                        <span style={cssVars({ "--k": k })}>{d}</span>
-                                    </span>
+                            <div ref={objRef} className={"wmc-obj" + objIn} aria-hidden="true">
+                                <span className="wmc-ghost">{number}</span>
+                                <span className="wmc-size">{number}</span>
+                                {Array.from({ length: SLICES }).map((_, k) => (
+                                    <div
+                                        className="wmc-slice"
+                                        key={k}
+                                        ref={(el) => {
+                                            slices.current[k] = el
+                                        }}
+                                        style={cssVars({ "--k": k, "--dir": k % 2 ? 1 : -1 })}
+                                    >
+                                        <span className="wmc-sl">{number}</span>
+                                    </div>
                                 ))}
                             </div>
                         </motion.div>
-                        <span ref={labelRef} className={"wmc-label" + labelIn}>
-                            {label}
+                        <span ref={labelRef} className={"wmc-label" + labelIn} aria-hidden="true">
+                            {Array.from(label).map((ch, k) => (
+                                <span key={k} style={cssVars({ "--k": k })}>
+                                    {ch === " " ? String.fromCharCode(160) : ch}
+                                </span>
+                            ))}
                         </span>
                     </div>
                     <div className="wmc-text">

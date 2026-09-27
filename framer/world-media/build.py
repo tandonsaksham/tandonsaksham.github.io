@@ -6,7 +6,7 @@ prelude = (root / "src/prelude.tsx").read_text()
 IMPORT_SPECS = [
     ("react-dom", ["createPortal"]),
     ("framer", ["addPropertyControls", "ControlType", "useIsStaticRenderer"]),
-    ("framer-motion", ["motion", "useInView", "useReducedMotion", "useScroll", "useTransform", "useSpring", "useMotionValue"]),
+    ("framer-motion", ["motion", "useInView", "useReducedMotion", "useScroll", "useTransform", "useSpring", "useMotionValue", "animate", "useAnimationFrame", "useVelocity"]),
 ]
 
 # Split the prelude into its header comment and top-level declaration blocks.
@@ -46,7 +46,8 @@ for f in sorted((root / "src/sections").glob("*.tsx")):
     used = words(kept + "\n" + body)
     imports = ['import * as React from "react"']
     for mod, names in IMPORT_SPECS:
-        use = [n for n in names if n in used]
+        # "animate" is also a JSX prop name, so only import it when it is called.
+        use = [n for n in names if n in used and (n != "animate" or re.search(r"\banimate\(", kept + body))]
         if use:
             imports.append("import { " + ", ".join(use) + ' } from "' + mod + '"')
     shared = header + "\n\n" + kept + "\n\n" if keep else ""
