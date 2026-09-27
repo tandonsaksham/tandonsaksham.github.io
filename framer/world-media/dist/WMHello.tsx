@@ -2,7 +2,8 @@
 // true to the pitch deck — its colours, hand-drawn arrow markers and cursive notes.
 // Award-level but classy animation, classy-yet-fun fonts, image placeholders left blank.
 // This file: slide 2, "00 — Hello". "hi, [brand]," with the cream block, the hooked arrow and
-// "here's our story, and where you fit into it", plus the chapter index that links down the page.
+// "here's our story, and where you fit into it". The chapter list from the slide lives in the
+// navigation's folder-tab index, so this section stays a short, personal greeting.
 
 import * as React from "react"
 import { addPropertyControls, ControlType, useIsStaticRenderer } from "framer"
@@ -46,6 +47,7 @@ background:var(--bg);color:var(--fg)}
 .wm-sec a{color:inherit;text-decoration:none}
 .wm-sec ::selection{background:var(--red);color:var(--ink)}
 .wm-wrap{position:relative;width:100%;max-width:1400px;margin:0 auto;padding:clamp(72px,8cqw,118px) clamp(20px,5.2cqw,80px) clamp(64px,7cqw,104px)}
+@container (max-width:640px){.wm-wrap{padding-top:58px;padding-bottom:54px}}
 .wm-mono{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:400;font-size:12px;letter-spacing:.02em;line-height:1.45}
 .wm-cap{text-transform:uppercase;letter-spacing:.08em}
 .wm-script{font-family:"Caveat","Bradley Hand","Segoe Print",cursive;font-weight:500;line-height:1.05;letter-spacing:.004em;font-size:clamp(20px,2.05cqw,30px);text-wrap:balance}
@@ -223,39 +225,6 @@ function Words(p: WordsProps) {
     )
 }
 
-type BoxProps = {
-    as?: any
-    className?: string
-    style?: React.CSSProperties
-    delay?: number
-    amount?: number
-    children?: React.ReactNode
-    [k: string]: any
-}
-
-/** Staggers its direct children in, one after another. */
-function Stagger(p: BoxProps & { step?: number }) {
-    const { as, className, style, delay, amount, children, step, ...rest } = p
-    const Tag = as || "div"
-    const [ref, inCls] = useIn<HTMLElement>(amount ?? 0.15)
-    let n = 0
-    const kids = React.Children.map(children, (child) => {
-        if (!React.isValidElement(child)) return child
-        const el = child as React.ReactElement<any>
-        return React.cloneElement(el, { style: { ...(el.props.style || {}), ...cssVars({ "--i": n++ }) } })
-    })
-    return (
-        <Tag
-            ref={ref}
-            className={"wm-stag " + (className || "") + inCls}
-            style={{ ...cssVars({ "--d0": (delay || 0) + "s", "--st": (step ?? 0.09) + "s" }), ...style }}
-            {...rest}
-        >
-            {kids}
-        </Tag>
-    )
-}
-
 type ScriptProps = {
     children?: React.ReactNode
     className?: string
@@ -316,16 +285,6 @@ function Arrow(p: ArrowProps) {
     )
 }
 
-/** Crisp long arrow used in links — grows on hover. */
-function LineArrow(p: { style?: React.CSSProperties }) {
-    return (
-        <svg className="wm-arrowline" viewBox="0 0 60 16" preserveAspectRatio="xMaxYMid meet" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={p.style} aria-hidden="true">
-            <path d="M1 8 H58" />
-            <path d="M51 1.5 L58 8 L51 14.5" />
-        </svg>
-    )
-}
-
 /** The deck's cream label block behind a word — wipes on, then the word slides in. */
 function Mark(p: { children?: React.ReactNode; delay?: number; className?: string; style?: React.CSSProperties }) {
     const [ref, inCls] = useIn<HTMLSpanElement>(0.4)
@@ -352,37 +311,22 @@ function Chrome(p: { label: string; className?: string; style?: React.CSSPropert
     )
 }
 
-type HelloRow = { title: string; hint: string; href: string }
-
 type HelloProps = {
     tag: string
     hi: string
     name: string
     note: string
-    rows: HelloRow[]
     style?: React.CSSProperties
 }
 
 const HELLO_CSS = `
-.wmhi-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(40px,6cqw,110px);align-items:center;margin-top:clamp(40px,5cqw,72px)}
-.wmhi-big{font-weight:800;font-size:clamp(68px,10.2cqw,158px);line-height:.9;letter-spacing:-.05em;display:flex;flex-direction:column;align-items:flex-start}
-.wmhi-big .wm-mark{margin-top:.08em}
-.wmhi-noteRow{display:flex;align-items:flex-start;gap:clamp(8px,1cqw,16px);margin-top:clamp(18px,2.2cqw,30px);padding-left:.2em}
+.wmhi .wm-wrap{padding-bottom:clamp(56px,6.4cqw,104px)}
+.wmhi-grid{display:flex;flex-wrap:wrap;align-items:flex-end;column-gap:clamp(24px,3.4cqw,60px);row-gap:clamp(18px,2.4cqw,34px);margin-top:clamp(30px,3.8cqw,60px)}
+.wmhi-big{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:.2em;font-weight:800;font-size:clamp(68px,10.2cqw,158px);line-height:.9;letter-spacing:-.05em}
+.wmhi-noteRow{display:flex;align-items:flex-start;gap:clamp(8px,1cqw,16px);padding-bottom:clamp(6px,1.2cqw,20px)}
 .wmhi-noteRow svg{width:clamp(40px,4.6cqw,64px);flex:none;color:var(--cream);margin-top:-.2em}
-.wmhi-note{color:var(--cream);max-width:15em}
-.wmhi-list{border-top:1px solid var(--line)}
-.wmhi-row{position:relative;display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:14px;padding:clamp(15px,1.55cqw,21px) 4px;border-bottom:1px solid var(--line);cursor:pointer}
-.wmhi-n{font-family:"DM Mono",ui-monospace,monospace;font-size:12px;color:var(--red)}
-.wmhi-t{font-weight:720;font-size:clamp(20px,2.05cqw,30px);letter-spacing:-.025em;line-height:1.05;transition:transform .6s var(--ease)}
-.wmhi-h{font-size:13.5px;color:var(--mut);white-space:nowrap;transition:opacity .4s,transform .6s var(--ease)}
-.wmhi-go{position:absolute;right:4px;top:50%;margin-top:-.45em;color:var(--red);font-size:20px;opacity:0;transform:translateX(-18px);transition:opacity .4s,transform .6s var(--ease)}
-.wmhi-row::before{content:"";position:absolute;left:0;right:0;top:-1px;height:1px;background:var(--cream);transform:scaleX(0);transform-origin:0 50%;transition:transform .8s var(--ease)}
-.wmhi-row:hover::before,.wmhi-row:focus-visible::before{transform:scaleX(1)}
-.wmhi-row:hover .wmhi-t,.wmhi-row:focus-visible .wmhi-t{transform:translateX(12px)}
-.wmhi-row:hover .wmhi-h,.wmhi-row:focus-visible .wmhi-h{opacity:0;transform:translateX(12px)}
-.wmhi-row:hover .wmhi-go,.wmhi-row:focus-visible .wmhi-go{opacity:1;transform:none}
-@container (max-width:820px){.wmhi-grid{grid-template-columns:1fr}.wmhi-row{grid-template-columns:36px 1fr auto}}
-@container (max-width:480px){.wmhi-h{display:none}}
+.wmhi-note{color:var(--cream);max-width:11.5em}
+@container (max-width:820px){.wmhi-big{flex-direction:column;align-items:flex-start}.wmhi-big .wm-mark{margin-top:.08em}.wmhi-note{max-width:15em}}
 `
 
 /**
@@ -395,14 +339,6 @@ export default function WMHello(props: HelloProps) {
         hi = "hi,",
         name = "[brand],",
         note = "here's our story, and where you fit into it",
-        rows = [
-            { title: "The shift", hint: "why now", href: "#the-shift" },
-            { title: "Who we are", hint: "belief, crew", href: "#who-we-are" },
-            { title: "What we do", hint: "services, process", href: "#what-we-do" },
-            { title: "What we've done", hint: "case files", href: "#the-work" },
-            { title: "What's next", hint: "vision, 90 days", href: "#whats-next" },
-            { title: "Let's talk", hint: "contact", href: "#lets-talk" },
-        ],
         style,
     } = props
 
@@ -411,34 +347,16 @@ export default function WMHello(props: HelloProps) {
             <div className="wm-wrap">
                 <Chrome label={tag} />
                 <div className="wmhi-grid">
-                    <div>
-                        <h2 className="wmhi-big" aria-label={hi + " " + name}>
-                            <Words text={hi} stagger={0.05} />
-                            <Mark delay={0.35}>{name}</Mark>
-                        </h2>
-                        <div className="wmhi-noteRow">
-                            <Arrow kind="hook" delay={0.9} stroke={3} />
-                            <Script className="wmhi-note" delay={1.25} rotate={-3}>
-                                {note}
-                            </Script>
-                        </div>
+                    <h2 className="wmhi-big" aria-label={hi + " " + name}>
+                        <Words text={hi} stagger={0.05} />
+                        <Mark delay={0.35}>{name}</Mark>
+                    </h2>
+                    <div className="wmhi-noteRow">
+                        <Arrow kind="hook" delay={0.9} stroke={3} />
+                        <Script className="wmhi-note" delay={1.25} rotate={-3}>
+                            {note}
+                        </Script>
                     </div>
-                    <nav aria-label="Chapters">
-                        <Stagger as="ol" className="wmhi-list" step={0.075} delay={0.2}>
-                            {rows.map((r, i) => (
-                                <li key={i}>
-                                    <a className="wmhi-row" href={r.href}>
-                                        <span className="wmhi-n">{String(i + 1).padStart(2, "0")}</span>
-                                        <span className="wmhi-t">{r.title}</span>
-                                        <span className="wmhi-h">{r.hint}</span>
-                                        <span className="wmhi-go" aria-hidden="true">
-                                            <LineArrow />
-                                        </span>
-                                    </a>
-                                </li>
-                            ))}
-                        </Stagger>
-                    </nav>
                 </div>
             </div>
         </Section>
@@ -450,24 +368,4 @@ addPropertyControls(WMHello, {
     hi: { type: ControlType.String, title: "Greeting", defaultValue: "hi," },
     name: { type: ControlType.String, title: "Name (block)", defaultValue: "[brand]," },
     note: { type: ControlType.String, title: "Handwritten", defaultValue: "here's our story, and where you fit into it" },
-    rows: {
-        type: ControlType.Array,
-        title: "Chapters",
-        control: {
-            type: ControlType.Object,
-            controls: {
-                title: { type: ControlType.String, title: "Title" },
-                hint: { type: ControlType.String, title: "Hint" },
-                href: { type: ControlType.String, title: "Link (#id)" },
-            },
-        },
-        defaultValue: [
-            { title: "The shift", hint: "why now", href: "#the-shift" },
-            { title: "Who we are", hint: "belief, crew", href: "#who-we-are" },
-            { title: "What we do", hint: "services, process", href: "#what-we-do" },
-            { title: "What we've done", hint: "case files", href: "#the-work" },
-            { title: "What's next", hint: "vision, 90 days", href: "#whats-next" },
-            { title: "Let's talk", hint: "contact", href: "#lets-talk" },
-        ],
-    },
 })

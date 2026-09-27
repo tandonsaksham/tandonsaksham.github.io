@@ -47,6 +47,7 @@ background:var(--bg);color:var(--fg)}
 .wm-sec a{color:inherit;text-decoration:none}
 .wm-sec ::selection{background:var(--red);color:var(--ink)}
 .wm-wrap{position:relative;width:100%;max-width:1400px;margin:0 auto;padding:clamp(72px,8cqw,118px) clamp(20px,5.2cqw,80px) clamp(64px,7cqw,104px)}
+@container (max-width:640px){.wm-wrap{padding-top:58px;padding-bottom:54px}}
 .wm-mono{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:400;font-size:12px;letter-spacing:.02em;line-height:1.45}
 .wm-cap{text-transform:uppercase;letter-spacing:.08em}
 .wm-script{font-family:"Caveat","Bradley Hand","Segoe Print",cursive;font-weight:500;line-height:1.05;letter-spacing:.004em;font-size:clamp(20px,2.05cqw,30px);text-wrap:balance}
@@ -505,6 +506,7 @@ const VISION_CSS = `
 .wmv-col.on .wmv-card,.wmv-col.on .wmv-year{animation:wmv-slide .8s var(--ease) backwards}
 .wmv-col.on .wmv-card{animation-delay:.08s}
 }
+@container (max-width:640px){.wmv-track{margin-top:30px}.wmv-cols{gap:14px}.wmv-card{gap:14px;padding:16px 16px 18px}}
 `
 
 /**

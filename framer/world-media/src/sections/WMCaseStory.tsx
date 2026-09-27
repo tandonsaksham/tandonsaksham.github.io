@@ -54,6 +54,7 @@ transform:rotate(-4deg);transition:transform .9s cubic-bezier(.34,1.56,.64,1)}
 .wmst-phone figcaption>span{display:block;font-size:12.5px;color:var(--mut);margin-top:2px}
 @container (max-width:860px){.wmst-grid{grid-template-columns:1fr}.wmst-note{left:12px}}
 @container (max-width:560px){.wmst-phone b{font-size:12px;overflow-wrap:anywhere}.wmst-phone figcaption>span{font-size:11.5px}}
+@container (max-width:640px){.wmst-grid{gap:26px}.wmst-rows{margin-top:18px}.wmst-row{padding:12px 0}.wmst-panel{aspect-ratio:4/3.1}.wmst-note{bottom:24px;padding:16px 20px 14px}}
 `
 
 /**

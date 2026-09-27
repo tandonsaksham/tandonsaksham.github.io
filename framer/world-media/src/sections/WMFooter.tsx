@@ -36,6 +36,7 @@ const FOOTER_CSS = `
 .wmf-bottom{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:18px 0 28px;border-top:1px solid var(--line)}
 .wmf-note{color:var(--red);font-size:clamp(19px,1.7cqw,24px)}
 @container (max-width:820px){.wmf-cols{grid-template-columns:1fr 1fr}.wmf-topcol{grid-column:1/-1}}
+@container (max-width:640px){.wmf .wm-wrap{padding-top:52px}.wmf-cols{row-gap:30px}.wmf-mark{margin-top:44px}}
 `
 
 /**

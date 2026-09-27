@@ -8,6 +8,7 @@
 // it fills. Each belief card strikes through the problem it fixes (cast by follower count, then
 // Cast for trust) and carries a small line icon that draws itself: a community with a
 // heartbeat and a double check, a story pinned so it sticks, a rupee measured on a ruler.
+// On phones the cards become a swipeable strip and each icon draws as its card comes forward.
 //@@ BODY
 
 type BeliefIcon = "trust" | "stick" | "rupee" | "none"
@@ -69,7 +70,8 @@ transition:transform .8s var(--ease-io);transition-delay:calc(1s + var(--i,0) * 
 @keyframes bi-pin{0%{opacity:0;transform:translateY(-16px)}40%{opacity:1;transform:none;animation-timing-function:ease-out}55%{transform:translateY(-4px);animation-timing-function:ease-in}70%,100%{transform:none}}
 @keyframes bi-wob{0%{transform:none}25%{transform:rotate(-7deg)}50%{transform:rotate(4deg)}75%{transform:rotate(-2deg)}100%{transform:none}}
 @keyframes bi-slide{from{transform:translateX(-32px)}}
-@container (max-width:820px){.wmb-cards{grid-template-columns:1fr}.wmb-top{flex-direction:column}.wmb-card{min-height:0}.wmb-head{padding-bottom:30px}}
+@container (max-width:820px){.wmb-top{flex-direction:column}.wmb-card{min-height:0}.wmb-head{padding-bottom:22px}}
+@container (max-width:640px){.wmb-cards{margin-top:34px}.wmb-card:hover{transform:none;box-shadow:none}}
 `
 
 function ScrubWord(p: { progress: any; from: number; to: number; still: boolean; children: React.ReactNode }) {
@@ -84,7 +86,7 @@ function BeliefGlyph(p: { kind: BeliefIcon; replay: boolean }) {
     const style = p.replay ? cssVars({ "--b": "0s", "--i": 0 }) : undefined
     if (p.kind === "trust")
         return (
-            <svg className="wmb-ico" viewBox="0 0 56 56" aria-hidden="true" style={style}>
+            <svg className="wmb-ico wm-replay" viewBox="0 0 56 56" aria-hidden="true" style={style}>
                 <path className="d" pathLength={1} style={k(1)} d="M10.5 28 a4 4 0 1 0 8 0 a4 4 0 1 0 -8 0" />
                 <path className="d" pathLength={1} style={k(1)} d="M7 40 C 7 34.5, 22 34.5, 22 40" />
                 <path className="d" pathLength={1} style={k(2)} d="M37.5 28 a4 4 0 1 0 8 0 a4 4 0 1 0 -8 0" />
@@ -98,7 +100,7 @@ function BeliefGlyph(p: { kind: BeliefIcon; replay: boolean }) {
         )
     if (p.kind === "stick")
         return (
-            <svg className="wmb-ico" viewBox="0 0 56 56" aria-hidden="true" style={style}>
+            <svg className="wmb-ico wm-replay" viewBox="0 0 56 56" aria-hidden="true" style={style}>
                 <g className="card">
                     <path className="d" pathLength={1} d="M18 14 H38 A4 4 0 0 1 42 18 V46 A4 4 0 0 1 38 50 H18 A4 4 0 0 1 14 46 V18 A4 4 0 0 1 18 14 Z" />
                     <path className="d" pathLength={1} style={k(2)} d="M20 21 H36 V33 H20 Z" />
@@ -113,7 +115,7 @@ function BeliefGlyph(p: { kind: BeliefIcon; replay: boolean }) {
         )
     if (p.kind === "rupee")
         return (
-            <svg className="wmb-ico" viewBox="0 0 56 56" aria-hidden="true" style={style}>
+            <svg className="wmb-ico wm-replay" viewBox="0 0 56 56" aria-hidden="true" style={style}>
                 <path className="a d" pathLength={1} style={k(1)} d="M19 9 H37" strokeWidth={2} />
                 <path className="a d" pathLength={1} style={k(2)} d="M19 15 H37" strokeWidth={2} />
                 <path className="a d" pathLength={1} style={k(3)} d="M23 9 C 33 9, 33 21, 23 21 H19.5 L34 34" strokeWidth={2} />
@@ -180,7 +182,7 @@ export default function WMBelief(props: BeliefProps) {
     const ulDraw = useTransform(scrollYProgress, [Math.max(0, ul) / n, Math.min(1, (Math.max(0, ul) + 1.8) / n)], [0, 1])
 
     return (
-        <Section theme="cream" className="wmb" css={PEN_CSS + BELIEF_CSS} style={style} label={tag}>
+        <Section theme="cream" className="wmb" css={PEN_CSS + BELIEF_CSS + SWIPE_CSS} style={style} label={tag}>
             <div className="wm-wrap">
                 <div className="wmb-top">
                     <Chrome label={tag} />
@@ -223,11 +225,12 @@ export default function WMBelief(props: BeliefProps) {
                         ))}
                     </span>
                 </p>
-                <Stagger className={"wmb-cards" + (still ? " wm-now" : "")} step={0.1}>
+                <Stagger className={"wmb-cards wm-swipe" + (still ? " wm-now" : "")} step={0.1}>
                     {cards.map((c, i) => (
                         <BeliefCard key={i} c={c} i={i} still={still} fine={fine} />
                     ))}
                 </Stagger>
+                <SwipeUI hint="swipe" />
             </div>
         </Section>
     )

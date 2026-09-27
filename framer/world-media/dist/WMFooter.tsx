@@ -42,6 +42,7 @@ background:var(--bg);color:var(--fg)}
 .wm-sec a{color:inherit;text-decoration:none}
 .wm-sec ::selection{background:var(--red);color:var(--ink)}
 .wm-wrap{position:relative;width:100%;max-width:1400px;margin:0 auto;padding:clamp(72px,8cqw,118px) clamp(20px,5.2cqw,80px) clamp(64px,7cqw,104px)}
+@container (max-width:640px){.wm-wrap{padding-top:58px;padding-bottom:54px}}
 .wm-mono{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:400;font-size:12px;letter-spacing:.02em;line-height:1.45}
 .wm-cap{text-transform:uppercase;letter-spacing:.08em}
 .wm-script{font-family:"Caveat","Bradley Hand","Segoe Print",cursive;font-weight:500;line-height:1.05;letter-spacing:.004em;font-size:clamp(20px,2.05cqw,30px);text-wrap:balance}
@@ -261,6 +262,7 @@ const FOOTER_CSS = `
 .wmf-bottom{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:18px 0 28px;border-top:1px solid var(--line)}
 .wmf-note{color:var(--red);font-size:clamp(19px,1.7cqw,24px)}
 @container (max-width:820px){.wmf-cols{grid-template-columns:1fr 1fr}.wmf-topcol{grid-column:1/-1}}
+@container (max-width:640px){.wmf .wm-wrap{padding-top:52px}.wmf-cols{row-gap:30px}.wmf-mark{margin-top:44px}}
 `
 
 /**

@@ -5,7 +5,8 @@
 // This file: slide 9, "One roof, six capabilities." — a living bento. The cards are dealt onto
 // the table, each one draws a small animated diagram of what the capability does (and replays it
 // on hover), tilts toward the cursor under a soft spotlight, and the vermilion "Let's talk" card
-// carries a spinning badge.
+// carries a spinning badge. On phones the cards become a swipeable strip and each diagram plays
+// as its card comes to the front.
 //@@ BODY
 
 type ServiceVisual = "strategy" | "casting" | "studio" | "ops" | "amplify" | "insights" | "none"
@@ -30,7 +31,7 @@ const SERVICES_CSS = `
 @keyframes wms-deal{0%{opacity:0;translate:0 120px;rotate:var(--rot,0deg);scale:.86}40%{opacity:1}}
 .wms-card::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(340px circle at var(--mx,50%) var(--my,0%),rgba(255,255,255,.58),rgba(255,255,255,0) 62%);opacity:0;transition:opacity .45s}
 .wms-card:hover::after{opacity:1}
-.wms-grid:has(.wms-card:hover) .wms-card:not(:hover){filter:brightness(.74) saturate(.9)}
+@media (hover:hover){.wms-grid:has(.wms-card:hover) .wms-card:not(:hover){filter:brightness(.74) saturate(.9)}}
 .wms-card.w{grid-column:span 2;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);grid-template-rows:auto 1fr;column-gap:clamp(18px,2.2cqw,36px)}
 .wms-card.w .wms-l{grid-column:1;grid-row:1}
 .wms-card.w .wms-txt{grid-column:1;grid-row:2;align-self:end}
@@ -94,7 +95,7 @@ const SERVICES_CSS = `
 @keyframes wv-ping{from{transform:scale(1);opacity:.8}to{transform:scale(3.2);opacity:0}}
 @media (prefers-reduced-motion:reduce){.wms-card{opacity:1}}
 @container (max-width:900px){.wms-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.wms-card.on{animation-delay:0s}}
-@container (max-width:560px){.wms-grid{grid-template-columns:1fr}.wms-card{min-height:0}.wms-card.w{grid-column:auto;display:flex}.wms-viz{min-height:130px}.wms .wms-talk{min-height:200px}}
+@container (max-width:640px){.wms-grid{margin-top:26px}.wms-card,.wms-card.on{opacity:1;animation:none;min-height:0}.wms-card.w{grid-column:auto;display:flex}.wms-viz{min-height:150px}.wms .wms-talk{order:99;min-height:0}.wms-b{font-size:14px}}
 `
 
 function VizStrategy() {
@@ -440,7 +441,7 @@ export default function WMServices(props: ServicesProps) {
                     <>
                         <span className="wms-l">( {letters[i] || "·"} )</span>
                         {kind !== "none" ? (
-                            <div className="wms-viz" key={run}>
+                            <div className="wms-viz wm-replay" key={run}>
                                 <Viz kind={kind} id={uid + "g" + i} />
                             </div>
                         ) : null}
@@ -455,11 +456,12 @@ export default function WMServices(props: ServicesProps) {
     })
 
     return (
-        <Section theme="ink" className="wms" css={SERVICES_CSS} style={style} label={headline}>
+        <Section theme="ink" className="wms" css={SERVICES_CSS + SWIPE_CSS} style={style} label={headline}>
             <div className="wm-wrap">
                 <Chrome label={tag} />
                 <Words as="h2" className="wms-h" text={headline} stagger={0.05} />
-                <div className="wms-grid">{cards}</div>
+                <div className="wms-grid wm-swipe">{cards}</div>
+                <SwipeUI hint="swipe" />
             </div>
         </Section>
     )

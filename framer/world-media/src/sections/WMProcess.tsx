@@ -159,6 +159,7 @@ const PROCESS_CSS = `
 .wmpr-col.on .wmpr-card,.wmpr-col.on .wmpr-week{animation:wmpr-slide .8s var(--ease) backwards}
 .wmpr-col.on .wmpr-card{animation-delay:.08s}
 }
+@container (max-width:640px){.wmpr-track{margin-top:30px}.wmpr-cols{gap:14px}.wmpr-card{gap:12px;padding:16px 16px 18px}.wmpr-week{margin-bottom:8px}.wmpr-ico{width:42px;top:12px;right:14px}}
 `
 
 /**

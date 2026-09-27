@@ -30,6 +30,7 @@ const SUM_CSS = `
 .wmsu-tile.dark .wmsu-pill{background:var(--red);color:var(--ink)}
 .wmsu-v{align-self:flex-end;font-weight:800;font-size:clamp(46px,5.6cqw,86px);letter-spacing:-.05em;line-height:.88}
 @container (max-width:860px){.wmsu-grid{grid-template-columns:1fr}}
+@container (max-width:640px){.wmsu-grid{gap:26px}.wmsu-left{gap:18px}.wmsu-h{font-size:44px}.wmsu-tile{min-height:142px}}
 `
 
 /**

@@ -47,6 +47,7 @@ background:var(--bg);color:var(--fg)}
 .wm-sec a{color:inherit;text-decoration:none}
 .wm-sec ::selection{background:var(--red);color:var(--ink)}
 .wm-wrap{position:relative;width:100%;max-width:1400px;margin:0 auto;padding:clamp(72px,8cqw,118px) clamp(20px,5.2cqw,80px) clamp(64px,7cqw,104px)}
+@container (max-width:640px){.wm-wrap{padding-top:58px;padding-bottom:54px}}
 .wm-mono{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:400;font-size:12px;letter-spacing:.02em;line-height:1.45}
 .wm-cap{text-transform:uppercase;letter-spacing:.08em}
 .wm-script{font-family:"Caveat","Bradley Hand","Segoe Print",cursive;font-weight:500;line-height:1.05;letter-spacing:.004em;font-size:clamp(20px,2.05cqw,30px);text-wrap:balance}
@@ -394,6 +395,7 @@ box-shadow:0 30px 50px -28px rgba(0,0,0,.7);transform:rotate(3deg);transition:tr
 .wmcr-in{opacity:0;transform:translateY(40px) rotate(12deg);transition:opacity .8s var(--ease),transform 1.2s cubic-bezier(.34,1.56,.64,1);transition-delay:.35s}
 .wmcr-in.wm-in{opacity:1;transform:none}
 @container (max-width:900px){.wmcr-grid{grid-template-columns:1fr}.wmcr-right{grid-template-columns:1fr}.wmcr-sticky{max-width:320px}}
+@container (max-width:640px){.wmcr-grid{margin-top:26px;gap:30px}.wmcr-big{flex-direction:row;flex-wrap:wrap;align-items:baseline;column-gap:.2em}.wmcr-big .wm-mark{margin-top:0}.wmcr-noteRow{margin-top:14px}}
 @container (max-width:560px){.wmcr-people{gap:8px}.wmcr-col{gap:12px}.wmcr-col.c2{padding-top:32px}.wmcr-p b{font-size:12px}.wmcr-p figcaption>span{font-size:11px}}
 `
 

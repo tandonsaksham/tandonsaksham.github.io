@@ -49,6 +49,7 @@ background:var(--bg);color:var(--fg)}
 .wm-sec a{color:inherit;text-decoration:none}
 .wm-sec ::selection{background:var(--red);color:var(--ink)}
 .wm-wrap{position:relative;width:100%;max-width:1400px;margin:0 auto;padding:clamp(72px,8cqw,118px) clamp(20px,5.2cqw,80px) clamp(64px,7cqw,104px)}
+@container (max-width:640px){.wm-wrap{padding-top:58px;padding-bottom:54px}}
 .wm-mono{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:400;font-size:12px;letter-spacing:.02em;line-height:1.45}
 .wm-cap{text-transform:uppercase;letter-spacing:.08em}
 .wm-script{font-family:"Caveat","Bradley Hand","Segoe Print",cursive;font-weight:500;line-height:1.05;letter-spacing:.004em;font-size:clamp(20px,2.05cqw,30px);text-wrap:balance}
@@ -355,6 +356,7 @@ const CHAPTER_CSS = `
 }
 @container (max-width:560px){.wmc-h br{display:none}}
 @media (prefers-reduced-motion:reduce){.wmc-sl,.wmc-lines i{transform:none!important}.wmc-ghost{opacity:1!important}.wmc-label>span{opacity:1!important;filter:none!important;transform:none!important}}
+@container (max-width:640px){.wmc .wm-wrap{padding-top:64px;padding-bottom:64px}.wmc-grid{gap:22px}.wmc-obj{font-size:34cqw}.wmc-rule{top:20.4cqw}.wmc-label{left:17cqw}}
 `
 
 /**

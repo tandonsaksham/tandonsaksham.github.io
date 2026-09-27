@@ -63,6 +63,7 @@ const VISION_CSS = `
 .wmv-col.on .wmv-card,.wmv-col.on .wmv-year{animation:wmv-slide .8s var(--ease) backwards}
 .wmv-col.on .wmv-card{animation-delay:.08s}
 }
+@container (max-width:640px){.wmv-track{margin-top:30px}.wmv-cols{gap:14px}.wmv-card{gap:14px;padding:16px 16px 18px}}
 `
 
 /**

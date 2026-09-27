@@ -49,6 +49,7 @@ background:var(--bg);color:var(--fg)}
 .wm-sec a{color:inherit;text-decoration:none}
 .wm-sec ::selection{background:var(--red);color:var(--ink)}
 .wm-wrap{position:relative;width:100%;max-width:1400px;margin:0 auto;padding:clamp(72px,8cqw,118px) clamp(20px,5.2cqw,80px) clamp(64px,7cqw,104px)}
+@container (max-width:640px){.wm-wrap{padding-top:58px;padding-bottom:54px}}
 .wm-mono{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:400;font-size:12px;letter-spacing:.02em;line-height:1.45}
 .wm-cap{text-transform:uppercase;letter-spacing:.08em}
 .wm-script{font-family:"Caveat","Bradley Hand","Segoe Print",cursive;font-weight:500;line-height:1.05;letter-spacing:.004em;font-size:clamp(20px,2.05cqw,30px);text-wrap:balance}
@@ -617,6 +618,7 @@ const PROCESS_CSS = `
 .wmpr-col.on .wmpr-card,.wmpr-col.on .wmpr-week{animation:wmpr-slide .8s var(--ease) backwards}
 .wmpr-col.on .wmpr-card{animation-delay:.08s}
 }
+@container (max-width:640px){.wmpr-track{margin-top:30px}.wmpr-cols{gap:14px}.wmpr-card{gap:12px;padding:16px 16px 18px}.wmpr-week{margin-bottom:8px}.wmpr-ico{width:42px;top:12px;right:14px}}
 `
 
 /**

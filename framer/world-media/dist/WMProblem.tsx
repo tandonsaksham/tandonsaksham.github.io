@@ -1,11 +1,11 @@
 // User instructions: build the World Media website on world-class parameters while staying
 // true to the pitch deck — its colours, hand-drawn arrow markers and cursive notes.
 // Award-level but classy animation, classy-yet-fun fonts, image placeholders left blank.
-// This file: slide 4, "The problem". The two-tone headline rises in, then a vermilion pen
-// circles "buys followers" and underlines "hopes for the best." like an editor marking up a
-// draft. Each of the three failures comes with a small animated exhibit: a big follower count
-// whose crowd turns out to be mostly hollow, one post that spikes and flatlines, and a report
-// of vanity numbers that gets "so what?" stamped on it. Hover a row to replay its exhibit.
+// This file: slide 4, "The problem". The two-tone headline rises in, then each of the three
+// failures comes with a small animated exhibit: a big follower count whose crowd turns out to
+// be mostly hollow, one post that spikes and flatlines, and a report of vanity numbers that
+// gets "so what?" stamped on it. Hover a row to replay its exhibit. Kept compact: rows beside
+// the headline on desktop, three cards in a row on tablets, a swipeable card strip on phones.
 
 import * as React from "react"
 import { addPropertyControls, ControlType, useIsStaticRenderer } from "framer"
@@ -23,6 +23,10 @@ import { motion, useInView, useReducedMotion, useTransform, useMotionValue, anim
    ─────────────────────────────────────────────────────────────────────────────── */
 
 type Theme = "ink" | "cream" | "red"
+
+type Tone = "stone" | "red" | "mut" | "fg" | "ink" | "cream"
+
+type Part = { t: string; c?: Tone }
 
 const FONT_HREF =
     "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Caveat:wght@400..700&family=DM+Mono:wght@300;400;500&display=swap"
@@ -45,6 +49,7 @@ background:var(--bg);color:var(--fg)}
 .wm-sec a{color:inherit;text-decoration:none}
 .wm-sec ::selection{background:var(--red);color:var(--ink)}
 .wm-wrap{position:relative;width:100%;max-width:1400px;margin:0 auto;padding:clamp(72px,8cqw,118px) clamp(20px,5.2cqw,80px) clamp(64px,7cqw,104px)}
+@container (max-width:640px){.wm-wrap{padding-top:58px;padding-bottom:54px}}
 .wm-mono{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:400;font-size:12px;letter-spacing:.02em;line-height:1.45}
 .wm-cap{text-transform:uppercase;letter-spacing:.08em}
 .wm-script{font-family:"Caveat","Bradley Hand","Segoe Print",cursive;font-weight:500;line-height:1.05;letter-spacing:.004em;font-size:clamp(20px,2.05cqw,30px);text-wrap:balance}
@@ -180,6 +185,54 @@ function fill(text: string): React.ReactNode {
     return out
 }
 
+type WordsProps = {
+    text?: string
+    parts?: Part[]
+    as?: any
+    className?: string
+    style?: React.CSSProperties
+    delay?: number
+    stagger?: number
+    amount?: number
+}
+
+/** Word-by-word masked rise. "\n" in the text forces a line break. */
+function Words(p: WordsProps) {
+    const Tag = p.as || "span"
+    const parts: Part[] = p.parts && p.parts.length ? p.parts : [{ t: p.text || "" }]
+    const [ref, inCls] = useIn<HTMLElement>(p.amount ?? 0.3)
+    const delay = p.delay ?? 0
+    const stagger = p.stagger ?? 0.055
+    let i = 0
+    const full = parts.map((x) => x.t).join("").replace(/\n/g, " ")
+    return (
+        <Tag ref={ref} className={"wm-rv " + (p.className || "") + inCls} style={p.style} aria-label={full}>
+            {parts.map((part, pi) =>
+                part.t.split(/(\s+)/).map((w, wi) => {
+                    if (!w) return null
+                    if (/^\s+$/.test(w))
+                        return w.indexOf("\n") > -1 ? (
+                            <React.Fragment key={pi + "-" + wi}>
+                                {" "}
+                                <br />
+                            </React.Fragment>
+                        ) : (
+                            <React.Fragment key={pi + "-" + wi}> </React.Fragment>
+                        )
+                    const d = delay + i++ * stagger
+                    return (
+                        <span className="wm-w" aria-hidden="true" key={pi + "-" + wi}>
+                            <span className={part.c ? "wm-" + part.c : undefined} style={cssVars({ "--d": d.toFixed(3) + "s" })}>
+                                {fill(w)}
+                            </span>
+                        </span>
+                    )
+                })
+            )}
+        </Tag>
+    )
+}
+
 type BoxProps = {
     as?: any
     className?: string
@@ -271,89 +324,118 @@ function useFinePointer(): boolean {
     return fine
 }
 
-const PEN_CSS = `
-.wm-pen{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;mix-blend-mode:multiply}
-.wm-pen path{fill:none;stroke:var(--red);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1}
-.wm-pen:not(.live) path{stroke-dashoffset:1;transition:stroke-dashoffset 1.25s cubic-bezier(.55,0,.25,1);transition-delay:var(--d,0s)}
-.wm-pen.on path{stroke-dashoffset:0}
-@media (prefers-reduced-motion:reduce){.wm-pen path{stroke-dashoffset:0!important}}
+const SWIPE_CSS = `
+.wm-swipe-ui{display:none}
+@container (max-width:640px){
+.wm-sec .wm-swipe{--gut:clamp(20px,5.2cqw,80px);position:relative;display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;grid-template-columns:none!important;gap:12px!important;
+overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scroll-padding-inline:var(--gut);
+margin-left:calc(-1 * var(--gut))!important;margin-right:calc(-1 * var(--gut))!important;padding:6px var(--gut) 16px!important;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.wm-sec .wm-swipe::-webkit-scrollbar{display:none}
+.wm-sec .wm-swipe>*{flex:0 0 var(--card,84%)!important;max-width:360px;min-width:0;grid-column:auto!important;grid-row:auto!important;scroll-snap-align:start;scale:calc(.94 + .06 * var(--sf,1))}
+.wm-sec .wm-swipe.nudge{animation:wm-nudge 1.3s var(--ease) .2s 1 both}
+.wm-swipe-ui{display:flex;align-items:center;gap:12px;margin-top:2px}
+.wm-swipe-ui[data-off="1"]{display:none}
+.wm-swipe-n{flex:none;font-family:"DM Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.04em;color:var(--mut)}
+.wm-swipe-n b{font-weight:400;color:var(--fg)}
+.wm-swipe-bar{position:relative;flex:1;height:2px;border-radius:2px;background:var(--line);overflow:hidden}
+.wm-swipe-bar i{position:absolute;left:0;top:0;bottom:0;width:calc(var(--sw,.3) * 100%);border-radius:2px;background:var(--red);translate:calc(var(--sx,0) * (1 / var(--sw,.3) - 1) * 100%) 0}
+.wm-swipe-hint{flex:none;font-size:19px!important;color:var(--red);transition:opacity .5s var(--ease),translate .5s var(--ease)}
+.wm-swipe-ui[data-moved="1"] .wm-swipe-hint{opacity:0;translate:10px 0}
+.wm-sec .wm-swipe>:not([data-front]) .wm-replay,.wm-sec .wm-swipe>:not([data-front]) .wm-replay *{animation-name:none!important}
+.wm-sec .wm-swipe .wm-rise.wm-in{animation-delay:.05s!important}
+.wm-sec .wm-swipe .wm-stag.wm-in>*{animation-delay:calc(.08s + var(--i,0) * .04s)!important}
+}
+@keyframes wm-nudge{0%,100%{translate:0}38%{translate:-44px}70%{translate:5px}}
+@media (prefers-reduced-motion:reduce){.wm-sec .wm-swipe.nudge{animation:none}.wm-sec .wm-swipe>*{scale:none}}
 `
 
-/** Catmull-Rom through the points, as a smooth SVG path. */
-function smoothPath(pts: number[][]): string {
-    const f = (v: number) => v.toFixed(1)
-    let d = "M" + f(pts[0][0]) + " " + f(pts[0][1])
-    for (let i = 0; i < pts.length - 1; i++) {
-        const a = pts[i - 1] || pts[i]
-        const b = pts[i]
-        const c = pts[i + 1]
-        const e = pts[i + 2] || c
-        d += " C" + [b[0] + (c[0] - a[0]) / 6, b[1] + (c[1] - a[1]) / 6, c[0] - (e[0] - b[0]) / 6, c[1] - (e[1] - b[1]) / 6, c[0], c[1]].map(f).join(" ")
-    }
-    return d
-}
-
-/** A quick pen loop around a w×h box: a little more than one turn, tightening as it closes. */
-function penLoop(w: number, h: number): string {
-    const cx = w / 2
-    const cy = h / 2 + h * 0.03
-    const rx = w / 2 + Math.max(9, h * 0.15)
-    const ry = h / 2 + Math.max(6, h * 0.1)
-    const pts: number[][] = []
-    for (let i = 0; i <= 48; i++) {
-        const t = i / 48
-        const a = Math.PI * 1.1 + Math.PI * 2.16 * t
-        const k = 1 + 0.03 * Math.sin(t * Math.PI * 3 + 0.8) - 0.07 * t
-        pts.push([cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k * (1 - 0.1 * t)])
-    }
-    return smoothPath(pts)
-}
-
-/** A fast underline along the foot of a w×h box that flicks back on itself at the end. It stays
-    inside the box's own line so it never runs into the line below. */
-function penUnder(w: number, h: number): string {
-    const y = h * 0.88
-    const pts: number[][] = []
-    for (let i = 0; i <= 20; i++) {
-        const t = i / 20
-        pts.push([-6 + (w + 12) * t, y + Math.sin(t * Math.PI * 2.1) * Math.max(1.4, h * 0.02) + t * h * 0.03])
-    }
-    for (let i = 1; i <= 10; i++) {
-        const t = i / 10
-        pts.push([w + 6 - w * 0.7 * t, y + h * 0.075 + Math.sin(t * Math.PI) * h * 0.015 - t * h * 0.02])
-    }
-    return smoothPath(pts)
-}
-
-/** Hand-drawn vermilion pen mark in or around its parent, which must be an inline-block phrase.
-    "loop" circles it, "under" underlines it. The path is built in the parent's own pixels so
-    the stroke stays even at any size. It draws on when `on` is set, or tracks `draw` (0 to 1). */
-function PenMark(p: { kind: "loop" | "under"; on?: boolean; draw?: any; delay?: number }) {
-    const ref = React.useRef<SVGSVGElement>(null)
-    const [box, setBox] = React.useState<number[] | null>(null)
-    const zero = useMotionValue(0)
-    const offset = useTransform(p.draw || zero, [0, 1], [1, 0])
+/** Counter, progress line and hint for the swipe list just before it (a list with the wm-swipe class).
+    On narrow screens that list becomes a snap-scrolling strip with the next card peeking in; the card in
+    front sits full size and the others step back a touch, and anything inside a card marked wm-replay
+    plays its animation again each time that card comes to the front. The first time the strip comes
+    into view it nudges sideways once to show it can be swiped. On wide screens this renders nothing visible. */
+function SwipeUI(p: { hint?: string }) {
+    const ref = React.useRef<HTMLDivElement>(null)
+    const still = useStill()
+    const [pos, setPos] = React.useState([1, 1])
     React.useEffect(() => {
-        const host = ref.current ? (ref.current.parentElement as HTMLElement | null) : null
-        if (!host) return
-        const m = () => setBox([host.offsetWidth, host.offsetHeight])
-        m()
-        const ro = new ResizeObserver(m)
-        ro.observe(host)
-        return () => ro.disconnect()
-    }, [])
-    const d = box ? (p.kind === "loop" ? penLoop(box[0], box[1]) : penUnder(box[0], box[1])) : ""
+        const ui = ref.current
+        const track = ui ? (ui.previousElementSibling as HTMLElement | null) : null
+        if (!ui || !track) return
+        let raf = 0
+        const update = () => {
+            raf = 0
+            const kids = (Array.from(track.children) as HTMLElement[]).sort((a, b) => a.offsetLeft - b.offsetLeft)
+            const max = track.scrollWidth - track.clientWidth
+            if (max <= 2 || !kids.length) {
+                ui.setAttribute("data-off", "1")
+                kids.forEach((k) => {
+                    k.style.removeProperty("--sf")
+                    k.removeAttribute("data-front")
+                })
+                return
+            }
+            ui.setAttribute("data-off", "")
+            const sl = track.scrollLeft
+            const pad = parseFloat(getComputedStyle(track).scrollPaddingLeft) || 0
+            let cur = 0
+            let best = 1e9
+            kids.forEach((k, i) => {
+                const d = Math.abs(k.offsetLeft - pad - sl)
+                if (d < best) {
+                    best = d
+                    cur = i
+                }
+                if (!still) k.style.setProperty("--sf", Math.max(0, 1 - d / Math.max(1, k.offsetWidth)).toFixed(3))
+            })
+            if (sl >= max - 2) cur = kids.length - 1
+            kids.forEach((k, i) => {
+                if (i === cur) k.setAttribute("data-front", "")
+                else k.removeAttribute("data-front")
+            })
+            ui.style.setProperty("--sx", (sl / max).toFixed(4))
+            ui.style.setProperty("--sw", (track.clientWidth / track.scrollWidth).toFixed(4))
+            setPos((o) => (o[0] === cur + 1 && o[1] === kids.length ? o : [cur + 1, kids.length]))
+        }
+        const onScroll = () => {
+            if (track.scrollLeft > 8) ui.setAttribute("data-moved", "1")
+            if (!raf) raf = requestAnimationFrame(update)
+        }
+        const ro = new ResizeObserver(onScroll)
+        ro.observe(track)
+        track.addEventListener("scroll", onScroll, { passive: true })
+        onScroll()
+        let io: IntersectionObserver | null = null
+        if (!still && typeof IntersectionObserver !== "undefined") {
+            io = new IntersectionObserver(
+                (es) => {
+                    if (!es[0].isIntersecting || ui.getAttribute("data-off") === "1") return
+                    track.classList.add("nudge")
+                    track.addEventListener("animationend", () => track.classList.remove("nudge"), { once: true })
+                    if (io) io.disconnect()
+                },
+                { threshold: 0.6 }
+            )
+            io.observe(track)
+        }
+        return () => {
+            cancelAnimationFrame(raf)
+            ro.disconnect()
+            if (io) io.disconnect()
+            track.removeEventListener("scroll", onScroll)
+        }
+    }, [still])
+    const two = (n: number) => String(n).padStart(2, "0")
     return (
-        <svg
-            ref={ref}
-            className={"wm-pen" + (p.draw ? " live" : p.on ? " on" : "")}
-            width={box ? box[0] : 1}
-            height={box ? box[1] : 1}
-            viewBox={box ? "0 0 " + box[0] + " " + box[1] : "0 0 1 1"}
-            aria-hidden="true"
-        >
-            {d ? p.draw ? <motion.path d={d} pathLength={1} style={{ strokeDashoffset: offset }} /> : <path d={d} pathLength={1} style={cssVars({ "--d": (p.delay || 0) + "s" })} /> : null}
-        </svg>
+        <div ref={ref} className="wm-swipe-ui" data-off="1" aria-hidden="true">
+            <span className="wm-swipe-n">
+                <b>{two(pos[0])}</b> / {two(pos[1])}
+            </span>
+            <span className="wm-swipe-bar">
+                <i />
+            </span>
+            {p.hint ? <span className="wm-swipe-hint wm-script">{p.hint}</span> : null}
+        </div>
     )
 }
 
@@ -365,8 +447,6 @@ type ProblemProps = {
     tag: string
     lead: string
     rest: string
-    circle: string
-    underline: string
     note: string
     items: ProblemItem[]
     style?: React.CSSProperties
@@ -375,16 +455,16 @@ type ProblemProps = {
 const PROBLEM_VISUALS: ProblemVisual[] = ["crowd", "spike", "vanity"]
 
 const PROBLEM_CSS = `
-.wmp-grid{display:grid;grid-template-columns:minmax(0,1.14fr) minmax(0,1fr);gap:clamp(40px,5cqw,92px);align-items:start;margin-top:clamp(36px,4.4cqw,64px)}
+.wmp .wm-wrap{padding-top:clamp(64px,6.6cqw,100px);padding-bottom:clamp(56px,5.6cqw,88px)}
+.wmp-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(40px,5cqw,92px);align-items:start;margin-top:clamp(26px,3cqw,44px)}
 .wmp-h{font-weight:760;font-size:clamp(34px,4.45cqw,66px);line-height:1.04;letter-spacing:-.038em}
-.wmp-pen{position:relative;display:inline-block;white-space:nowrap}
-.wmp-note{display:inline-block;margin-top:clamp(28px,3.2cqw,48px);color:var(--red);font-size:clamp(22px,2.3cqw,34px)}
+.wmp-note{display:inline-block;margin-top:clamp(18px,2.2cqw,32px);color:var(--red);font-size:clamp(22px,2.3cqw,34px)}
 .wmp-list{display:flex;flex-direction:column}
-.wmp-row{position:relative;display:grid;grid-template-columns:36px minmax(0,1fr) clamp(128px,12cqw,172px);column-gap:clamp(12px,1.5cqw,24px);align-items:center;padding:clamp(20px,2.2cqw,30px) 0 clamp(22px,2.4cqw,32px)}
+.wmp-row{position:relative;display:grid;grid-template-columns:36px minmax(0,1fr) clamp(128px,12cqw,172px);column-gap:clamp(12px,1.5cqw,24px);align-items:center;padding:clamp(16px,1.6cqw,23px) 0 clamp(17px,1.7cqw,24px)}
 .wmp-row>.wm-hr{position:absolute;left:0;right:0;top:0}
 .wmp-n{align-self:start;font-family:"DM Mono",ui-monospace,monospace;font-size:12.5px;color:var(--red);padding-top:.5em}
 .wmp-txt{align-self:start}
-.wmp-t{margin-bottom:8px;font-size:clamp(19px,1.75cqw,25px)}
+.wmp-t{margin-bottom:6px;font-size:clamp(19px,1.75cqw,25px)}
 .wmp-b{color:var(--mut);max-width:30em}
 .wmp-x{position:relative;color:var(--ink);opacity:0;transform:translateY(14px);transition:opacity .8s var(--ease) .2s,transform 1s var(--ease) .2s}
 .wmp-row.on .wmp-x,.wmp-row.now .wmp-x{opacity:1;transform:none}
@@ -418,8 +498,20 @@ const PROBLEM_CSS = `
 @keyframes px-pop{from{transform:scale(0)}}
 @keyframes px-bar{from{transform:scaleX(0)}}
 @keyframes px-stamp{0%{opacity:0;transform:scale(1.9) rotate(-12deg)}100%{opacity:1;transform:none}}
-@container (max-width:1100px){.wmp-grid{grid-template-columns:1fr}.wmp-h{max-width:16em}}
-@container (max-width:560px){.wmp-row{grid-template-columns:34px minmax(0,1fr)}.wmp-x{grid-column:2;max-width:250px;margin-top:20px}}
+@container (max-width:1100px){
+.wmp-grid{grid-template-columns:1fr;gap:clamp(26px,3.4cqw,40px)}
+.wmp-head{display:flex;flex-wrap:wrap;align-items:flex-end;column-gap:28px}
+.wmp-h{max-width:17em}
+.wmp-note{margin-top:10px;padding-bottom:.2em}
+.wmp-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(10px,1.6cqw,16px)}
+.wmp-end,.wmp-row>.wm-hr{display:none}
+.wmp-row{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"x x" "n t";align-content:start;column-gap:10px;row-gap:14px;padding:16px 18px 20px;border:1px solid var(--line);border-radius:18px;background:var(--paper)}
+.wmp-x{grid-area:x;width:100%;max-width:236px;padding:4px 0 10px;border-bottom:1px dashed var(--line)}
+.wmp-n{grid-area:n;padding-top:.45em}
+.wmp-txt{grid-area:t}
+.wmp-t{font-size:clamp(18px,2.1cqw,21px)}
+.wmp-b{font-size:15px;line-height:1.5}
+}
 `
 
 /** Rolls a follower count up from zero once the exhibit is live. */
@@ -526,59 +618,6 @@ function Vanity() {
     )
 }
 
-type PenSeg = { t: string; mark?: "loop" | "under" }
-
-/** The two-tone headline with its pen marks. Each word rises in like the shared reveal. */
-function PenHeadline(p: { lead: string; rest: string; circle: string; underline: string; still: boolean }) {
-    const [ref, inCls] = useIn<HTMLHeadingElement>(0.3)
-    const on = inCls.indexOf("wm-in") > -1
-    const found = ([
-        [p.circle, "loop"],
-        [p.underline, "under"],
-    ] as [string, "loop" | "under"][])
-        .filter(([ph]) => ph && p.rest.indexOf(ph) > -1)
-        .map(([ph, kind]) => ({ at: p.rest.indexOf(ph), ph, kind }))
-        .sort((a, b) => a.at - b.at)
-    const segs: PenSeg[] = []
-    let pos = 0
-    found.forEach((f) => {
-        if (f.at < pos) return
-        if (f.at > pos) segs.push({ t: p.rest.slice(pos, f.at) })
-        segs.push({ t: f.ph, mark: f.kind })
-        pos = f.at + f.ph.length
-    })
-    if (pos < p.rest.length) segs.push({ t: p.rest.slice(pos) })
-    let n = 0
-    const words = (t: string, key: string, tone?: string) =>
-        t.split(/(\s+)/).map((w, i) => {
-            if (!w) return null
-            if (/^\s+$/.test(w)) return <React.Fragment key={key + i}> </React.Fragment>
-            const d = n++ * 0.045
-            return (
-                <span className="wm-w" aria-hidden="true" key={key + i}>
-                    <span className={tone} style={cssVars({ "--d": d.toFixed(3) + "s" })}>
-                        {fill(w)}
-                    </span>
-                </span>
-            )
-        })
-    return (
-        <h2 ref={ref} className={"wm-rv wmp-h" + inCls} aria-label={p.lead + " " + p.rest}>
-            {words(p.lead + " ", "l", "wm-stone")}
-            {segs.map((s, i) =>
-                s.mark ? (
-                    <span className="wmp-pen" key={"s" + i}>
-                        {words(s.t, "s" + i)}
-                        <PenMark kind={s.mark} on={on || p.still} delay={p.still ? 0 : s.mark === "loop" ? 1.05 : 1.6} />
-                    </span>
-                ) : (
-                    <React.Fragment key={"s" + i}>{words(s.t, "s" + i)}</React.Fragment>
-                )
-            )}
-        </h2>
-    )
-}
-
 function ProblemRow(p: { i: number; item: ProblemItem; still: boolean; fine: boolean }) {
     const ref = React.useRef<HTMLDivElement>(null)
     const seen = useInView(ref as React.RefObject<Element>, { once: true, amount: 0.45 })
@@ -599,7 +638,7 @@ function ProblemRow(p: { i: number; item: ProblemItem; still: boolean; fine: boo
                 <p className="wmp-b wm-body">{p.item.body}</p>
             </Rise>
             {kind !== "none" ? (
-                <div className="wmp-x" aria-hidden="true" key={run}>
+                <div className="wmp-x wm-replay" aria-hidden="true" key={run}>
                     {kind === "crowd" ? <Crowd on={on} still={p.still} /> : kind === "spike" ? <Spike /> : <Vanity />}
                 </div>
             ) : null}
@@ -616,8 +655,6 @@ export default function WMProblem(props: ProblemProps) {
         tag = "The problem",
         lead = "Yet most influencer marketing",
         rest = "still buys followers and hopes for the best.",
-        circle = "buys followers",
-        underline = "hopes for the best.",
         note = "sound familiar?",
         items = [
             { title: "Cast by follower count", body: "Big numbers, wrong audience. Reach that never turns into trust.", visual: "crowd" },
@@ -631,21 +668,24 @@ export default function WMProblem(props: ProblemProps) {
     const fine = useFinePointer()
 
     return (
-        <Section theme="cream" className={"wmp" + (still ? " still" : "")} css={PEN_CSS + PROBLEM_CSS} style={style} label={tag}>
+        <Section theme="cream" className={"wmp" + (still ? " still" : "")} css={PROBLEM_CSS + SWIPE_CSS} style={style} label={tag}>
             <div className="wm-wrap">
                 <Chrome label={tag} />
                 <div className="wmp-grid">
-                    <div>
-                        <PenHeadline lead={lead} rest={rest} circle={circle} underline={underline} still={still} />
-                        <Script className="wmp-note" delay={2.1} rotate={-5}>
+                    <div className="wmp-head">
+                        <Words as="h2" className="wmp-h" parts={[{ t: lead + " ", c: "stone" }, { t: rest }]} stagger={0.045} />
+                        <Script className="wmp-note" delay={1.2} rotate={-5}>
                             {note}
                         </Script>
                     </div>
-                    <div className="wmp-list">
-                        {items.map((it, i) => (
-                            <ProblemRow key={i} i={i} item={it} still={still} fine={fine} />
-                        ))}
-                        <Rule strong delay={0.1 + items.length * 0.12} />
+                    <div>
+                        <div className="wmp-list wm-swipe">
+                            {items.map((it, i) => (
+                                <ProblemRow key={i} i={i} item={it} still={still} fine={fine} />
+                            ))}
+                        </div>
+                        <SwipeUI hint="swipe" />
+                        <Rule strong delay={0.1 + items.length * 0.12} className="wmp-end" />
                     </div>
                 </div>
             </div>
@@ -657,8 +697,6 @@ addPropertyControls(WMProblem, {
     tag: { type: ControlType.String, title: "Tag", defaultValue: "The problem" },
     lead: { type: ControlType.String, title: "Lead (grey)", defaultValue: "Yet most influencer marketing" },
     rest: { type: ControlType.String, title: "Rest", displayTextArea: true, defaultValue: "still buys followers and hopes for the best." },
-    circle: { type: ControlType.String, title: "Pen circle", defaultValue: "buys followers" },
-    underline: { type: ControlType.String, title: "Pen underline", defaultValue: "hopes for the best." },
     note: { type: ControlType.String, title: "Handwritten", defaultValue: "sound familiar?" },
     items: {
         type: ControlType.Array,

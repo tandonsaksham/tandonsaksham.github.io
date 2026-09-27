@@ -31,6 +31,7 @@ const NINETY_CSS = `
 .wmn9-panel.dark p{color:rgba(242,238,229,.66)}
 .wmn9-note{display:inline-block;margin-top:clamp(22px,2.6cqw,36px);color:var(--red);font-size:clamp(22px,2.2cqw,32px)}
 @container (max-width:860px){.wmn9-grid{grid-template-columns:1fr}.wmn9-panel{min-height:0}}
+@container (max-width:640px){.wmn9-bar{margin-top:26px}.wmn9-grid{gap:8px}.wmn9-panel{padding:18px 20px 20px;gap:6px}.wmn9-panel h3{font-size:24px}.wmn9-panel p{font-size:14px}.wmn9-note{margin-top:18px}}
 `
 
 /**

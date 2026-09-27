@@ -58,6 +58,7 @@ const CHAPTER_CSS = `
 }
 @container (max-width:560px){.wmc-h br{display:none}}
 @media (prefers-reduced-motion:reduce){.wmc-sl,.wmc-lines i{transform:none!important}.wmc-ghost{opacity:1!important}.wmc-label>span{opacity:1!important;filter:none!important;transform:none!important}}
+@container (max-width:640px){.wmc .wm-wrap{padding-top:64px;padding-bottom:64px}.wmc-grid{gap:22px}.wmc-obj{font-size:34cqw}.wmc-rule{top:20.4cqw}.wmc-label{left:17cqw}}
 `
 
 /**

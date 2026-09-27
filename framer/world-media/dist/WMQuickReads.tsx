@@ -3,10 +3,11 @@
 // Award-level but classy animation, classy-yet-fun fonts, image placeholders left blank.
 // This file: slide 18, "The quick reads" — three short case cards (CF-003 to CF-005) with a
 // coloured top edge and two metrics each, plus "each one has a full file, just ask".
+// On phones the cards become a swipeable strip.
 
 import * as React from "react"
 import { addPropertyControls, ControlType, useIsStaticRenderer } from "framer"
-import { motion, useInView } from "framer-motion"
+import { motion, useInView, useReducedMotion } from "framer-motion"
 
 /* ───────────────────────── WORLD MEDIA · DESIGN SYSTEM ─────────────────────────
    Shared tokens and motion primitives. Framer code components must each be a
@@ -46,6 +47,7 @@ background:var(--bg);color:var(--fg)}
 .wm-sec a{color:inherit;text-decoration:none}
 .wm-sec ::selection{background:var(--red);color:var(--ink)}
 .wm-wrap{position:relative;width:100%;max-width:1400px;margin:0 auto;padding:clamp(72px,8cqw,118px) clamp(20px,5.2cqw,80px) clamp(64px,7cqw,104px)}
+@container (max-width:640px){.wm-wrap{padding-top:58px;padding-bottom:54px}}
 .wm-mono{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:400;font-size:12px;letter-spacing:.02em;line-height:1.45}
 .wm-cap{text-transform:uppercase;letter-spacing:.08em}
 .wm-script{font-family:"Caveat","Bradley Hand","Segoe Print",cursive;font-weight:500;line-height:1.05;letter-spacing:.004em;font-size:clamp(20px,2.05cqw,30px);text-wrap:balance}
@@ -111,6 +113,12 @@ background:var(--bg);color:var(--fg)}
 `
 
 const NOJS_CSS = `.wm-rv .wm-w>span,.wm-draw,.wm-mark>b,.wm-dots i,.wm-chrome .wm-pill{transform:none!important;opacity:1!important}.wm-rise,.wm-fade,.wm-stag>*{opacity:1!important;translate:none!important;animation:none!important}.wm-write,.wm-mark>span{clip-path:none!important}.wm-svg path{stroke-dashoffset:0!important}`
+
+function useStill(): boolean {
+    const isStatic = useIsStaticRenderer()
+    const reduce = useReducedMotion()
+    return isStatic || !!reduce
+}
 
 function useIn<T extends Element>(amount = 0.35): [React.RefObject<T>, string] {
     const ref = React.useRef<T>(null)
@@ -298,6 +306,121 @@ function Chrome(p: { label: string; className?: string; style?: React.CSSPropert
     )
 }
 
+const SWIPE_CSS = `
+.wm-swipe-ui{display:none}
+@container (max-width:640px){
+.wm-sec .wm-swipe{--gut:clamp(20px,5.2cqw,80px);position:relative;display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;grid-template-columns:none!important;gap:12px!important;
+overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scroll-padding-inline:var(--gut);
+margin-left:calc(-1 * var(--gut))!important;margin-right:calc(-1 * var(--gut))!important;padding:6px var(--gut) 16px!important;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.wm-sec .wm-swipe::-webkit-scrollbar{display:none}
+.wm-sec .wm-swipe>*{flex:0 0 var(--card,84%)!important;max-width:360px;min-width:0;grid-column:auto!important;grid-row:auto!important;scroll-snap-align:start;scale:calc(.94 + .06 * var(--sf,1))}
+.wm-sec .wm-swipe.nudge{animation:wm-nudge 1.3s var(--ease) .2s 1 both}
+.wm-swipe-ui{display:flex;align-items:center;gap:12px;margin-top:2px}
+.wm-swipe-ui[data-off="1"]{display:none}
+.wm-swipe-n{flex:none;font-family:"DM Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.04em;color:var(--mut)}
+.wm-swipe-n b{font-weight:400;color:var(--fg)}
+.wm-swipe-bar{position:relative;flex:1;height:2px;border-radius:2px;background:var(--line);overflow:hidden}
+.wm-swipe-bar i{position:absolute;left:0;top:0;bottom:0;width:calc(var(--sw,.3) * 100%);border-radius:2px;background:var(--red);translate:calc(var(--sx,0) * (1 / var(--sw,.3) - 1) * 100%) 0}
+.wm-swipe-hint{flex:none;font-size:19px!important;color:var(--red);transition:opacity .5s var(--ease),translate .5s var(--ease)}
+.wm-swipe-ui[data-moved="1"] .wm-swipe-hint{opacity:0;translate:10px 0}
+.wm-sec .wm-swipe>:not([data-front]) .wm-replay,.wm-sec .wm-swipe>:not([data-front]) .wm-replay *{animation-name:none!important}
+.wm-sec .wm-swipe .wm-rise.wm-in{animation-delay:.05s!important}
+.wm-sec .wm-swipe .wm-stag.wm-in>*{animation-delay:calc(.08s + var(--i,0) * .04s)!important}
+}
+@keyframes wm-nudge{0%,100%{translate:0}38%{translate:-44px}70%{translate:5px}}
+@media (prefers-reduced-motion:reduce){.wm-sec .wm-swipe.nudge{animation:none}.wm-sec .wm-swipe>*{scale:none}}
+`
+
+/** Counter, progress line and hint for the swipe list just before it (a list with the wm-swipe class).
+    On narrow screens that list becomes a snap-scrolling strip with the next card peeking in; the card in
+    front sits full size and the others step back a touch, and anything inside a card marked wm-replay
+    plays its animation again each time that card comes to the front. The first time the strip comes
+    into view it nudges sideways once to show it can be swiped. On wide screens this renders nothing visible. */
+function SwipeUI(p: { hint?: string }) {
+    const ref = React.useRef<HTMLDivElement>(null)
+    const still = useStill()
+    const [pos, setPos] = React.useState([1, 1])
+    React.useEffect(() => {
+        const ui = ref.current
+        const track = ui ? (ui.previousElementSibling as HTMLElement | null) : null
+        if (!ui || !track) return
+        let raf = 0
+        const update = () => {
+            raf = 0
+            const kids = (Array.from(track.children) as HTMLElement[]).sort((a, b) => a.offsetLeft - b.offsetLeft)
+            const max = track.scrollWidth - track.clientWidth
+            if (max <= 2 || !kids.length) {
+                ui.setAttribute("data-off", "1")
+                kids.forEach((k) => {
+                    k.style.removeProperty("--sf")
+                    k.removeAttribute("data-front")
+                })
+                return
+            }
+            ui.setAttribute("data-off", "")
+            const sl = track.scrollLeft
+            const pad = parseFloat(getComputedStyle(track).scrollPaddingLeft) || 0
+            let cur = 0
+            let best = 1e9
+            kids.forEach((k, i) => {
+                const d = Math.abs(k.offsetLeft - pad - sl)
+                if (d < best) {
+                    best = d
+                    cur = i
+                }
+                if (!still) k.style.setProperty("--sf", Math.max(0, 1 - d / Math.max(1, k.offsetWidth)).toFixed(3))
+            })
+            if (sl >= max - 2) cur = kids.length - 1
+            kids.forEach((k, i) => {
+                if (i === cur) k.setAttribute("data-front", "")
+                else k.removeAttribute("data-front")
+            })
+            ui.style.setProperty("--sx", (sl / max).toFixed(4))
+            ui.style.setProperty("--sw", (track.clientWidth / track.scrollWidth).toFixed(4))
+            setPos((o) => (o[0] === cur + 1 && o[1] === kids.length ? o : [cur + 1, kids.length]))
+        }
+        const onScroll = () => {
+            if (track.scrollLeft > 8) ui.setAttribute("data-moved", "1")
+            if (!raf) raf = requestAnimationFrame(update)
+        }
+        const ro = new ResizeObserver(onScroll)
+        ro.observe(track)
+        track.addEventListener("scroll", onScroll, { passive: true })
+        onScroll()
+        let io: IntersectionObserver | null = null
+        if (!still && typeof IntersectionObserver !== "undefined") {
+            io = new IntersectionObserver(
+                (es) => {
+                    if (!es[0].isIntersecting || ui.getAttribute("data-off") === "1") return
+                    track.classList.add("nudge")
+                    track.addEventListener("animationend", () => track.classList.remove("nudge"), { once: true })
+                    if (io) io.disconnect()
+                },
+                { threshold: 0.6 }
+            )
+            io.observe(track)
+        }
+        return () => {
+            cancelAnimationFrame(raf)
+            ro.disconnect()
+            if (io) io.disconnect()
+            track.removeEventListener("scroll", onScroll)
+        }
+    }, [still])
+    const two = (n: number) => String(n).padStart(2, "0")
+    return (
+        <div ref={ref} className="wm-swipe-ui" data-off="1" aria-hidden="true">
+            <span className="wm-swipe-n">
+                <b>{two(pos[0])}</b> / {two(pos[1])}
+            </span>
+            <span className="wm-swipe-bar">
+                <i />
+            </span>
+            {p.hint ? <span className="wm-swipe-hint wm-script">{p.hint}</span> : null}
+        </div>
+    )
+}
+
 type QuickRead = { code: string; title: string; line: string; m1: string; v1: string; m2: string; v2: string }
 
 type QuickReadsProps = {
@@ -324,7 +447,8 @@ const QUICK_CSS = `
 .wmq-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 0 0}
 .wmq-row>span{font-size:13.5px;color:var(--mut)}
 .wmq-row b{font-weight:800;font-size:clamp(22px,2cqw,28px);letter-spacing:-.04em}
-@container (max-width:860px){.wmq-grid{grid-template-columns:1fr}}
+@container (max-width:860px){.wmq-row b{font-size:22px}}
+@container (max-width:640px){.wmq-grid{margin-top:26px}.wmq-card:hover{transform:none;box-shadow:none}}
 `
 
 /**
@@ -346,7 +470,7 @@ export default function WMQuickReads(props: QuickReadsProps) {
     } = props
 
     return (
-        <Section theme="cream" id={anchor} className="wmq" css={QUICK_CSS} style={style} label={headline}>
+        <Section theme="cream" id={anchor} className="wmq" css={QUICK_CSS + SWIPE_CSS} style={style} label={headline}>
             <div className="wm-wrap">
                 <Chrome label={tag} />
                 <div className="wmq-head">
@@ -355,7 +479,7 @@ export default function WMQuickReads(props: QuickReadsProps) {
                         {note}
                     </Script>
                 </div>
-                <Stagger className="wmq-grid" step={0.1}>
+                <Stagger className="wmq-grid wm-swipe" step={0.1}>
                     {reads.map((r, i) => (
                         <article className="wmq-card" key={i}>
                             <span className="wmq-code">{r.code}</span>
@@ -374,6 +498,7 @@ export default function WMQuickReads(props: QuickReadsProps) {
                         </article>
                     ))}
                 </Stagger>
+                <SwipeUI hint="swipe" />
             </div>
         </Section>
     )

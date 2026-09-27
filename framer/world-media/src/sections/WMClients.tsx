@@ -3,7 +3,8 @@
 // true to the pitch deck — its colours, hand-drawn arrow markers and cursive notes.
 // Award-level but classy animation, classy-yet-fun fonts, image placeholders left blank.
 // This file: slide 20, "Don't take our word for it" — three client quotes headed by the
-// brand name in handwriting, then "trusted by:" over a grid of blank logo tiles.
+// brand name in handwriting, then "trusted by:" over a grid of blank logo tiles. On phones the
+// quotes become a swipeable strip and the logos run as a slow endless marquee.
 //@@ BODY
 
 type Quote = { brand: string; quote: string; name: string; role: string }
@@ -28,7 +29,19 @@ const CLIENTS_CSS = `
 .wmcl-logos{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:clamp(8px,1cqw,14px);margin-top:clamp(14px,1.6cqw,22px)}
 .wmcl-logo{aspect-ratio:2.7/1;border-radius:10px;background:var(--ink2);border:1px solid rgba(242,238,229,.04);transition:background .5s}
 .wmcl-logo:hover{background:var(--ink3)}
-@container (max-width:860px){.wmcl-quotes{grid-template-columns:1fr}.wmcl-logos{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.wmcl-logo.dup{display:none}
+@container (max-width:860px){.wmcl-logos{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@container (max-width:640px){
+.wmcl-quotes{margin-top:26px}
+.wmcl-quotes>figure{margin:0;padding:22px 22px 24px;border-radius:18px;background:var(--ink2);border:1px solid rgba(242,238,229,.06)}
+.wmcl-trusted{margin-top:34px}
+.wmcl-marq{margin:12px calc(-1 * clamp(20px,5.2cqw,80px)) 0;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
+.wmcl-logos{display:flex;width:max-content;gap:0;margin-top:0;animation:wmcl-marq 34s linear infinite}
+.wmcl-logo,.wmcl-logo.dup{display:block;flex:none;width:118px;margin-right:10px}
+.wmcl.still .wmcl-logos{animation:none}
+}
+@keyframes wmcl-marq{to{translate:-50% 0}}
+@media (prefers-reduced-motion:reduce){.wmcl-logos{animation:none!important}}
 `
 
 /**
@@ -48,13 +61,15 @@ export default function WMClients(props: ClientsProps) {
         logoCount = 12,
         style,
     } = props
+    const logos = Math.max(0, Math.min(24, logoCount))
+    const still = useStill()
 
     return (
-        <Section theme="ink" className="wmcl" css={CLIENTS_CSS} style={style} label={headline}>
+        <Section theme="ink" className={"wmcl" + (still ? " still" : "")} css={CLIENTS_CSS + SWIPE_CSS} style={style} label={headline}>
             <div className="wm-wrap">
                 <Chrome label={tag} />
                 <Words as="h2" className="wmcl-h" text={headline} />
-                <Stagger className="wmcl-quotes" step={0.12}>
+                <Stagger className="wmcl-quotes wm-swipe" step={0.12}>
                     {quotes.map((q, i) => (
                         <figure key={i}>
                             <div className="wm-script wmcl-brand">{q.brand}</div>
@@ -66,14 +81,17 @@ export default function WMClients(props: ClientsProps) {
                         </figure>
                     ))}
                 </Stagger>
+                <SwipeUI hint="swipe" />
                 <Script className="wmcl-trusted" delay={0.2} rotate={-3}>
                     {trusted}
                 </Script>
-                <Stagger className="wmcl-logos" step={0.035} aria-hidden="true">
-                    {Array.from({ length: Math.max(0, Math.min(24, logoCount)) }).map((_, i) => (
-                        <div className="wmcl-logo" key={i} />
-                    ))}
-                </Stagger>
+                <div className="wmcl-marq">
+                    <Stagger className="wmcl-logos" step={0.035} amount={0.04} aria-hidden="true">
+                        {Array.from({ length: logos * 2 }).map((_, i) => (
+                            <div className={"wmcl-logo" + (i >= logos ? " dup" : "")} key={i} />
+                        ))}
+                    </Stagger>
+                </div>
             </div>
         </Section>
     )

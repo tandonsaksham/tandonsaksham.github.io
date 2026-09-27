@@ -47,6 +47,7 @@ background:var(--bg);color:var(--fg)}
 .wm-sec a{color:inherit;text-decoration:none}
 .wm-sec ::selection{background:var(--red);color:var(--ink)}
 .wm-wrap{position:relative;width:100%;max-width:1400px;margin:0 auto;padding:clamp(72px,8cqw,118px) clamp(20px,5.2cqw,80px) clamp(64px,7cqw,104px)}
+@container (max-width:640px){.wm-wrap{padding-top:58px;padding-bottom:54px}}
 .wm-mono{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:400;font-size:12px;letter-spacing:.02em;line-height:1.45}
 .wm-cap{text-transform:uppercase;letter-spacing:.08em}
 .wm-script{font-family:"Caveat","Bradley Hand","Segoe Print",cursive;font-weight:500;line-height:1.05;letter-spacing:.004em;font-size:clamp(20px,2.05cqw,30px);text-wrap:balance}
@@ -381,6 +382,7 @@ transform:rotate(-4deg);transition:transform .9s cubic-bezier(.34,1.56,.64,1)}
 .wmst-phone figcaption>span{display:block;font-size:12.5px;color:var(--mut);margin-top:2px}
 @container (max-width:860px){.wmst-grid{grid-template-columns:1fr}.wmst-note{left:12px}}
 @container (max-width:560px){.wmst-phone b{font-size:12px;overflow-wrap:anywhere}.wmst-phone figcaption>span{font-size:11.5px}}
+@container (max-width:640px){.wmst-grid{gap:26px}.wmst-rows{margin-top:18px}.wmst-row{padding:12px 0}.wmst-panel{aspect-ratio:4/3.1}.wmst-note{bottom:24px;padding:16px 20px 14px}}
 `
 
 /**

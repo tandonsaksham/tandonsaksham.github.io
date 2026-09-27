@@ -2,11 +2,11 @@
 // User instructions: build the World Media website on world-class parameters while staying
 // true to the pitch deck — its colours, hand-drawn arrow markers and cursive notes.
 // Award-level but classy animation, classy-yet-fun fonts, image placeholders left blank.
-// This file: slide 4, "The problem". The two-tone headline rises in, then a vermilion pen
-// circles "buys followers" and underlines "hopes for the best." like an editor marking up a
-// draft. Each of the three failures comes with a small animated exhibit: a big follower count
-// whose crowd turns out to be mostly hollow, one post that spikes and flatlines, and a report
-// of vanity numbers that gets "so what?" stamped on it. Hover a row to replay its exhibit.
+// This file: slide 4, "The problem". The two-tone headline rises in, then each of the three
+// failures comes with a small animated exhibit: a big follower count whose crowd turns out to
+// be mostly hollow, one post that spikes and flatlines, and a report of vanity numbers that
+// gets "so what?" stamped on it. Hover a row to replay its exhibit. Kept compact: rows beside
+// the headline on desktop, three cards in a row on tablets, a swipeable card strip on phones.
 //@@ BODY
 
 type ProblemVisual = "crowd" | "spike" | "vanity" | "none"
@@ -17,8 +17,6 @@ type ProblemProps = {
     tag: string
     lead: string
     rest: string
-    circle: string
-    underline: string
     note: string
     items: ProblemItem[]
     style?: React.CSSProperties
@@ -27,16 +25,16 @@ type ProblemProps = {
 const PROBLEM_VISUALS: ProblemVisual[] = ["crowd", "spike", "vanity"]
 
 const PROBLEM_CSS = `
-.wmp-grid{display:grid;grid-template-columns:minmax(0,1.14fr) minmax(0,1fr);gap:clamp(40px,5cqw,92px);align-items:start;margin-top:clamp(36px,4.4cqw,64px)}
+.wmp .wm-wrap{padding-top:clamp(64px,6.6cqw,100px);padding-bottom:clamp(56px,5.6cqw,88px)}
+.wmp-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(40px,5cqw,92px);align-items:start;margin-top:clamp(26px,3cqw,44px)}
 .wmp-h{font-weight:760;font-size:clamp(34px,4.45cqw,66px);line-height:1.04;letter-spacing:-.038em}
-.wmp-pen{position:relative;display:inline-block;white-space:nowrap}
-.wmp-note{display:inline-block;margin-top:clamp(28px,3.2cqw,48px);color:var(--red);font-size:clamp(22px,2.3cqw,34px)}
+.wmp-note{display:inline-block;margin-top:clamp(18px,2.2cqw,32px);color:var(--red);font-size:clamp(22px,2.3cqw,34px)}
 .wmp-list{display:flex;flex-direction:column}
-.wmp-row{position:relative;display:grid;grid-template-columns:36px minmax(0,1fr) clamp(128px,12cqw,172px);column-gap:clamp(12px,1.5cqw,24px);align-items:center;padding:clamp(20px,2.2cqw,30px) 0 clamp(22px,2.4cqw,32px)}
+.wmp-row{position:relative;display:grid;grid-template-columns:36px minmax(0,1fr) clamp(128px,12cqw,172px);column-gap:clamp(12px,1.5cqw,24px);align-items:center;padding:clamp(16px,1.6cqw,23px) 0 clamp(17px,1.7cqw,24px)}
 .wmp-row>.wm-hr{position:absolute;left:0;right:0;top:0}
 .wmp-n{align-self:start;font-family:"DM Mono",ui-monospace,monospace;font-size:12.5px;color:var(--red);padding-top:.5em}
 .wmp-txt{align-self:start}
-.wmp-t{margin-bottom:8px;font-size:clamp(19px,1.75cqw,25px)}
+.wmp-t{margin-bottom:6px;font-size:clamp(19px,1.75cqw,25px)}
 .wmp-b{color:var(--mut);max-width:30em}
 .wmp-x{position:relative;color:var(--ink);opacity:0;transform:translateY(14px);transition:opacity .8s var(--ease) .2s,transform 1s var(--ease) .2s}
 .wmp-row.on .wmp-x,.wmp-row.now .wmp-x{opacity:1;transform:none}
@@ -70,8 +68,20 @@ const PROBLEM_CSS = `
 @keyframes px-pop{from{transform:scale(0)}}
 @keyframes px-bar{from{transform:scaleX(0)}}
 @keyframes px-stamp{0%{opacity:0;transform:scale(1.9) rotate(-12deg)}100%{opacity:1;transform:none}}
-@container (max-width:1100px){.wmp-grid{grid-template-columns:1fr}.wmp-h{max-width:16em}}
-@container (max-width:560px){.wmp-row{grid-template-columns:34px minmax(0,1fr)}.wmp-x{grid-column:2;max-width:250px;margin-top:20px}}
+@container (max-width:1100px){
+.wmp-grid{grid-template-columns:1fr;gap:clamp(26px,3.4cqw,40px)}
+.wmp-head{display:flex;flex-wrap:wrap;align-items:flex-end;column-gap:28px}
+.wmp-h{max-width:17em}
+.wmp-note{margin-top:10px;padding-bottom:.2em}
+.wmp-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(10px,1.6cqw,16px)}
+.wmp-end,.wmp-row>.wm-hr{display:none}
+.wmp-row{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"x x" "n t";align-content:start;column-gap:10px;row-gap:14px;padding:16px 18px 20px;border:1px solid var(--line);border-radius:18px;background:var(--paper)}
+.wmp-x{grid-area:x;width:100%;max-width:236px;padding:4px 0 10px;border-bottom:1px dashed var(--line)}
+.wmp-n{grid-area:n;padding-top:.45em}
+.wmp-txt{grid-area:t}
+.wmp-t{font-size:clamp(18px,2.1cqw,21px)}
+.wmp-b{font-size:15px;line-height:1.5}
+}
 `
 
 /** Rolls a follower count up from zero once the exhibit is live. */
@@ -178,59 +188,6 @@ function Vanity() {
     )
 }
 
-type PenSeg = { t: string; mark?: "loop" | "under" }
-
-/** The two-tone headline with its pen marks. Each word rises in like the shared reveal. */
-function PenHeadline(p: { lead: string; rest: string; circle: string; underline: string; still: boolean }) {
-    const [ref, inCls] = useIn<HTMLHeadingElement>(0.3)
-    const on = inCls.indexOf("wm-in") > -1
-    const found = ([
-        [p.circle, "loop"],
-        [p.underline, "under"],
-    ] as [string, "loop" | "under"][])
-        .filter(([ph]) => ph && p.rest.indexOf(ph) > -1)
-        .map(([ph, kind]) => ({ at: p.rest.indexOf(ph), ph, kind }))
-        .sort((a, b) => a.at - b.at)
-    const segs: PenSeg[] = []
-    let pos = 0
-    found.forEach((f) => {
-        if (f.at < pos) return
-        if (f.at > pos) segs.push({ t: p.rest.slice(pos, f.at) })
-        segs.push({ t: f.ph, mark: f.kind })
-        pos = f.at + f.ph.length
-    })
-    if (pos < p.rest.length) segs.push({ t: p.rest.slice(pos) })
-    let n = 0
-    const words = (t: string, key: string, tone?: string) =>
-        t.split(/(\s+)/).map((w, i) => {
-            if (!w) return null
-            if (/^\s+$/.test(w)) return <React.Fragment key={key + i}> </React.Fragment>
-            const d = n++ * 0.045
-            return (
-                <span className="wm-w" aria-hidden="true" key={key + i}>
-                    <span className={tone} style={cssVars({ "--d": d.toFixed(3) + "s" })}>
-                        {fill(w)}
-                    </span>
-                </span>
-            )
-        })
-    return (
-        <h2 ref={ref} className={"wm-rv wmp-h" + inCls} aria-label={p.lead + " " + p.rest}>
-            {words(p.lead + " ", "l", "wm-stone")}
-            {segs.map((s, i) =>
-                s.mark ? (
-                    <span className="wmp-pen" key={"s" + i}>
-                        {words(s.t, "s" + i)}
-                        <PenMark kind={s.mark} on={on || p.still} delay={p.still ? 0 : s.mark === "loop" ? 1.05 : 1.6} />
-                    </span>
-                ) : (
-                    <React.Fragment key={"s" + i}>{words(s.t, "s" + i)}</React.Fragment>
-                )
-            )}
-        </h2>
-    )
-}
-
 function ProblemRow(p: { i: number; item: ProblemItem; still: boolean; fine: boolean }) {
     const ref = React.useRef<HTMLDivElement>(null)
     const seen = useInView(ref as React.RefObject<Element>, { once: true, amount: 0.45 })
@@ -251,7 +208,7 @@ function ProblemRow(p: { i: number; item: ProblemItem; still: boolean; fine: boo
                 <p className="wmp-b wm-body">{p.item.body}</p>
             </Rise>
             {kind !== "none" ? (
-                <div className="wmp-x" aria-hidden="true" key={run}>
+                <div className="wmp-x wm-replay" aria-hidden="true" key={run}>
                     {kind === "crowd" ? <Crowd on={on} still={p.still} /> : kind === "spike" ? <Spike /> : <Vanity />}
                 </div>
             ) : null}
@@ -268,8 +225,6 @@ export default function WMProblem(props: ProblemProps) {
         tag = "The problem",
         lead = "Yet most influencer marketing",
         rest = "still buys followers and hopes for the best.",
-        circle = "buys followers",
-        underline = "hopes for the best.",
         note = "sound familiar?",
         items = [
             { title: "Cast by follower count", body: "Big numbers, wrong audience. Reach that never turns into trust.", visual: "crowd" },
@@ -283,21 +238,24 @@ export default function WMProblem(props: ProblemProps) {
     const fine = useFinePointer()
 
     return (
-        <Section theme="cream" className={"wmp" + (still ? " still" : "")} css={PEN_CSS + PROBLEM_CSS} style={style} label={tag}>
+        <Section theme="cream" className={"wmp" + (still ? " still" : "")} css={PROBLEM_CSS + SWIPE_CSS} style={style} label={tag}>
             <div className="wm-wrap">
                 <Chrome label={tag} />
                 <div className="wmp-grid">
-                    <div>
-                        <PenHeadline lead={lead} rest={rest} circle={circle} underline={underline} still={still} />
-                        <Script className="wmp-note" delay={2.1} rotate={-5}>
+                    <div className="wmp-head">
+                        <Words as="h2" className="wmp-h" parts={[{ t: lead + " ", c: "stone" }, { t: rest }]} stagger={0.045} />
+                        <Script className="wmp-note" delay={1.2} rotate={-5}>
                             {note}
                         </Script>
                     </div>
-                    <div className="wmp-list">
-                        {items.map((it, i) => (
-                            <ProblemRow key={i} i={i} item={it} still={still} fine={fine} />
-                        ))}
-                        <Rule strong delay={0.1 + items.length * 0.12} />
+                    <div>
+                        <div className="wmp-list wm-swipe">
+                            {items.map((it, i) => (
+                                <ProblemRow key={i} i={i} item={it} still={still} fine={fine} />
+                            ))}
+                        </div>
+                        <SwipeUI hint="swipe" />
+                        <Rule strong delay={0.1 + items.length * 0.12} className="wmp-end" />
                     </div>
                 </div>
             </div>
@@ -309,8 +267,6 @@ addPropertyControls(WMProblem, {
     tag: { type: ControlType.String, title: "Tag", defaultValue: "The problem" },
     lead: { type: ControlType.String, title: "Lead (grey)", defaultValue: "Yet most influencer marketing" },
     rest: { type: ControlType.String, title: "Rest", displayTextArea: true, defaultValue: "still buys followers and hopes for the best." },
-    circle: { type: ControlType.String, title: "Pen circle", defaultValue: "buys followers" },
-    underline: { type: ControlType.String, title: "Pen underline", defaultValue: "hopes for the best." },
     note: { type: ControlType.String, title: "Handwritten", defaultValue: "sound familiar?" },
     items: {
         type: ControlType.Array,

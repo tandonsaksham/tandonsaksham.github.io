@@ -4,6 +4,7 @@
 // Award-level but classy animation, classy-yet-fun fonts, image placeholders left blank.
 // This file: slide 18, "The quick reads" — three short case cards (CF-003 to CF-005) with a
 // coloured top edge and two metrics each, plus "each one has a full file, just ask".
+// On phones the cards become a swipeable strip.
 //@@ BODY
 
 type QuickRead = { code: string; title: string; line: string; m1: string; v1: string; m2: string; v2: string }
@@ -32,7 +33,8 @@ const QUICK_CSS = `
 .wmq-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 0 0}
 .wmq-row>span{font-size:13.5px;color:var(--mut)}
 .wmq-row b{font-weight:800;font-size:clamp(22px,2cqw,28px);letter-spacing:-.04em}
-@container (max-width:860px){.wmq-grid{grid-template-columns:1fr}}
+@container (max-width:860px){.wmq-row b{font-size:22px}}
+@container (max-width:640px){.wmq-grid{margin-top:26px}.wmq-card:hover{transform:none;box-shadow:none}}
 `
 
 /**
@@ -54,7 +56,7 @@ export default function WMQuickReads(props: QuickReadsProps) {
     } = props
 
     return (
-        <Section theme="cream" id={anchor} className="wmq" css={QUICK_CSS} style={style} label={headline}>
+        <Section theme="cream" id={anchor} className="wmq" css={QUICK_CSS + SWIPE_CSS} style={style} label={headline}>
             <div className="wm-wrap">
                 <Chrome label={tag} />
                 <div className="wmq-head">
@@ -63,7 +65,7 @@ export default function WMQuickReads(props: QuickReadsProps) {
                         {note}
                     </Script>
                 </div>
-                <Stagger className="wmq-grid" step={0.1}>
+                <Stagger className="wmq-grid wm-swipe" step={0.1}>
                     {reads.map((r, i) => (
                         <article className="wmq-card" key={i}>
                             <span className="wmq-code">{r.code}</span>
@@ -82,6 +84,7 @@ export default function WMQuickReads(props: QuickReadsProps) {
                         </article>
                     ))}
                 </Stagger>
+                <SwipeUI hint="swipe" />
             </div>
         </Section>
     )

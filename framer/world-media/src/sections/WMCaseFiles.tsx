@@ -4,6 +4,7 @@
 // Award-level but classy animation, classy-yet-fun fonts, image placeholders left blank.
 // This file: slide 13, "Case files" — six case cards with blank thumbnails, CF numbers and
 // vermilion result pills, plus the handwritten "pick one, we'll tell you the whole story".
+// On phones the cards become a swipeable strip.
 //@@ BODY
 
 type CaseFile = { code: string; stat: string; title: string; href: string }
@@ -32,7 +33,7 @@ const CASEFILES_CSS = `
 .wmcf-t{margin-top:8px;font-weight:700;font-size:clamp(15.5px,1.35cqw,19px);letter-spacing:-.015em;line-height:1.25;display:inline;background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;transition:background-size .6s var(--ease)}
 .wmcf-card:hover .wmcf-t{background-size:100% 1px}
 @container (max-width:860px){.wmcf-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@container (max-width:520px){.wmcf-grid{grid-template-columns:1fr}}
+@container (max-width:640px){.wmcf-grid{margin-top:26px}.wmcf-thumb{aspect-ratio:5/4}.wmcf-card:hover .wmcf-thumb{transform:none}}
 `
 
 /**
@@ -56,7 +57,7 @@ export default function WMCaseFiles(props: CaseFilesProps) {
     } = props
 
     return (
-        <Section theme="ink" className="wmcf" css={CASEFILES_CSS} style={style} label={headline}>
+        <Section theme="ink" className="wmcf" css={CASEFILES_CSS + SWIPE_CSS} style={style} label={headline}>
             <div className="wm-wrap">
                 <Chrome label={tag} />
                 <div className="wmcf-head">
@@ -65,7 +66,7 @@ export default function WMCaseFiles(props: CaseFilesProps) {
                         {note}
                     </Script>
                 </div>
-                <Stagger className="wmcf-grid" step={0.08}>
+                <Stagger className="wmcf-grid wm-swipe" step={0.08}>
                     {files.map((f, i) => (
                         <a className="wmcf-card" key={i} href={f.href} data-cursor="Open">
                             <div className="wm-ph wmcf-thumb">
@@ -81,6 +82,7 @@ export default function WMCaseFiles(props: CaseFilesProps) {
                         </a>
                     ))}
                 </Stagger>
+                <SwipeUI hint="swipe" />
             </div>
         </Section>
     )

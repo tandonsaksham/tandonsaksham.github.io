@@ -2,15 +2,15 @@
 // true to the pitch deck — its colours, hand-drawn arrow markers and cursive notes.
 // Award-level but classy animation, classy-yet-fun fonts, image placeholders left blank.
 // This file: the site navigation. "world media." wordmark (vermilion full stop, as on every
-// slide), chapter links, a vermilion "Let's talk" pill. It adapts to the ink / cream /
+// slide), the chapter index and a vermilion "Let's talk" pill. It adapts to the ink / cream /
 // vermilion section underneath, hides on scroll down, and opens a full-screen menu on phones.
 // Place the instance at the top of the page, width 100%. On the live site the bar pins itself
 // to the top of the window, so the layer itself needs no Fixed or Sticky setting.
-// It also carries the scroll index. On wide screens every chapter you reach docks as a tab at
-// the top of the window and the tabs pile up like folder dividers; the front tab shows the
-// section you're reading and how far through the chapter you are. Scroll back up and they
-// peel off again. On phones the same index is a pill in the corner with a growing stack of
-// chapter chips; tap it for the list. Any tab or row jumps back to its chapter.
+// The chapters live in one place only: a folder-tab index at the top centre. Every chapter you
+// reach files in as a small numbered tab; the front tab shows the chapter, the section you're
+// reading and how far through it you are, and opens the full chapter list. It sits inside the
+// bar while the bar is showing and hangs from the top edge once the bar slides away. On phones
+// the same index is a tab rising from the bottom edge with a growing stack of chapter chips.
 
 import * as React from "react"
 import { createPortal } from "react-dom"
@@ -51,6 +51,7 @@ background:var(--bg);color:var(--fg)}
 .wm-sec a{color:inherit;text-decoration:none}
 .wm-sec ::selection{background:var(--red);color:var(--ink)}
 .wm-wrap{position:relative;width:100%;max-width:1400px;margin:0 auto;padding:clamp(72px,8cqw,118px) clamp(20px,5.2cqw,80px) clamp(64px,7cqw,104px)}
+@container (max-width:640px){.wm-wrap{padding-top:58px;padding-bottom:54px}}
 .wm-mono{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:400;font-size:12px;letter-spacing:.02em;line-height:1.45}
 .wm-cap{text-transform:uppercase;letter-spacing:.08em}
 .wm-script{font-family:"Caveat","Bradley Hand","Segoe Print",cursive;font-weight:500;line-height:1.05;letter-spacing:.004em;font-size:clamp(20px,2.05cqw,30px);text-wrap:balance}
@@ -217,13 +218,6 @@ border:1px solid transparent;transition:background .5s var(--ease),border-color 
 .wmn-mark{font-weight:800;font-size:20px;letter-spacing:-.035em;white-space:nowrap}
 .wmn-mark b{color:var(--red);font-weight:800}
 .wmn[data-t="red"] .wmn-mark b{color:var(--cream)}
-.wmn-links{display:flex;align-items:center;gap:clamp(14px,2.1cqw,30px)}
-.wmn-a{position:relative;display:inline-flex;align-items:baseline;gap:6px;font-size:14.5px;font-weight:500;letter-spacing:-.01em;padding:6px 0;white-space:nowrap}
-.wmn-a em{font-style:normal;font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px;color:var(--nmut);transition:color .3s}
-.wmn-a::after{content:"";position:absolute;left:0;right:0;bottom:1px;height:1px;background:currentColor;transform:scaleX(0);transform-origin:100% 50%;transition:transform .55s var(--ease)}
-.wmn-a:hover::after,.wmn-a[aria-current="true"]::after{transform:scaleX(1);transform-origin:0 50%}
-.wmn-a[aria-current="true"] em,.wmn-a:hover em{color:var(--red)}
-.wmn[data-t="red"] .wmn-a[aria-current="true"] em{color:var(--cream)}
 .wmn-cta{display:inline-flex;align-items:center;gap:10px;height:42px;padding:0 18px 0 20px;border-radius:99px;background:var(--red);color:var(--ink);font-weight:600;font-size:14.5px;letter-spacing:-.01em;white-space:nowrap;transition:background .35s}
 .wmn[data-t="red"] .wmn-cta{background:var(--ink);color:var(--cream)}
 .wmn-cta .wm-arrowline{width:1.35em;height:.7em}
@@ -231,7 +225,7 @@ border:1px solid transparent;transition:background .5s var(--ease),border-color 
 .wmn-burger{display:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--nline);background:transparent;color:inherit;cursor:pointer;position:relative}
 .wmn-burger i{position:absolute;left:13px;right:13px;height:1.5px;background:currentColor;transition:transform .45s var(--ease),top .45s var(--ease)}
 .wmn-burger i:nth-child(1){top:17px}.wmn-burger i:nth-child(2){top:25px}
-@container (max-width:980px){.wmn-links{display:none}.wmn-burger{display:block}.wmn-right .wmn-cta{display:none}}
+@container (max-width:980px){.wmn-burger{display:block}.wmn-right .wmn-cta{display:none}}
 .wmn-menu.wm-sec{position:fixed;inset:0;z-index:2147483000;width:100%;height:100%;overflow:auto;background:var(--ink);color:var(--cream);
 clip-path:inset(0 0 100% 0);visibility:hidden;transition:clip-path .9s var(--ease-io),visibility 0s linear .9s}
 .wmn-menu.wm-sec.open{clip-path:inset(0 0 0 0);visibility:visible;transition:clip-path .9s var(--ease-io),visibility 0s}
@@ -248,59 +242,77 @@ clip-path:inset(0 0 100% 0);visibility:hidden;transition:clip-path .9s var(--eas
 .wmn-mfoot{display:flex;flex-direction:column;gap:10px;opacity:0;transition:opacity .6s}
 .wmn-menu.open .wmn-mfoot{opacity:1;transition-delay:.7s}
 .wmn-mfoot a{font-size:17px;font-weight:600}
-.wmn-stack{position:absolute;left:0;right:0;top:0;pointer-events:none}
-.wmn-tabs{max-width:1400px;margin:0 auto;padding:0 clamp(14px,3.4cqw,52px);display:flex;flex-direction:column}
-.wmn-tab{pointer-events:auto;position:relative;display:flex;align-items:center;gap:12px;height:40px;padding:0 20px 10px 22px;margin:-10px calc(var(--dp,0) * 14px) 0;border-radius:15px;
-border:1px solid var(--tl);background:var(--tb0);color:var(--tf);box-shadow:0 14px 28px -22px rgba(0,0,0,.6);transform-origin:50% 0;
-transition:height .6s var(--ease),margin .6s var(--ease),background-color .5s var(--ease),border-color .5s var(--ease),color .5s var(--ease)}
-.wmn-tab:first-child{margin-top:0}
-.wmn-tab[data-d="1"]{background:var(--tb1)}
-.wmn-tab[data-d="2"]{height:32px;background:var(--tb2)}
-.wmn-tab em{font-style:normal;font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px;color:var(--tm);transition:color .4s}
-.wmn-tab b{font-size:13.5px;font-weight:650;letter-spacing:-.01em;white-space:nowrap;transition:color .3s,font-size .6s var(--ease)}
-.wmn-tab[data-d="2"] b{font-size:12px}
-.wmn-tab[data-d="0"] em{color:var(--red)}
-.wmn-tab:hover b,.wmn-tab:focus-visible b{color:var(--red)}
-.wmn-sub{display:flex;align-items:center;gap:10px;min-width:0;font-family:"DM Mono",ui-monospace,monospace;font-size:11px;color:var(--tm);white-space:nowrap}
-.wmn-sub::before{content:"";flex:none;width:18px;height:1px;background:currentColor;opacity:.7}
-.wmn-sub span{overflow:hidden;text-overflow:ellipsis}
-.wmn-end{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none;font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px;color:var(--tm)}
-.wmn-tick{display:block;width:12px;height:12px;flex:none}
-.wmn-track{position:absolute;left:22px;right:20px;bottom:6px;height:2px;border-radius:2px;background:var(--tl);overflow:hidden}
-.wmn-track i,.wmn-pbar i{display:block;height:100%;background:var(--red);transform-origin:0 50%}
-.wmn-stack[data-t="ink"],.wmn-stack[data-t="red"]{--tb0:#262521;--tb1:#1D1C1A;--tb2:#171715;--tl:rgba(242,238,229,.13);--tf:var(--cream);--tm:rgba(242,238,229,.55)}
-.wmn-stack[data-t="cream"]{--tb0:#FCFAF6;--tb1:#F3EFE7;--tb2:#EAE5DA;--tl:rgba(15,15,15,.12);--tf:var(--ink);--tm:rgba(15,15,15,.52)}
-.wmn-dock.wm-sec{position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:2147481000;width:auto;max-width:calc(100% - 24px);background:transparent;overflow:visible;container-type:normal;
-pointer-events:none;opacity:0;transform:translateY(22px) scale(.96);transform-origin:0 100%;transition:opacity .45s var(--ease),transform .6s var(--ease)}
-.wmn-dock.on{opacity:1;transform:none}
-.wmn-dock.on .wmn-pill,.wmn-dock.on .wmn-sheet{pointer-events:auto}
-.wmn-dock[data-t="ink"]{--pb:rgba(18,18,16,.92);--pb2:#121210;--pc:#2C2B28;--pf:var(--cream);--pm:rgba(242,238,229,.6);--pl:rgba(242,238,229,.15)}
-.wmn-dock[data-t="cream"]{--pb:rgba(250,248,243,.95);--pb2:#FAF8F3;--pc:#E4DFD3;--pf:var(--ink);--pm:rgba(15,15,15,.55);--pl:rgba(15,15,15,.12)}
-.wmn-pill{position:relative;display:flex;align-items:center;gap:10px;height:50px;max-width:100%;padding:0 20px 0 7px;border-radius:99px;border:1px solid var(--pl);background:var(--pb);color:var(--pf);
-box-shadow:0 18px 36px -18px rgba(0,0,0,.55);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);cursor:pointer;font:inherit;text-align:left;-webkit-tap-highlight-color:transparent;
+.wmn-ft{position:absolute;left:0;right:0;top:0;display:flex;justify-content:center;pointer-events:none}
+.wmn-ft-in{position:relative;display:flex;align-items:flex-start;pointer-events:auto;--r:12px}
+.wmn-ft[data-dock="top"] .wmn-ft-in{--r:0 0 14px 14px}
+.wmn-ft[data-t="ink"],.wmn-ft[data-t="red"],.wmn-bt[data-t="ink"]{--tb0:#2B2A26;--tb1:#1E1D1B;--tl:rgba(242,238,229,.14);--tf:var(--cream);--tm:rgba(242,238,229,.56)}
+.wmn-ft[data-t="cream"],.wmn-bt[data-t="cream"]{--tb0:#FFFDF9;--tb1:#EBE7DD;--tl:rgba(15,15,15,.13);--tf:var(--ink);--tm:rgba(15,15,15,.52)}
+.wmn-ft-w{position:relative;flex:none;display:flex;overflow-x:clip}
+.wmn-ft-tab{position:relative;display:flex;align-items:center;height:36px;padding:0 12px;border:1px solid var(--tl);border-radius:var(--r);background:var(--tb1);color:var(--tf);
+font:inherit;white-space:nowrap;cursor:pointer;box-shadow:0 12px 24px -18px rgba(0,0,0,.6);-webkit-tap-highlight-color:transparent;
+transition:border-radius .6s var(--ease),background-color .5s var(--ease),color .5s var(--ease),border-color .5s var(--ease)}
+.wmn-ft[data-dock="top"] .wmn-ft-tab{border-top-color:transparent}
+.wmn-ft-tab em{font-style:normal;font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.02em;color:var(--tm);transition:color .4s}
+.wmn-ft-tab b{display:block;max-width:0;overflow:hidden;font-weight:650;font-size:13px;letter-spacing:-.01em;transition:max-width .55s var(--ease)}
+.wmn-ft-tab b span{display:block;padding-left:8px}
+.wmn-ft-tab:hover b,.wmn-ft-tab:focus-visible b{max-width:190px}
+.wmn-ft-tab:hover em,.wmn-ft-tab:focus-visible em{color:var(--red)}
+.wmn-ft-tab.cur{z-index:6;padding:0 12px 0 14px;background:var(--tb0)}
+.wmn-ft-tab.cur em{color:var(--red)}
+.wmn-ft-tab.cur b{max-width:none;min-width:84px;text-align:left}
+.wmn-ft-x{display:flex;align-items:center;max-width:0;overflow:hidden;opacity:0;transition:max-width .7s var(--ease),opacity .45s}
+.wmn-ft-tab[data-on="1"] .wmn-ft-x{max-width:260px;opacity:1}
+.wmn-ft-sub{display:flex;align-items:center;gap:8px;padding-left:12px;font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px;color:var(--tm)}
+.wmn-ft-sub::before{content:"";flex:none;width:14px;height:1px;background:currentColor;opacity:.7}
+.wmn-ft-sub span{display:block;width:16ch;overflow:hidden;text-overflow:ellipsis;text-align:left}
+.wmn-ft-pct{min-width:calc(10px + 4ch);padding-left:10px;text-align:right;font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px;color:var(--tm)}
+.wmn-ft-car,.wmn-bt-car{display:block;width:10px;height:10px;flex:none;color:var(--tm);transition:transform .5s var(--ease)}
+.wmn-ft-car{margin-left:10px}
+.wmn-ft-tab[aria-expanded="true"] .wmn-ft-car{transform:rotate(180deg)}
+.wmn-bt-car{transform:rotate(180deg)}
+.wmn-bt-tab[aria-expanded="true"] .wmn-bt-car{transform:none}
+.wmn-ft-line,.wmn-bt-line{position:absolute;height:2px;border-radius:2px;background:var(--tl);overflow:hidden;transition:opacity .4s}
+.wmn-ft-line{left:14px;right:12px;bottom:5px}
+.wmn-ft-tab:not([data-on="1"]) .wmn-ft-line{opacity:0}
+.wmn-ft-line i,.wmn-bt-line i{display:block;height:100%;background:var(--red);transform-origin:0 50%}
+.wmn-ft-panel,.wmn-bt-sheet{position:absolute;left:50%;padding:8px;border-radius:20px;border:1px solid var(--tl);background:var(--tb0);color:var(--tf);box-shadow:0 28px 56px -24px rgba(0,0,0,.6)}
+.wmn-ft-panel{top:calc(100% + 14px);width:344px;margin-left:-172px;transform-origin:50% 0}
+.wmn-ft-panel p,.wmn-bt-sheet p{padding:10px 12px 6px;font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--tm)}
+.wmn-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:13px;font-weight:600;font-size:15.5px;letter-spacing:-.015em;-webkit-tap-highlight-color:transparent;transition:background-color .3s,opacity .3s}
+.wmn-row em{flex:none;font-style:normal;font-family:"DM Mono",ui-monospace,monospace;font-size:11px;font-weight:400;color:var(--tm)}
+.wmn-row span{display:flex;flex-direction:column;min-width:0}
+.wmn-row small{font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px;font-weight:400;letter-spacing:0;color:var(--tm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wmn-row .wmn-tick,.wmn-row .wmn-row-pct{margin-left:auto;flex:none;color:var(--tm)}
+.wmn-row .wmn-row-pct{font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px}
+.wmn-row.up{opacity:.52}
+.wmn-row.cur,.wmn-row:hover{background:var(--tb1);opacity:1}
+.wmn-row.cur em{color:var(--red)}
+.wmn-row.go{margin-top:6px;background:var(--red);color:var(--ink)}
+.wmn-row.go em{color:var(--ink)}
+.wmn-row.go .wm-arrowline{margin-left:auto;width:1.6em;height:.7em}
+@container (max-width:1120px){.wmn-ft-sub{display:none}}
+@container (max-width:860px){.wmn-ft-pct{display:none}}
+.wmn-bt.wm-sec{position:fixed;left:50%;bottom:0;z-index:2147481000;width:max-content;max-width:calc(100% - 20px);translate:-50% 0;background:transparent;overflow:visible;container-type:normal;
+pointer-events:none;transform:translateY(calc(100% + 24px));transition:transform .6s var(--ease)}
+.wmn-bt.on{transform:none}
+.wmn-bt-tab{pointer-events:auto;position:relative;display:flex;align-items:center;gap:11px;width:100%;min-width:240px;padding:13px 18px calc(12px + env(safe-area-inset-bottom,0px)) 10px;border:1px solid var(--tl);border-bottom:0;
+border-radius:20px 20px 0 0;background:var(--tb0);color:var(--tf);box-shadow:0 -16px 34px -22px rgba(0,0,0,.55);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;
 transition:background-color .5s var(--ease),color .5s var(--ease),border-color .5s var(--ease)}
+.wmn-bt-line{left:20px;right:20px;top:6px}
+.wmn-bt-car{margin-left:auto}
 .wmn-chips{display:flex;flex:none}
-.wmn-chips i{display:flex;align-items:center;justify-content:flex-start;width:34px;height:34px;margin-left:-13px;padding-left:6px;border-radius:50%;background:var(--pc);box-shadow:0 0 0 2px var(--pb2);
-font-style:normal;font-family:"DM Mono",ui-monospace,monospace;font-size:10px;letter-spacing:-.02em;color:var(--pf);transition:background-color .5s,color .5s,box-shadow .5s,padding .4s var(--ease)}
+.wmn-chips i{display:flex;align-items:center;justify-content:flex-start;width:34px;height:34px;margin-left:-13px;padding-left:6px;border-radius:50%;background:var(--tb1);box-shadow:0 0 0 2px var(--tb0);
+font-style:normal;font-family:"DM Mono",ui-monospace,monospace;font-size:10px;letter-spacing:-.02em;color:var(--tf);transition:background-color .5s,color .5s,box-shadow .5s,padding .4s var(--ease)}
 .wmn-chips i:first-child{margin-left:0}
 .wmn-chips i.cur{justify-content:center;padding-left:0;font-size:10.5px;background:var(--red);color:var(--ink)}
 .wmn-pl{display:flex;flex-direction:column;min-width:0;line-height:1.22}
 .wmn-pl b{font-size:14px;font-weight:650;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wmn-pl small{font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px;color:var(--pm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wmn-pbar{position:absolute;left:24px;right:24px;bottom:5px;height:2px;border-radius:2px;background:var(--pl);overflow:hidden}
-.wmn-sheet{position:absolute;left:0;bottom:60px;width:min(330px,calc(100vw - 24px));padding:8px;border-radius:22px;border:1px solid var(--pl);background:var(--pb);color:var(--pf);
-box-shadow:0 26px 50px -22px rgba(0,0,0,.6);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);transform-origin:26px 100%}
-.wmn-sheet p{padding:10px 12px 6px;font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--pm)}
-.wmn-row{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:15px;font-weight:600;font-size:17px;letter-spacing:-.015em;-webkit-tap-highlight-color:transparent}
-.wmn-row em{font-style:normal;font-family:"DM Mono",ui-monospace,monospace;font-size:11px;font-weight:400;color:var(--pm)}
-.wmn-row.cur{background:var(--pc)}
-.wmn-row.cur em{color:var(--red)}
-.wmn-row span{display:flex;flex-direction:column;min-width:0}
-.wmn-row small{font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px;font-weight:400;letter-spacing:0;color:var(--pm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wmn-row .wmn-tick{margin-left:auto;color:var(--pm)}
+.wmn-pl small{font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px;color:var(--tm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wmn-bt-sheet{bottom:calc(100% + 10px);width:min(344px,calc(100vw - 20px));translate:-50% 0;pointer-events:auto;transform-origin:50% 100%}
+.wmn-tick{display:block;width:12px;height:12px;flex:none}
 .wmn-scrim{position:fixed;inset:0;z-index:2147480990;display:block;width:100%;height:100%;margin:0;padding:0;border:0;background:transparent;cursor:default}
-@media (max-width:760px){.wmn-stack{display:none}}
-@media (min-width:761px){.wmn-dock.wm-sec,.wmn-scrim{display:none}}
+@media (max-width:760px){.wmn-ft{display:none}}
+@media (min-width:761px){.wmn-bt.wm-sec,.wmn-scrim{display:none}}
 `
 
 const pad2 = (i: number) => String(i + 1).padStart(2, "0")
@@ -310,6 +322,15 @@ function Tick() {
     return (
         <svg className="wmn-tick" viewBox="0 0 12 12" fill="none" aria-hidden="true">
             <path d="M2.4 6.3 5 8.8l4.6-5.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    )
+}
+
+/** Small chevron on the index tabs. */
+function Caret(p: { className: string }) {
+    return (
+        <svg className={p.className} viewBox="0 0 10 10" fill="none" aria-hidden="true">
+            <path d="M2 3.7 5 6.5l3-2.8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
     )
 }
@@ -356,6 +377,10 @@ export default function WMNav(props: NavProps) {
     const [section, setSection] = React.useState("")
     const [atEnd, setAtEnd] = React.useState(false)
     const [sheet, setSheet] = React.useState(false)
+    const [folder, setFolder] = React.useState(false)
+    const [typing, setTyping] = React.useState(false)
+    const ftRef = React.useRef<HTMLDivElement>(null)
+    const curRef = React.useRef<HTMLButtonElement>(null)
     const progress = useMotionValue(0)
     const percent = useTransform(progress, (v) => Math.round(v * 100) + "%")
     const openRef = React.useRef(false)
@@ -394,9 +419,8 @@ export default function WMNav(props: NavProps) {
                 tops[i] = el ? el.getBoundingClientRect().top : NaN
                 if (el && tops[i] < line) act = i
             })
-            // Colour of what sits under the bar, under the tab stack and under the phone pill.
-            const n = act + 1
-            const stackMid = (hid ? 14 : 82) + (n > 0 ? (40 + Math.min(1, n - 1) * 30 + Math.max(0, n - 2) * 22) / 2 : 0)
+            // Colour of what sits under the bar, under the folder tabs and under the phone tab.
+            const stripMid = hid ? 18 : 44
             const low = vh - 36
             let t = st.t
             let tt = st.tt
@@ -412,7 +436,7 @@ export default function WMNav(props: NavProps) {
                     t = themeOf(secs[i])
                     gt = true
                 }
-                if (!gtt && r.top <= stackMid && r.bottom > stackMid) {
+                if (!gtt && r.top <= stripMid && r.bottom > stripMid) {
                     tt = themeOf(secs[i])
                     gtt = true
                 }
@@ -493,11 +517,34 @@ export default function WMNav(props: NavProps) {
     // Scroll index: the chapters reached so far, newest last.
     const reached = index && !isStatic && active >= 0 ? links.slice(0, active + 1) : []
     const current = reached.length ? reached[reached.length - 1] : null
-    const dockOn = reached.length > 0 && !atEnd && !open
+    const dockOn = reached.length > 0 && !atEnd && !open && !typing
+    const sub = section || "Intro"
+
+    // The phone tab steps aside while someone is typing into a form, so it never covers a field.
+    React.useEffect(() => {
+        if (isStatic || typeof document === "undefined") return
+        const field = (t: EventTarget | null) => t instanceof HTMLElement && t.matches("input,textarea,select,[contenteditable]")
+        const onIn = (e: FocusEvent) => {
+            if (field(e.target)) React.startTransition(() => setTyping(true))
+        }
+        const onOut = (e: FocusEvent) => {
+            if (!field(e.relatedTarget)) React.startTransition(() => setTyping(false))
+        }
+        document.addEventListener("focusin", onIn)
+        document.addEventListener("focusout", onOut)
+        return () => {
+            document.removeEventListener("focusin", onIn)
+            document.removeEventListener("focusout", onOut)
+        }
+    }, [isStatic])
 
     React.useEffect(() => {
         if (!dockOn) React.startTransition(() => setSheet(false))
     }, [dockOn])
+
+    React.useEffect(() => {
+        if (open) React.startTransition(() => setFolder(false))
+    }, [open])
 
     React.useEffect(() => {
         if (!sheet || typeof window === "undefined") return
@@ -508,89 +555,170 @@ export default function WMNav(props: NavProps) {
         return () => window.removeEventListener("keydown", onKey)
     }, [sheet])
 
-    const ease = [0.16, 1, 0.3, 1] as const
-    const fold = reduce ? { opacity: 0 } : { opacity: 0, y: 18, rotateX: -65 }
+    // The folder panel closes on a click elsewhere, on Escape, or once the reader scrolls on.
+    React.useEffect(() => {
+        if (!folder || typeof window === "undefined") return
+        const y0 = window.scrollY
+        const shut = () => React.startTransition(() => setFolder(false))
+        const onDown = (e: PointerEvent) => {
+            const el = ftRef.current
+            if (el && e.target instanceof Node && el.contains(e.target)) return
+            shut()
+        }
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key !== "Escape") return
+            shut()
+            if (curRef.current) curRef.current.focus()
+        }
+        const onScroll = () => {
+            if (Math.abs(window.scrollY - y0) > 160) shut()
+        }
+        document.addEventListener("pointerdown", onDown)
+        window.addEventListener("keydown", onKey)
+        window.addEventListener("scroll", onScroll, { passive: true })
+        return () => {
+            document.removeEventListener("pointerdown", onDown)
+            window.removeEventListener("keydown", onKey)
+            window.removeEventListener("scroll", onScroll)
+        }
+    }, [folder])
 
-    const stack = (
-        <motion.nav
-            className="wmn-stack"
-            data-t={tabTheme}
-            aria-label="Reading progress"
-            initial={false}
-            animate={{ y: hidden && !open ? 14 : 82 }}
-            transition={{ duration: reduce ? 0 : 0.7, ease }}
-        >
-            <div className="wmn-tabs">
-                <AnimatePresence initial={false}>
-                    {reached.map((l, i) => {
-                        const depth = reached.length - 1 - i
-                        return (
-                            <motion.a
-                                key={l.href || "c" + i}
-                                href={l.href}
-                                className="wmn-tab"
-                                data-d={Math.min(2, depth)}
-                                aria-current={depth === 0 ? "location" : undefined}
-                                style={{ zIndex: i + 1, transformPerspective: 700, ...cssVars({ "--dp": Math.min(depth, 4) }) }}
-                                initial={fold}
-                                animate={{ opacity: 1, y: 0, rotateX: 0 }}
-                                exit={fold}
-                                transition={{ duration: reduce ? 0 : 0.65, ease }}
-                            >
-                                <em>{pad2(i)}</em>
-                                <b>{l.label}</b>
-                                {depth === 0 && section ? (
-                                    <span className="wmn-sub">
-                                        <span>{section}</span>
-                                    </span>
-                                ) : null}
-                                <span className="wmn-end">{depth === 0 ? <motion.span>{percent}</motion.span> : <Tick />}</span>
-                                {depth === 0 ? (
-                                    <span className="wmn-track" aria-hidden="true">
-                                        <motion.i style={{ scaleX: progress }} />
-                                    </span>
-                                ) : null}
-                            </motion.a>
-                        )
-                    })}
-                </AnimatePresence>
-            </div>
-        </motion.nav>
+    const toggleFolder = React.useCallback(() => React.startTransition(() => setFolder((f) => !f)), [])
+    const closeFolder = React.useCallback(() => React.startTransition(() => setFolder(false)), [])
+
+    const ease = [0.16, 1, 0.3, 1] as const
+    const docked = hidden && !open
+    const on = reached.length > 0
+    const past = on ? reached.slice(0, -1) : []
+
+    // Every chapter, ticked once read, with the one you're in highlighted — shared by the folder panel and the phone sheet.
+    const rows = (onPick: () => void) => (
+        <>
+            {links.map((l, i) => (
+                <a
+                    key={l.href || "r" + i}
+                    href={l.href}
+                    className={"wmn-row" + (i === active ? " cur" : i > active ? " up" : "")}
+                    aria-current={i === active ? "location" : undefined}
+                    onClick={onPick}
+                >
+                    <em>{pad2(i)}</em>
+                    <span>
+                        {l.label}
+                        {i === active && section ? <small>{section}</small> : null}
+                    </span>
+                    {i < active ? <Tick /> : i === active && on ? <motion.span className="wmn-row-pct">{percent}</motion.span> : null}
+                </a>
+            ))}
+            <a href={ctaHref} className="wmn-row go" onClick={onPick}>
+                <em>{pad2(links.length)}</em>
+                <span>{ctaLabel}</span>
+                <LineArrow />
+            </a>
+        </>
     )
 
-    const dock = (
-        <div className={"wm-sec wmn-dock" + (dockOn ? " on" : "")} data-t={dockTheme === "ink" ? "cream" : "ink"} aria-hidden={!dockOn}>
+    const strip = (
+        <motion.div
+            className="wmn-ft"
+            data-t={tabTheme}
+            data-dock={docked ? "top" : "bar"}
+            initial={false}
+            animate={{ y: docked ? 0 : 26 }}
+            transition={{ duration: reduce ? 0 : 0.7, ease }}
+        >
+            <div className="wmn-ft-in" ref={ftRef}>
+                <AnimatePresence initial={false}>
+                    {past.map((l, i) => (
+                        <motion.div
+                            key={l.href || "t" + i}
+                            className="wmn-ft-w"
+                            style={{ zIndex: i + 1 }}
+                            initial={{ width: 0, marginRight: 0, opacity: 0 }}
+                            animate={{ width: "auto", marginRight: -7, opacity: 1 }}
+                            exit={{ width: 0, marginRight: 0, opacity: 0 }}
+                            transition={{ duration: reduce ? 0 : 0.6, ease }}
+                        >
+                            <a className="wmn-ft-tab" href={l.href} aria-label={"Chapter " + pad2(i) + ", " + l.label}>
+                                <em>{pad2(i)}</em>
+                                <b>
+                                    <span>{l.label}</span>
+                                </b>
+                            </a>
+                        </motion.div>
+                    ))}
+                </AnimatePresence>
+                <button
+                    ref={curRef}
+                    type="button"
+                    className="wmn-ft-tab cur"
+                    data-on={on ? "1" : undefined}
+                    onClick={toggleFolder}
+                    aria-expanded={folder}
+                    aria-label={current ? "Chapter " + pad2(active) + ", " + current.label + ", " + sub + ". Show all chapters" : "Show all chapters"}
+                >
+                    <em>{on ? pad2(active) : "00"}</em>
+                    <b>
+                        <span>{current ? current.label : "Chapters"}</span>
+                    </b>
+                    <span className="wmn-ft-x" aria-hidden="true">
+                        <span className="wmn-ft-sub">
+                            <span>{sub}</span>
+                        </span>
+                        <motion.span className="wmn-ft-pct">{percent}</motion.span>
+                    </span>
+                    <Caret className="wmn-ft-car" />
+                    <span className="wmn-ft-line" aria-hidden="true">
+                        <motion.i style={{ scaleX: progress }} />
+                    </span>
+                </button>
+                <AnimatePresence>
+                    {folder ? (
+                        <motion.nav
+                            className="wmn-ft-panel"
+                            aria-label="Chapters"
+                            initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                            transition={{ duration: reduce ? 0 : 0.35, ease }}
+                        >
+                            <p>Chapters</p>
+                            {rows(closeFolder)}
+                        </motion.nav>
+                    ) : null}
+                </AnimatePresence>
+            </div>
+        </motion.div>
+    )
+
+    const tab = (
+        <div className={"wm-sec wmn-bt" + (dockOn ? " on" : "")} data-t={dockTheme === "ink" ? "cream" : "ink"} aria-hidden={!dockOn}>
             <AnimatePresence>
                 {sheet && dockOn ? (
-                    <motion.div
-                        className="wmn-sheet"
+                    <motion.nav
+                        className="wmn-bt-sheet"
+                        aria-label="Chapters"
                         initial={{ opacity: 0, y: 10, scale: 0.96 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.96 }}
                         transition={{ duration: reduce ? 0 : 0.35, ease }}
                     >
-                        <p>Chapters so far</p>
-                        {reached.map((l, i) => (
-                            <a key={l.href || "r" + i} href={l.href} className={"wmn-row" + (i === active ? " cur" : "")} onClick={closeSheet}>
-                                <em>{pad2(i)}</em>
-                                <span>
-                                    {l.label}
-                                    {i === active && section ? <small>{section}</small> : null}
-                                </span>
-                                {i < active ? <Tick /> : null}
-                            </a>
-                        ))}
-                    </motion.div>
+                        <p>Chapters</p>
+                        {rows(closeSheet)}
+                    </motion.nav>
                 ) : null}
             </AnimatePresence>
             <button
                 type="button"
-                className="wmn-pill"
+                className="wmn-bt-tab"
                 onClick={toggleSheet}
                 aria-expanded={sheet}
                 tabIndex={dockOn ? 0 : -1}
-                aria-label={current ? "Chapter " + pad2(active) + ", " + current.label + (section ? ", " + section : "") + ". Show chapters read so far" : "Chapters"}
+                aria-label={current ? "Chapter " + pad2(active) + ", " + current.label + ", " + sub + ". Show all chapters" : "Chapters"}
             >
+                <span className="wmn-bt-line" aria-hidden="true">
+                    <motion.i style={{ scaleX: progress }} />
+                </span>
                 <span className="wmn-chips" aria-hidden="true">
                     <AnimatePresence initial={false}>
                         {reached.map((l, i) => (
@@ -609,11 +737,9 @@ export default function WMNav(props: NavProps) {
                 </span>
                 <span className="wmn-pl" aria-hidden="true">
                     <b>{current ? current.label : ""}</b>
-                    <small>{section || "Chapter " + pad2(Math.max(0, active))}</small>
+                    <small>{sub}</small>
                 </span>
-                <span className="wmn-pbar" aria-hidden="true">
-                    <motion.i style={{ scaleX: progress }} />
-                </span>
+                <Caret className="wmn-bt-car" />
             </button>
         </div>
     )
@@ -665,14 +791,6 @@ export default function WMNav(props: NavProps) {
                         <a href="#top" className="wmn-mark" aria-label="World Media — back to top">
                             world media<b>.</b>
                         </a>
-                        <nav className="wmn-links" aria-label="Chapters">
-                            {links.map((l, i) => (
-                                <a key={i} className="wmn-a" href={l.href} aria-current={active === i ? "true" : undefined}>
-                                    <em>{String(i + 1).padStart(2, "0")}</em>
-                                    {l.label}
-                                </a>
-                            ))}
-                        </nav>
                         <div className="wmn-right" style={{ display: "flex", alignItems: "center", gap: 10 }}>
                             <Magnetic strength={0.22}>
                                 <a className="wmn-cta wm-link" href={ctaHref}>
@@ -688,7 +806,7 @@ export default function WMNav(props: NavProps) {
                     </div>
                 </header>
             </motion.div>
-            {index && !isStatic ? stack : null}
+            {strip}
         </div>
     )
 
@@ -701,7 +819,7 @@ export default function WMNav(props: NavProps) {
             {isStatic ? bar : null}
             {live ? createPortal(<div className="wmn-fixed">{bar}</div>, document.body) : null}
             {live ? createPortal(menu, document.body) : null}
-            {live && index ? createPortal(dock, document.body) : null}
+            {live && index ? createPortal(tab, document.body) : null}
             {live && sheet && dockOn ? createPortal(<button type="button" className="wmn-scrim" aria-label="Close chapter list" onClick={closeSheet} />, document.body) : null}
         </div>
     )

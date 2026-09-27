@@ -51,6 +51,7 @@ const RECEIPTS_CSS = `
 .wmrh-stat .wm-mono{color:var(--mut);text-transform:uppercase;letter-spacing:.08em;font-size:11.5px}
 .wmrh-stat b{display:block;margin-top:10px;font-weight:800;font-size:clamp(30px,3.4cqw,50px);letter-spacing:-.045em;line-height:.95}
 @container (max-width:860px){.wmrg-grid{grid-template-columns:1fr}.wmrh-stats{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:28px}}
+@container (max-width:640px){.wmrg-grid{gap:26px}.wmrg-left{gap:22px}.wmrg-tile{min-height:120px}.wmrh-stats{margin-top:34px}}
 `
 
 /** Giant "[__]M" with brackets that open up and a blinking blank. */

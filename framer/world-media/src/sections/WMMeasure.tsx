@@ -4,7 +4,7 @@
 // Award-level but classy animation, classy-yet-fun fonts, image placeholders left blank.
 // This file: slide 11, "Three questions every report answers" — Awareness, Engagement and
 // Business panels (the last in ink) with metric chips that pop in, and the handwritten
-// "no vanity metrics without context".
+// "no vanity metrics without context". On phones the panels become a swipeable strip.
 //@@ BODY
 
 type Question = { label: string; question: string; chips: string }
@@ -37,7 +37,8 @@ const MEASURE_CSS = `
 .wmm-foot>.wm-hr{position:absolute;left:0;right:0;top:0}
 .wmm-note{color:var(--red);font-size:clamp(21px,2cqw,29px)}
 .wmm-fn{color:var(--mut);font-size:14.5px}
-@container (max-width:860px){.wmm-grid{grid-template-columns:1fr}.wmm-panel{min-height:0}}
+@container (max-width:860px){.wmm-panel{min-height:0}.wmm-q{font-size:clamp(20px,2.9cqw,25px)}}
+@container (max-width:640px){.wmm-grid{margin-top:26px}.wmm-panel{min-height:236px}.wmm-q{font-size:25px}.wmm-foot{margin-top:18px}}
 `
 
 /**
@@ -59,11 +60,11 @@ export default function WMMeasure(props: MeasureProps) {
     } = props
 
     return (
-        <Section theme="cream" className="wmm" css={MEASURE_CSS} style={style} label={headline}>
+        <Section theme="cream" className="wmm" css={MEASURE_CSS + SWIPE_CSS} style={style} label={headline}>
             <div className="wm-wrap">
                 <Chrome label={tag} />
                 <Words as="h2" className="wmm-h" text={headline} stagger={0.045} />
-                <Stagger className="wmm-grid" step={0.12}>
+                <Stagger className="wmm-grid wm-swipe" step={0.12}>
                     {questions.map((q, i) => (
                         <article className={"wmm-panel" + (i === questions.length - 1 ? " dark" : "")} key={i}>
                             <span className="wmm-l">{q.label}</span>
@@ -82,6 +83,7 @@ export default function WMMeasure(props: MeasureProps) {
                         </article>
                     ))}
                 </Stagger>
+                <SwipeUI hint="swipe" />
                 <div className="wmm-foot">
                     <Rule strong />
                     <Script className="wmm-note" delay={0.3} rotate={-2}>
