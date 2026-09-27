@@ -627,3 +627,89 @@ function useBallTrack(count: number, still: boolean) {
 
     return { wrapRef, chromeRef, trackRef, lay, lit, stage, x, y, sx, sy, o, along }
 }
+
+const PEN_CSS = `
+.wm-pen{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;mix-blend-mode:multiply}
+.wm-pen path{fill:none;stroke:var(--red);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1}
+.wm-pen:not(.live) path{stroke-dashoffset:1;transition:stroke-dashoffset 1.25s cubic-bezier(.55,0,.25,1);transition-delay:var(--d,0s)}
+.wm-pen.on path{stroke-dashoffset:0}
+@media (prefers-reduced-motion:reduce){.wm-pen path{stroke-dashoffset:0!important}}
+`
+
+/** Catmull-Rom through the points, as a smooth SVG path. */
+function smoothPath(pts: number[][]): string {
+    const f = (v: number) => v.toFixed(1)
+    let d = "M" + f(pts[0][0]) + " " + f(pts[0][1])
+    for (let i = 0; i < pts.length - 1; i++) {
+        const a = pts[i - 1] || pts[i]
+        const b = pts[i]
+        const c = pts[i + 1]
+        const e = pts[i + 2] || c
+        d += " C" + [b[0] + (c[0] - a[0]) / 6, b[1] + (c[1] - a[1]) / 6, c[0] - (e[0] - b[0]) / 6, c[1] - (e[1] - b[1]) / 6, c[0], c[1]].map(f).join(" ")
+    }
+    return d
+}
+
+/** A quick pen loop around a w×h box: a little more than one turn, tightening as it closes. */
+function penLoop(w: number, h: number): string {
+    const cx = w / 2
+    const cy = h / 2 + h * 0.03
+    const rx = w / 2 + Math.max(9, h * 0.15)
+    const ry = h / 2 + Math.max(6, h * 0.1)
+    const pts: number[][] = []
+    for (let i = 0; i <= 48; i++) {
+        const t = i / 48
+        const a = Math.PI * 1.1 + Math.PI * 2.16 * t
+        const k = 1 + 0.03 * Math.sin(t * Math.PI * 3 + 0.8) - 0.07 * t
+        pts.push([cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k * (1 - 0.1 * t)])
+    }
+    return smoothPath(pts)
+}
+
+/** A fast underline along the foot of a w×h box that flicks back on itself at the end. It stays
+    inside the box's own line so it never runs into the line below. */
+function penUnder(w: number, h: number): string {
+    const y = h * 0.88
+    const pts: number[][] = []
+    for (let i = 0; i <= 20; i++) {
+        const t = i / 20
+        pts.push([-6 + (w + 12) * t, y + Math.sin(t * Math.PI * 2.1) * Math.max(1.4, h * 0.02) + t * h * 0.03])
+    }
+    for (let i = 1; i <= 10; i++) {
+        const t = i / 10
+        pts.push([w + 6 - w * 0.7 * t, y + h * 0.075 + Math.sin(t * Math.PI) * h * 0.015 - t * h * 0.02])
+    }
+    return smoothPath(pts)
+}
+
+/** Hand-drawn vermilion pen mark in or around its parent, which must be an inline-block phrase.
+    "loop" circles it, "under" underlines it. The path is built in the parent's own pixels so
+    the stroke stays even at any size. It draws on when `on` is set, or tracks `draw` (0 to 1). */
+function PenMark(p: { kind: "loop" | "under"; on?: boolean; draw?: any; delay?: number }) {
+    const ref = React.useRef<SVGSVGElement>(null)
+    const [box, setBox] = React.useState<number[] | null>(null)
+    const zero = useMotionValue(0)
+    const offset = useTransform(p.draw || zero, [0, 1], [1, 0])
+    React.useEffect(() => {
+        const host = ref.current ? (ref.current.parentElement as HTMLElement | null) : null
+        if (!host) return
+        const m = () => setBox([host.offsetWidth, host.offsetHeight])
+        m()
+        const ro = new ResizeObserver(m)
+        ro.observe(host)
+        return () => ro.disconnect()
+    }, [])
+    const d = box ? (p.kind === "loop" ? penLoop(box[0], box[1]) : penUnder(box[0], box[1])) : ""
+    return (
+        <svg
+            ref={ref}
+            className={"wm-pen" + (p.draw ? " live" : p.on ? " on" : "")}
+            width={box ? box[0] : 1}
+            height={box ? box[1] : 1}
+            viewBox={box ? "0 0 " + box[0] + " " + box[1] : "0 0 1 1"}
+            aria-hidden="true"
+        >
+            {d ? p.draw ? <motion.path d={d} pathLength={1} style={{ strokeDashoffset: offset }} /> : <path d={d} pathLength={1} style={cssVars({ "--d": (p.delay || 0) + "s" })} /> : null}
+        </svg>
+    )
+}

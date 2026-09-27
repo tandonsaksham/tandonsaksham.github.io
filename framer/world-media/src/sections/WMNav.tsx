@@ -7,6 +7,11 @@
 // vermilion section underneath, hides on scroll down, and opens a full-screen menu on phones.
 // Place the instance at the top of the page, width 100%. On the live site the bar pins itself
 // to the top of the window, so the layer itself needs no Fixed or Sticky setting.
+// It also carries the scroll index. On wide screens every chapter you reach docks as a tab at
+// the top of the window and the tabs pile up like folder dividers; the front tab shows the
+// section you're reading and how far through the chapter you are. Scroll back up and they
+// peel off again. On phones the same index is a pill in the corner with a growing stack of
+// chapter chips; tap it for the list. Any tab or row jumps back to its chapter.
 //@@ BODY
 
 type NavLink = { label: string; href: string }
@@ -18,6 +23,7 @@ type NavProps = {
     email: string
     phone: string
     note: string
+    index: boolean
     style?: React.CSSProperties
 }
 
@@ -66,7 +72,78 @@ clip-path:inset(0 0 100% 0);visibility:hidden;transition:clip-path .9s var(--eas
 .wmn-mfoot{display:flex;flex-direction:column;gap:10px;opacity:0;transition:opacity .6s}
 .wmn-menu.open .wmn-mfoot{opacity:1;transition-delay:.7s}
 .wmn-mfoot a{font-size:17px;font-weight:600}
+.wmn-stack{position:absolute;left:0;right:0;top:0;pointer-events:none}
+.wmn-tabs{max-width:1400px;margin:0 auto;padding:0 clamp(14px,3.4cqw,52px);display:flex;flex-direction:column}
+.wmn-tab{pointer-events:auto;position:relative;display:flex;align-items:center;gap:12px;height:40px;padding:0 20px 10px 22px;margin:-10px calc(var(--dp,0) * 14px) 0;border-radius:15px;
+border:1px solid var(--tl);background:var(--tb0);color:var(--tf);box-shadow:0 14px 28px -22px rgba(0,0,0,.6);transform-origin:50% 0;
+transition:height .6s var(--ease),margin .6s var(--ease),background-color .5s var(--ease),border-color .5s var(--ease),color .5s var(--ease)}
+.wmn-tab:first-child{margin-top:0}
+.wmn-tab[data-d="1"]{background:var(--tb1)}
+.wmn-tab[data-d="2"]{height:32px;background:var(--tb2)}
+.wmn-tab em{font-style:normal;font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px;color:var(--tm);transition:color .4s}
+.wmn-tab b{font-size:13.5px;font-weight:650;letter-spacing:-.01em;white-space:nowrap;transition:color .3s,font-size .6s var(--ease)}
+.wmn-tab[data-d="2"] b{font-size:12px}
+.wmn-tab[data-d="0"] em{color:var(--red)}
+.wmn-tab:hover b,.wmn-tab:focus-visible b{color:var(--red)}
+.wmn-sub{display:flex;align-items:center;gap:10px;min-width:0;font-family:"DM Mono",ui-monospace,monospace;font-size:11px;color:var(--tm);white-space:nowrap}
+.wmn-sub::before{content:"";flex:none;width:18px;height:1px;background:currentColor;opacity:.7}
+.wmn-sub span{overflow:hidden;text-overflow:ellipsis}
+.wmn-end{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none;font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px;color:var(--tm)}
+.wmn-tick{display:block;width:12px;height:12px;flex:none}
+.wmn-track{position:absolute;left:22px;right:20px;bottom:6px;height:2px;border-radius:2px;background:var(--tl);overflow:hidden}
+.wmn-track i,.wmn-pbar i{display:block;height:100%;background:var(--red);transform-origin:0 50%}
+.wmn-stack[data-t="ink"],.wmn-stack[data-t="red"]{--tb0:#262521;--tb1:#1D1C1A;--tb2:#171715;--tl:rgba(242,238,229,.13);--tf:var(--cream);--tm:rgba(242,238,229,.55)}
+.wmn-stack[data-t="cream"]{--tb0:#FCFAF6;--tb1:#F3EFE7;--tb2:#EAE5DA;--tl:rgba(15,15,15,.12);--tf:var(--ink);--tm:rgba(15,15,15,.52)}
+.wmn-dock.wm-sec{position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:2147481000;width:auto;max-width:calc(100% - 24px);background:transparent;overflow:visible;container-type:normal;
+pointer-events:none;opacity:0;transform:translateY(22px) scale(.96);transform-origin:0 100%;transition:opacity .45s var(--ease),transform .6s var(--ease)}
+.wmn-dock.on{opacity:1;transform:none}
+.wmn-dock.on .wmn-pill,.wmn-dock.on .wmn-sheet{pointer-events:auto}
+.wmn-dock[data-t="ink"]{--pb:rgba(18,18,16,.92);--pb2:#121210;--pc:#2C2B28;--pf:var(--cream);--pm:rgba(242,238,229,.6);--pl:rgba(242,238,229,.15)}
+.wmn-dock[data-t="cream"]{--pb:rgba(250,248,243,.95);--pb2:#FAF8F3;--pc:#E4DFD3;--pf:var(--ink);--pm:rgba(15,15,15,.55);--pl:rgba(15,15,15,.12)}
+.wmn-pill{position:relative;display:flex;align-items:center;gap:10px;height:50px;max-width:100%;padding:0 20px 0 7px;border-radius:99px;border:1px solid var(--pl);background:var(--pb);color:var(--pf);
+box-shadow:0 18px 36px -18px rgba(0,0,0,.55);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);cursor:pointer;font:inherit;text-align:left;-webkit-tap-highlight-color:transparent;
+transition:background-color .5s var(--ease),color .5s var(--ease),border-color .5s var(--ease)}
+.wmn-chips{display:flex;flex:none}
+.wmn-chips i{display:flex;align-items:center;justify-content:flex-start;width:34px;height:34px;margin-left:-13px;padding-left:6px;border-radius:50%;background:var(--pc);box-shadow:0 0 0 2px var(--pb2);
+font-style:normal;font-family:"DM Mono",ui-monospace,monospace;font-size:10px;letter-spacing:-.02em;color:var(--pf);transition:background-color .5s,color .5s,box-shadow .5s,padding .4s var(--ease)}
+.wmn-chips i:first-child{margin-left:0}
+.wmn-chips i.cur{justify-content:center;padding-left:0;font-size:10.5px;background:var(--red);color:var(--ink)}
+.wmn-pl{display:flex;flex-direction:column;min-width:0;line-height:1.22}
+.wmn-pl b{font-size:14px;font-weight:650;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wmn-pl small{font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px;color:var(--pm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wmn-pbar{position:absolute;left:24px;right:24px;bottom:5px;height:2px;border-radius:2px;background:var(--pl);overflow:hidden}
+.wmn-sheet{position:absolute;left:0;bottom:60px;width:min(330px,calc(100vw - 24px));padding:8px;border-radius:22px;border:1px solid var(--pl);background:var(--pb);color:var(--pf);
+box-shadow:0 26px 50px -22px rgba(0,0,0,.6);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);transform-origin:26px 100%}
+.wmn-sheet p{padding:10px 12px 6px;font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--pm)}
+.wmn-row{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:15px;font-weight:600;font-size:17px;letter-spacing:-.015em;-webkit-tap-highlight-color:transparent}
+.wmn-row em{font-style:normal;font-family:"DM Mono",ui-monospace,monospace;font-size:11px;font-weight:400;color:var(--pm)}
+.wmn-row.cur{background:var(--pc)}
+.wmn-row.cur em{color:var(--red)}
+.wmn-row span{display:flex;flex-direction:column;min-width:0}
+.wmn-row small{font-family:"DM Mono",ui-monospace,monospace;font-size:10.5px;font-weight:400;letter-spacing:0;color:var(--pm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wmn-row .wmn-tick{margin-left:auto;color:var(--pm)}
+.wmn-scrim{position:fixed;inset:0;z-index:2147480990;display:block;width:100%;height:100%;margin:0;padding:0;border:0;background:transparent;cursor:default}
+@media (max-width:760px){.wmn-stack{display:none}}
+@media (min-width:761px){.wmn-dock.wm-sec,.wmn-scrim{display:none}}
 `
+
+const pad2 = (i: number) => String(i + 1).padStart(2, "0")
+
+/** Small check mark for chapters already read. */
+function Tick() {
+    return (
+        <svg className="wmn-tick" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <path d="M2.4 6.3 5 8.8l4.6-5.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    )
+}
+
+/** The section tag ("How we work") of a section, used as the sub-line of the index. Chapter openers have none. */
+function sectionName(s: Element): string {
+    if (s.classList.contains("wmc")) return ""
+    const pill = s.querySelector(".wm-chrome .wm-pill")
+    return ((pill && pill.textContent) || s.getAttribute("aria-label") || "").trim()
+}
 
 /**
  * @framerSupportedLayoutWidth fixed
@@ -86,16 +163,25 @@ export default function WMNav(props: NavProps) {
         email = "social@worldmedia.co.in",
         phone = "+91 8800 040 301",
         note = "psst… this is our portfolio too",
+        index = true,
         style,
     } = props
 
     const isStatic = useIsStaticRenderer()
+    const reduce = useReducedMotion()
     const [theme, setTheme] = React.useState<Theme>("ink")
     const [atTop, setAtTop] = React.useState(true)
     const [hidden, setHidden] = React.useState(false)
     const [open, setOpen] = React.useState(false)
     const [active, setActive] = React.useState(-1)
     const [mounted, setMounted] = React.useState(false)
+    const [tabTheme, setTabTheme] = React.useState<Theme>("ink")
+    const [dockTheme, setDockTheme] = React.useState<Theme>("ink")
+    const [section, setSection] = React.useState("")
+    const [atEnd, setAtEnd] = React.useState(false)
+    const [sheet, setSheet] = React.useState(false)
+    const progress = useMotionValue(0)
+    const percent = useTransform(progress, (v) => Math.round(v * 100) + "%")
     const openRef = React.useRef(false)
     openRef.current = open
     const linksRef = React.useRef(links)
@@ -109,26 +195,13 @@ export default function WMNav(props: NavProps) {
         if (isStatic || typeof window === "undefined") return
         let last = window.scrollY
         let raf = 0
-        const st = { t: "ink" as Theme, top: true, hid: false, act: -1 }
+        const st = { t: "ink" as Theme, top: true, hid: false, act: -1, tt: "ink" as Theme, dt: "ink" as Theme, sec: "", end: false }
+        const themeOf = (el: Element) => (el.getAttribute("data-wm-theme") as Theme) || "ink"
         const probe = () => {
             raf = 0
             const y = window.scrollY
-            const secs = document.querySelectorAll("section[data-wm-theme]")
-            let t: Theme = st.t
-            for (let i = 0; i < secs.length; i++) {
-                const r = secs[i].getBoundingClientRect()
-                if (r.top <= 44 && r.bottom > 44) {
-                    t = (secs[i].getAttribute("data-wm-theme") as Theme) || "ink"
-                    break
-                }
-            }
-            let act = -1
-            const line = window.innerHeight * 0.45
-            linksRef.current.forEach((l, i) => {
-                const id = (l.href || "").split("#")[1]
-                const el = id ? document.getElementById(id) : null
-                if (el && el.getBoundingClientRect().top < line) act = i
-            })
+            const vh = window.innerHeight
+            const line = vh * 0.45
             const top = y < 24
             let hid = st.hid
             if (!openRef.current) {
@@ -136,16 +209,73 @@ export default function WMNav(props: NavProps) {
                 else if (y < last - 6 || top) hid = false
             }
             last = y
-            if (t !== st.t || top !== st.top || hid !== st.hid || act !== st.act) {
+            // Chapters reached: every chapter whose opener has crossed the reading line.
+            const tops: number[] = []
+            let act = -1
+            linksRef.current.forEach((l, i) => {
+                const id = (l.href || "").split("#")[1]
+                const el = id ? document.getElementById(id) : null
+                tops[i] = el ? el.getBoundingClientRect().top : NaN
+                if (el && tops[i] < line) act = i
+            })
+            // Colour of what sits under the bar, under the tab stack and under the phone pill.
+            const n = act + 1
+            const stackMid = (hid ? 14 : 82) + (n > 0 ? (40 + Math.min(1, n - 1) * 30 + Math.max(0, n - 2) * 22) / 2 : 0)
+            const low = vh - 36
+            let t = st.t
+            let tt = st.tt
+            let dt = st.dt
+            let sec = ""
+            let gt = false
+            let gtt = false
+            let gdt = false
+            const secs = document.querySelectorAll("section[data-wm-theme]")
+            for (let i = 0; i < secs.length; i++) {
+                const r = secs[i].getBoundingClientRect()
+                if (!gt && r.top <= 44 && r.bottom > 44) {
+                    t = themeOf(secs[i])
+                    gt = true
+                }
+                if (!gtt && r.top <= stackMid && r.bottom > stackMid) {
+                    tt = themeOf(secs[i])
+                    gtt = true
+                }
+                if (!gdt && r.top <= low && r.bottom > low) {
+                    dt = themeOf(secs[i])
+                    gdt = true
+                }
+                if (act >= 0 && r.top <= line && r.bottom > line) sec = sectionName(secs[i])
+            }
+            // How far through the current chapter the reading line is.
+            if (act >= 0) {
+                let next = NaN
+                for (let j = act + 1; j < tops.length; j++)
+                    if (!isNaN(tops[j])) {
+                        next = tops[j]
+                        break
+                    }
+                if (isNaN(next)) next = document.documentElement.scrollHeight - y - (vh - line)
+                progress.set(Math.max(0, Math.min(1, (line - tops[act]) / Math.max(1, next - tops[act]))))
+            }
+            const end = y + vh >= document.documentElement.scrollHeight - 90
+            if (t !== st.t || top !== st.top || hid !== st.hid || act !== st.act || tt !== st.tt || dt !== st.dt || sec !== st.sec || end !== st.end) {
                 st.t = t
                 st.top = top
                 st.hid = hid
                 st.act = act
+                st.tt = tt
+                st.dt = dt
+                st.sec = sec
+                st.end = end
                 React.startTransition(() => {
                     setTheme(t)
                     setAtTop(top)
                     setHidden(hid)
                     setActive(act)
+                    setTabTheme(tt)
+                    setDockTheme(dt)
+                    setSection(sec)
+                    setAtEnd(end)
                 })
             }
         }
@@ -179,8 +309,138 @@ export default function WMNav(props: NavProps) {
 
     const toggle = React.useCallback(() => React.startTransition(() => setOpen((o) => !o)), [])
     const close = React.useCallback(() => React.startTransition(() => setOpen(false)), [])
+    const toggleSheet = React.useCallback(() => React.startTransition(() => setSheet((s) => !s)), [])
+    const closeSheet = React.useCallback(() => React.startTransition(() => setSheet(false)), [])
 
     const allLinks = links.concat([{ label: ctaLabel, href: ctaHref }])
+
+    // Scroll index: the chapters reached so far, newest last.
+    const reached = index && !isStatic && active >= 0 ? links.slice(0, active + 1) : []
+    const current = reached.length ? reached[reached.length - 1] : null
+    const dockOn = reached.length > 0 && !atEnd && !open
+
+    React.useEffect(() => {
+        if (!dockOn) React.startTransition(() => setSheet(false))
+    }, [dockOn])
+
+    React.useEffect(() => {
+        if (!sheet || typeof window === "undefined") return
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") React.startTransition(() => setSheet(false))
+        }
+        window.addEventListener("keydown", onKey)
+        return () => window.removeEventListener("keydown", onKey)
+    }, [sheet])
+
+    const ease = [0.16, 1, 0.3, 1] as const
+    const fold = reduce ? { opacity: 0 } : { opacity: 0, y: 18, rotateX: -65 }
+
+    const stack = (
+        <motion.nav
+            className="wmn-stack"
+            data-t={tabTheme}
+            aria-label="Reading progress"
+            initial={false}
+            animate={{ y: hidden && !open ? 14 : 82 }}
+            transition={{ duration: reduce ? 0 : 0.7, ease }}
+        >
+            <div className="wmn-tabs">
+                <AnimatePresence initial={false}>
+                    {reached.map((l, i) => {
+                        const depth = reached.length - 1 - i
+                        return (
+                            <motion.a
+                                key={l.href || "c" + i}
+                                href={l.href}
+                                className="wmn-tab"
+                                data-d={Math.min(2, depth)}
+                                aria-current={depth === 0 ? "location" : undefined}
+                                style={{ zIndex: i + 1, transformPerspective: 700, ...cssVars({ "--dp": Math.min(depth, 4) }) }}
+                                initial={fold}
+                                animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                                exit={fold}
+                                transition={{ duration: reduce ? 0 : 0.65, ease }}
+                            >
+                                <em>{pad2(i)}</em>
+                                <b>{l.label}</b>
+                                {depth === 0 && section ? (
+                                    <span className="wmn-sub">
+                                        <span>{section}</span>
+                                    </span>
+                                ) : null}
+                                <span className="wmn-end">{depth === 0 ? <motion.span>{percent}</motion.span> : <Tick />}</span>
+                                {depth === 0 ? (
+                                    <span className="wmn-track" aria-hidden="true">
+                                        <motion.i style={{ scaleX: progress }} />
+                                    </span>
+                                ) : null}
+                            </motion.a>
+                        )
+                    })}
+                </AnimatePresence>
+            </div>
+        </motion.nav>
+    )
+
+    const dock = (
+        <div className={"wm-sec wmn-dock" + (dockOn ? " on" : "")} data-t={dockTheme === "ink" ? "cream" : "ink"} aria-hidden={!dockOn}>
+            <AnimatePresence>
+                {sheet && dockOn ? (
+                    <motion.div
+                        className="wmn-sheet"
+                        initial={{ opacity: 0, y: 10, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.96 }}
+                        transition={{ duration: reduce ? 0 : 0.35, ease }}
+                    >
+                        <p>Chapters so far</p>
+                        {reached.map((l, i) => (
+                            <a key={l.href || "r" + i} href={l.href} className={"wmn-row" + (i === active ? " cur" : "")} onClick={closeSheet}>
+                                <em>{pad2(i)}</em>
+                                <span>
+                                    {l.label}
+                                    {i === active && section ? <small>{section}</small> : null}
+                                </span>
+                                {i < active ? <Tick /> : null}
+                            </a>
+                        ))}
+                    </motion.div>
+                ) : null}
+            </AnimatePresence>
+            <button
+                type="button"
+                className="wmn-pill"
+                onClick={toggleSheet}
+                aria-expanded={sheet}
+                tabIndex={dockOn ? 0 : -1}
+                aria-label={current ? "Chapter " + pad2(active) + ", " + current.label + (section ? ", " + section : "") + ". Show chapters read so far" : "Chapters"}
+            >
+                <span className="wmn-chips" aria-hidden="true">
+                    <AnimatePresence initial={false}>
+                        {reached.map((l, i) => (
+                            <motion.i
+                                key={l.href || "p" + i}
+                                className={i === active ? "cur" : undefined}
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                exit={{ scale: 0 }}
+                                transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 28 }}
+                            >
+                                {pad2(i)}
+                            </motion.i>
+                        ))}
+                    </AnimatePresence>
+                </span>
+                <span className="wmn-pl" aria-hidden="true">
+                    <b>{current ? current.label : ""}</b>
+                    <small>{section || "Chapter " + pad2(Math.max(0, active))}</small>
+                </span>
+                <span className="wmn-pbar" aria-hidden="true">
+                    <motion.i style={{ scaleX: progress }} />
+                </span>
+            </button>
+        </div>
+    )
 
     const menu = (
         <div className={"wm-sec wmn-menu" + (open ? " open" : "")} data-wm-theme="ink" role="dialog" aria-modal="true" aria-hidden={!open} aria-label="Menu">
@@ -252,6 +512,7 @@ export default function WMNav(props: NavProps) {
                     </div>
                 </header>
             </motion.div>
+            {index && !isStatic ? stack : null}
         </div>
     )
 
@@ -264,6 +525,8 @@ export default function WMNav(props: NavProps) {
             {isStatic ? bar : null}
             {live ? createPortal(<div className="wmn-fixed">{bar}</div>, document.body) : null}
             {live ? createPortal(menu, document.body) : null}
+            {live && index ? createPortal(dock, document.body) : null}
+            {live && sheet && dockOn ? createPortal(<button type="button" className="wmn-scrim" aria-label="Close chapter list" onClick={closeSheet} />, document.body) : null}
         </div>
     )
 }
@@ -292,4 +555,5 @@ addPropertyControls(WMNav, {
     email: { type: ControlType.String, title: "Email", defaultValue: "social@worldmedia.co.in" },
     phone: { type: ControlType.String, title: "Phone", defaultValue: "+91 8800 040 301" },
     note: { type: ControlType.String, title: "Menu note", defaultValue: "psst… this is our portfolio too" },
+    index: { type: ControlType.Boolean, title: "Scroll index", defaultValue: true, enabledTitle: "Show", disabledTitle: "Hide" },
 })

@@ -6,7 +6,7 @@ prelude = (root / "src/prelude.tsx").read_text()
 IMPORT_SPECS = [
     ("react-dom", ["createPortal"]),
     ("framer", ["addPropertyControls", "ControlType", "useIsStaticRenderer"]),
-    ("framer-motion", ["motion", "useInView", "useReducedMotion", "useScroll", "useTransform", "useSpring", "useMotionValue", "animate", "useAnimationFrame", "useVelocity"]),
+    ("framer-motion", ["motion", "useInView", "useReducedMotion", "useScroll", "useTransform", "useSpring", "useMotionValue", "animate", "useAnimationFrame", "useVelocity", "AnimatePresence"]),
 ]
 
 # Split the prelude into its header comment and top-level declaration blocks.
