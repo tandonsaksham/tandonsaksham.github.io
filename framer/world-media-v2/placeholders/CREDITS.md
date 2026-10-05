@@ -6,7 +6,7 @@ Framer. Each section shows these only while its own picture or video field is em
 
 | File | Used in | Source | Licence |
 | --- | --- | --- | --- |
-| `globe-loop.mp4`, `globe-poster.jpg` | Hero | [Spinning Earth with clouds, atmosphere, and night lights](https://svs.gsfc.nasa.gov/5570), NASA's Scientific Visualization Studio. Cropped square, sped up 5x, crossfaded into a 20-second loop | NASA media, credit NASA's Scientific Visualization Studio |
+| `globe-loop.mp4`, `globe-loop.webm`, `globe-poster.jpg` | Hero | [Spinning Earth with clouds, atmosphere, and night lights](https://svs.gsfc.nasa.gov/5570), NASA's Scientific Visualization Studio. Cropped square, sped up 5x, crossfaded into a 20-second loop | NASA media, credit NASA's Scientific Visualization Studio |
 | `hello-1.jpg` | Hello, line 1 | [Concert Festival](https://stocksnap.io/photo/concert-festival-4CNNMKE9IQ), StockSnap | CC0 |
 | `hello-2.jpg` | Hello, line 2 | [Group Friends](https://stocksnap.io/photo/group-friends-YBGQFVYDDC), StockSnap | CC0 |
 | `hello-3.jpg` | Hello, line 3 | [People Crowd](https://stocksnap.io/photo/people-crowd-A5G6T8F11N), StockSnap | CC0 |
