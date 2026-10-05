@@ -11,10 +11,10 @@ twoplusone.co. It sits on its own Framer page so the first site stays where it i
 - `placeholders/` — the sample globe video and photos shown until the real ones are added
   (sources and licences in `placeholders/CREDITS.md`)
 
-The landing opens with a loading screen: a wireframe globe with three satellites, a colour
-bar and a counter. It is part of the page's HTML, so it covers the page from the first paint,
-then waits for the fonts, the page and the video before fading into the hero, where the
-sample Earth sits exactly where the wireframe was. Each section's "Sample video" or
+The landing opens with a small, minimal loading screen in the centre: the World Media globe
+spinning above a thin bar and a percentage. It is part of the page's HTML, so it covers the
+page from the first paint, then waits for the fonts, the page and the video before fading
+into the hero. Each section's "Sample video" or
 "Sample photos" switch hides the samples; a real picture or video always wins.
 
 Run `python3 build.py` after editing anything in `src/`.
