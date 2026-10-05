@@ -21,6 +21,8 @@ type HelloProps = {
     ctaHref: string
     title: string
     beliefs: Belief[]
+    counter: boolean
+    first: boolean
     photo1?: Img
     photo2?: Img
     photo3?: Img
@@ -65,12 +67,12 @@ function Row(p: { children: React.ReactNode; delay?: number; className?: string 
 }
 
 /** Big words with a picture pill tucked in; the pill opens once the words have risen. */
-function BigLine(p: { text: string; photo?: Img; hue: string; width?: string; className?: string; before?: boolean; delay?: number }) {
+function BigLine(p: { text: string; photo?: Img; hue: string; width?: string; className?: string; before?: boolean; delay?: number; hidden?: boolean }) {
     const [ref, on] = useReveal<HTMLParagraphElement>(0.4)
     const words = parseWords(p.text)
     const pill = <Media src={p.photo && p.photo.src} alt={p.photo && p.photo.alt} hue={p.hue} width={p.width} delay={(p.delay || 0) + 0.35} />
     return (
-        <p ref={ref} className={"w2-mega " + (p.className || "") + on}>
+        <p ref={ref} className={"w2-mega " + (p.className || "") + on} aria-hidden={p.hidden || undefined}>
             {p.before ? pill : null}
             {words.map((w, i) => (
                 <React.Fragment key={i}>
@@ -108,6 +110,8 @@ export default function W2Hello(props: HelloProps) {
         photo2,
         photo3,
         samples = true,
+        counter = true,
+        first = false,
         style,
     } = props
 
@@ -115,25 +119,25 @@ export default function W2Hello(props: HelloProps) {
     const pic = (ph: Img | undefined, n: number): Img | undefined =>
         ph && ph.src ? ph : samples ? { src: SAMPLE + "hello-" + n + ".jpg", alt: "" } : undefined
 
-    const go = () => {
-        if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("w2:form", { detail: "brand" }))
-    }
+    const go = () => pickSide(ctaHref)
 
     return (
         <Section tone="paper" id="hello" className="w2he" css={HELLO_CSS} label="Hello" style={style}>
             <div className="w2he-wrap">
                 <div className="w2he-rows">
+                    {/* Opening a page, the three lines are its main heading; screen readers get them in one piece. */}
+                    {first ? <h1 className="w2-sr">{[hello, weAre, name].join(" ").replace(/\*/g, "")}</h1> : null}
                     <Row>
-                        <BigLine text={hello} className="w2he-hi" photo={pic(photo1, 1)} hue="paper2" width="1.9em" />
+                        <BigLine text={hello} className="w2he-hi" photo={pic(photo1, 1)} hue="paper2" width="1.9em" hidden={first} />
                     </Row>
                     <Row delay={0.1}>
-                        <BigLine text={weAre} photo={pic(photo2, 2)} hue="paper2" width="1.3em" delay={0.08} />
+                        <BigLine text={weAre} photo={pic(photo2, 2)} hue="paper2" width="1.3em" delay={0.08} hidden={first} />
                         <Reveal as="p" className="w2he-side w2-rise" delay={0.45}>
                             {side}
                         </Reveal>
                     </Row>
                     <Row delay={0.2}>
-                        <BigLine text={name} photo={pic(photo3, 3)} hue="paper2" width="1.15em" before delay={0.14} />
+                        <BigLine text={name} photo={pic(photo3, 3)} hue="paper2" width="1.15em" before delay={0.14} hidden={first} />
                     </Row>
                 </div>
                 <Reveal className="w2he-ask w2-rise" amount={0.5}>
@@ -163,7 +167,7 @@ export default function W2Hello(props: HelloProps) {
                             </Reveal>
                         ))}
                     </ol>
-                    <Label name="Hello" index={1} />
+                    {counter ? <Label name="Hello" index={1} /> : null}
                 </div>
             </div>
         </Section>
@@ -190,6 +194,22 @@ addPropertyControls(W2Hello, {
     cta: { type: ControlType.String, title: "Button", defaultValue: "Let’s talk" },
     ctaHref: { type: ControlType.String, title: "Button link", defaultValue: "#contact" },
     title: { type: ControlType.String, title: "Card title", defaultValue: "We believe in three things:" },
+    counter: {
+        type: ControlType.Boolean,
+        title: "Section count",
+        defaultValue: true,
+        enabledTitle: "Show",
+        disabledTitle: "Hide",
+        description: "The (Hello) 01 / 05 line at the foot of the card.",
+    },
+    first: {
+        type: ControlType.Boolean,
+        title: "Opens the page",
+        defaultValue: false,
+        enabledTitle: "Yes",
+        disabledTitle: "No",
+        description: "When Hello is the first thing on a page, its three big lines become the page's main heading.",
+    },
     beliefs: {
         type: ControlType.Array,
         title: "Beliefs",

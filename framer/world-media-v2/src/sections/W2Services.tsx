@@ -9,6 +9,7 @@
 type Service = { title: string; lead: string; items: string; shape: "circle" | "square" | "triangle" }
 
 type ServicesProps = {
+    first: boolean
     banner: string
     services: Service[]
     closing: string
@@ -17,8 +18,9 @@ type ServicesProps = {
 
 const SERV_CSS = `
 .w2s-wrap{padding:clamp(48px,6cqw,96px) var(--gut) var(--m)}
+.w2s-first .w2s-wrap{padding-top:clamp(72px,8cqw,128px)}
 .w2s-band{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:clamp(66px,6.4cqw,104px);padding:0 clamp(22px,2.6cqw,40px);border-radius:99px;background:var(--ink);color:var(--paper)}
-.w2s-band h2{font-size:clamp(30px,3.6cqw,58px);line-height:1;letter-spacing:-.045em;text-align:center}
+.w2s-band :is(h1,h2){font-size:clamp(30px,3.6cqw,58px);line-height:1;letter-spacing:-.045em;text-align:center}
 .w2s-chev{display:flex;gap:clamp(6px,.7cqw,12px)}
 .w2s-chev svg{width:clamp(14px,1.3cqw,20px);height:auto;animation:w2sC 2.2s var(--ease) infinite;animation-delay:calc(var(--i) * .14s)}
 @keyframes w2sC{0%,55%,100%{translate:0 0}25%{translate:0 5px}}
@@ -93,17 +95,18 @@ export default function W2Services(props: ServicesProps) {
             },
         ],
         closing = "Local voices. Worldwide noise.",
+        first = false,
         style,
     } = props
     const [closeRef, closeOn] = useReveal<HTMLDivElement>(0.6)
     const colors = ["var(--red)", "var(--ink)", "var(--ink)"]
 
     return (
-        <Section tone="paper" id="services" className="w2s" css={SERV_CSS} label="Services" style={style}>
+        <Section tone="paper" id="services" className={"w2s" + (first ? " w2s-first" : "")} css={SERV_CSS} label="Services" style={style}>
             <div className="w2s-wrap">
                 <Reveal className="w2s-band w2-rise" amount={0.6}>
                     <Chevrons />
-                    <Words as="h2" text={banner} stagger={0.08} />
+                    <Words as={first ? "h1" : "h2"} text={banner} stagger={0.08} />
                     <Chevrons />
                 </Reveal>
                 <div className="w2s-grid">
@@ -180,4 +183,12 @@ addPropertyControls(W2Services, {
         ],
     },
     closing: { type: ControlType.String, title: "Closing line", defaultValue: "Local voices. Worldwide noise." },
+    first: {
+        type: ControlType.Boolean,
+        title: "Opens the page",
+        defaultValue: false,
+        enabledTitle: "Yes",
+        disabledTitle: "No",
+        description: "When Services is the first thing on a page: room for the menu, and the band becomes the page's main heading.",
+    },
 })

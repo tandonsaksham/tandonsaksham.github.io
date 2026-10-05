@@ -227,6 +227,7 @@ type Project = {
 }
 
 type ProjectsProps = {
+    first: boolean
     title: string
     intro: string
     projects: Project[]
@@ -393,6 +394,7 @@ export default function W2Projects(props: ProjectsProps) {
             { name: "Brand Four", services: "Talent management · Content writing", year: "2024", hue: "ink" as const },
         ],
         samples = true,
+        first = false,
         style,
     } = props
     const still = useStill()
@@ -407,7 +409,7 @@ export default function W2Projects(props: ProjectsProps) {
                 <span className="w2p-orb" style={{ width: "34vw", height: "34vw", right: "-8vw", bottom: "-10vw", background: "#5C5C5C", animationDelay: "-6s" }} aria-hidden="true" />
                 <Label name="Projects" index={3} />
                 <div className="w2p-head">
-                    <Words as="h2" className="w2-mega" text={title} stagger={0.08} />
+                    <Words as={first ? "h1" : "h2"} className="w2-mega" text={title} stagger={0.08} />
                     <Reveal className="w2-rise" delay={0.3}>
                         <p className="w2p-blurb">
                             {parts.map((t, i) => (i % 2 ? <b key={i}>{t}</b> : <React.Fragment key={i}>{t}</React.Fragment>))}
@@ -476,5 +478,13 @@ addPropertyControls(W2Projects, {
         enabledTitle: "Show",
         disabledTitle: "Hide",
         description: "Give the first four projects a sample photo until you add your own.",
+    },
+    first: {
+        type: ControlType.Boolean,
+        title: "Opens the page",
+        defaultValue: false,
+        enabledTitle: "Yes",
+        disabledTitle: "No",
+        description: "When Projects is the first thing on a page, its title becomes the page's main heading.",
     },
 })

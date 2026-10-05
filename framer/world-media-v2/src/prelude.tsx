@@ -247,3 +247,39 @@ function Globe(p: { size?: number; color?: string; speed?: number; width?: numbe
         </svg>
     )
 }
+
+/**
+ * The separate-pages version: where the landing page lives, and the pages in the menu. The menu and
+ * the footer share this list, so every page shows the same links. Addresses are relative to the page
+ * you are on, so they work wherever Framer serves the site. When the landing becomes the home page,
+ * HOME becomes "./".
+ */
+const HOME = "./landing"
+
+const PAGE_LINKS: { label: string; href: string; hue: Hue }[] = [
+    { label: "Services", href: "./services", hue: "paper" },
+    { label: "Projects", href: "./projects", hue: "paper" },
+    { label: "About", href: "./about", hue: "paper" },
+    { label: "Contact", href: "./contact", hue: "ink" },
+    { label: "Join us", href: "./contact#join", hue: "red" },
+]
+
+/** The page an address points at, as its last segment: "./contact#join" and "/contact" both give "contact". */
+function pageOf(href: string): string {
+    const s = href.split("#")[0].replace(/\/+$/, "").split("/").pop() || ""
+    return s === "." ? "" : s
+}
+
+/**
+ * Contact and Join us share one form. A link to it on the page you are on tells the form which side to
+ * show; a link to another page leaves that to the address, where #join opens the Creator side.
+ */
+function pickSide(href: string) {
+    if (typeof window === "undefined") return
+    const i = href.indexOf("#")
+    const path = i < 0 ? href : href.slice(0, i)
+    if (path && pageOf(path) !== pageOf(window.location.pathname)) return
+    const hash = i < 0 ? "" : href.slice(i)
+    if (hash === "#join") window.dispatchEvent(new CustomEvent("w2:form", { detail: "creator" }))
+    else if (hash === "#contact") window.dispatchEvent(new CustomEvent("w2:form", { detail: "brand" }))
+}

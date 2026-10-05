@@ -3,12 +3,14 @@
 // brief: a creative landing like rabenrifaie.com, project navigation like another.gr,
 // the tonality and plain-spoken copy of twoplusone.co (pictorial, big text, a bit of colour).
 // This file: the footer. A thank-you for reading this far, the name set huge with a small
-// spinning globe for the "o", the menu again, and the small print.
+// spinning globe for the "o", the menu again, and the small print. In the separate-pages
+// version (Links go to: Separate pages) the links open the pages, as in the menu.
 //@@ BODY
 
 type FootLink = { label: string; href: string }
 
 type FooterProps = {
+    mode: "sections" | "pages"
     thanks: string
     name: string
     links: FootLink[]
@@ -42,6 +44,7 @@ const FOOT_CSS = `
  */
 export default function W2Footer(props: FooterProps) {
     const {
+        mode = "sections",
         thanks = "Thanks for making it all the way down here.",
         name = "world media",
         links = [
@@ -60,10 +63,7 @@ export default function W2Footer(props: FooterProps) {
         e.preventDefault()
         window.scrollTo({ top: 0, behavior: "smooth" })
     }
-    const pick = (href: string) => {
-        if (href === "#join") window.dispatchEvent(new CustomEvent("w2:form", { detail: "creator" }))
-        else if (href === "#contact") window.dispatchEvent(new CustomEvent("w2:form", { detail: "brand" }))
-    }
+    const items = mode === "pages" ? PAGE_LINKS : links
     // The first "o" of the name becomes a turning globe.
     const chars = Array.from(name)
     const oAt = chars.findIndex((c) => c.toLowerCase() === "o")
@@ -107,8 +107,8 @@ export default function W2Footer(props: FooterProps) {
                 <div className="w2f-bot">
                     <span>{copyright}</span>
                     <nav className="w2f-links" aria-label="Footer">
-                        {links.map((l, i) => (
-                            <a key={i} href={l.href} onClick={() => pick(l.href)}>
+                        {items.map((l, i) => (
+                            <a key={i} href={l.href} onClick={() => pickSide(l.href)}>
                                 {l.label}
                             </a>
                         ))}
@@ -121,11 +121,20 @@ export default function W2Footer(props: FooterProps) {
 }
 
 addPropertyControls(W2Footer, {
+    mode: {
+        type: ControlType.Enum,
+        title: "Links go to",
+        options: ["sections", "pages"],
+        optionTitles: ["Sections on this page", "Separate pages"],
+        defaultValue: "sections",
+        description: "Separate pages: the same links as the menu.",
+    },
     thanks: { type: ControlType.String, title: "Thank-you", defaultValue: "Thanks for making it all the way down here." },
     name: { type: ControlType.String, title: "Name", defaultValue: "world media" },
     links: {
         type: ControlType.Array,
         title: "Links",
+        hidden: (p: FooterProps) => p.mode === "pages",
         control: {
             type: ControlType.Object,
             controls: {

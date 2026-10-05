@@ -229,6 +229,7 @@ type Mode = "brand" | "creator"
 type ContactItem = { label: string; value: string; href: string }
 
 type ContactProps = {
+    first: boolean
     title: string
     sub: string
     contacts: ContactItem[]
@@ -374,6 +375,7 @@ export default function W2Contact(props: ContactProps) {
         brandThanks = "Got it. Your brief is with the team, and you’ll hear back within a day.",
         creatorThanks = "Welcome aboard (almost). We’ll look through your work and get back to you within a week.",
         promise = "* needed · we reply within a day",
+        first = false,
         style,
     } = props
 
@@ -566,7 +568,7 @@ export default function W2Contact(props: ContactProps) {
             <div className="w2c-wrap">
                 <div className="w2c-left">
                     <Label name="Contact" index={5} />
-                    <Words as="h2" className="w2-h2" text={title} stagger={0.045} />
+                    <Words as={first ? "h1" : "h2"} className="w2-h2" text={title} stagger={0.045} />
                     <Reveal as="p" className="w2c-sub w2-rise" delay={0.2}>
                         {sub}
                     </Reveal>
@@ -707,4 +709,12 @@ addPropertyControls(W2Contact, {
         defaultValue: "Welcome aboard (almost). We’ll look through your work and get back to you within a week.",
     },
     promise: { type: ControlType.String, title: "Small print", defaultValue: "* needed · we reply within a day" },
+    first: {
+        type: ControlType.Boolean,
+        title: "Opens the page",
+        defaultValue: false,
+        enabledTitle: "Yes",
+        disabledTitle: "No",
+        description: "When Contact is the first thing on a page, its title becomes the page's main heading.",
+    },
 })

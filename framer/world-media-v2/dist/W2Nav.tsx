@@ -5,7 +5,9 @@
 // back to the top; on the right, colourful pills for Services, Projects, About, Contact and
 // Join us. Contact opens the form as a brand, Join us as a creator. On phones the pills fold
 // into a Menu pill with a full-screen sheet. Place it at the top of the page, width 100%;
-// on the live site it pins itself to the top of the window.
+// on the live site it pins itself to the top of the window. In the separate-pages version
+// (Links go to: Separate pages) the pills open the Services, Projects, About and Contact pages
+// and the globe goes back to the landing page.
 
 import * as React from "react"
 import { createPortal } from "react-dom"
@@ -190,9 +192,46 @@ function Globe(p: { size?: number; color?: string; speed?: number; width?: numbe
     )
 }
 
+/**
+ * The separate-pages version: where the landing page lives, and the pages in the menu. The menu and
+ * the footer share this list, so every page shows the same links. Addresses are relative to the page
+ * you are on, so they work wherever Framer serves the site. When the landing becomes the home page,
+ * HOME becomes "./".
+ */
+const HOME = "./landing"
+
+const PAGE_LINKS: { label: string; href: string; hue: Hue }[] = [
+    { label: "Services", href: "./services", hue: "paper" },
+    { label: "Projects", href: "./projects", hue: "paper" },
+    { label: "About", href: "./about", hue: "paper" },
+    { label: "Contact", href: "./contact", hue: "ink" },
+    { label: "Join us", href: "./contact#join", hue: "red" },
+]
+
+/** The page an address points at, as its last segment: "./contact#join" and "/contact" both give "contact". */
+function pageOf(href: string): string {
+    const s = href.split("#")[0].replace(/\/+$/, "").split("/").pop() || ""
+    return s === "." ? "" : s
+}
+
+/**
+ * Contact and Join us share one form. A link to it on the page you are on tells the form which side to
+ * show; a link to another page leaves that to the address, where #join opens the Creator side.
+ */
+function pickSide(href: string) {
+    if (typeof window === "undefined") return
+    const i = href.indexOf("#")
+    const path = i < 0 ? href : href.slice(0, i)
+    if (path && pageOf(path) !== pageOf(window.location.pathname)) return
+    const hash = i < 0 ? "" : href.slice(i)
+    if (hash === "#join") window.dispatchEvent(new CustomEvent("w2:form", { detail: "creator" }))
+    else if (hash === "#contact") window.dispatchEvent(new CustomEvent("w2:form", { detail: "brand" }))
+}
+
 type NavLink = { label: string; href: string; hue: Hue }
 
 type NavProps = {
+    mode: "sections" | "pages"
     links: NavLink[]
     email: string
     phone: string
@@ -205,6 +244,7 @@ const NAV_CSS = `
 html{scroll-padding-top:84px}
 .w2n-skip{position:absolute;left:12px;top:-60px;z-index:3;pointer-events:auto;transition:top .3s var(--ease)}
 .w2n-skip:focus-visible{top:12px}
+section.w2[tabindex="-1"]:focus{outline:none}
 .w2n-fixed{position:fixed;top:0;left:0;right:0;z-index:2147482000;pointer-events:none}
 .w2n.w2{background:transparent;overflow:visible}
 .w2n-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:clamp(10px,1.1cqw,16px) clamp(10px,1.1cqw,16px) 0}
@@ -217,7 +257,7 @@ box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);cursor:pointer;border:0;padding
 .w2n-pills .w2-pill:is([data-hue="paper"],[data-hue="lime"],[data-hue="sky"],[data-hue="lilac"]){box-shadow:inset 0 0 0 1px rgba(10,10,10,.12),0 6px 18px -10px rgba(0,0,0,.45)}
 .w2n .w2-pill[data-hue="ink"]{box-shadow:inset 0 0 0 1px rgba(255,255,255,.22),0 6px 18px -10px rgba(0,0,0,.45)}
 .w2n-pills .w2-pill:hover{translate:0 -2px}
-.w2n-pills .w2-pill[aria-current="true"]::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:2px}
+.w2n-pills .w2-pill[aria-current]::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:2px}
 .w2n-menu{display:none}
 @container (max-width:760px){.w2n-pills{display:none}.w2n-menu{display:inline-flex;pointer-events:auto}}
 .w2n-sheet.w2{position:fixed;inset:0;z-index:2147483000;height:100%;overflow:auto;overscroll-behavior:contain;background:var(--paper);color:var(--ink);
@@ -238,6 +278,7 @@ clip-path:inset(0 0 100% 0 round 0 0 28px 28px);visibility:hidden;transition:cli
  */
 export default function W2Nav(props: NavProps) {
     const {
+        mode = "sections",
         links = [
             { label: "Services", href: "#services", hue: "paper" as Hue },
             { label: "Projects", href: "#projects", hue: "paper" as Hue },
@@ -251,6 +292,8 @@ export default function W2Nav(props: NavProps) {
         style,
     } = props
 
+    const pages = mode === "pages"
+    const items = pages ? PAGE_LINKS : links
     const isStatic = useIsStaticRenderer()
     const [mounted, setMounted] = React.useState(false)
     const [open, setOpen] = React.useState(false)
@@ -258,8 +301,8 @@ export default function W2Nav(props: NavProps) {
     const menuBtn = React.useRef<HTMLButtonElement>(null)
     const closeBtn = React.useRef<HTMLButtonElement>(null)
     const wasOpen = React.useRef(false)
-    const linksRef = React.useRef(links)
-    linksRef.current = links
+    const linksRef = React.useRef(items)
+    linksRef.current = items
 
     // The bar lives at the very start of the page, so Tab reaches the skip link and menu first.
     const [host, setHost] = React.useState<HTMLElement | null>(null)
@@ -277,9 +320,22 @@ export default function W2Nav(props: NavProps) {
         }
     }, [isStatic])
 
-    // The pill of the section under the middle of the screen gets a dot.
+    // The pill of the page you are on gets a dot; on one long page, the pill of the section under
+    // the middle of the screen.
     React.useEffect(() => {
         if (isStatic || typeof window === "undefined") return
+        if (pages) {
+            const mark = () => {
+                const here = pageOf(window.location.pathname)
+                const hash = window.location.hash
+                const on = linksRef.current.filter((l) => pageOf(l.href) === here)
+                const hit = on.find((l) => l.href.indexOf("#") >= 0 && l.href.slice(l.href.indexOf("#")) === hash) || on.find((l) => l.href.indexOf("#") < 0)
+                React.startTransition(() => setActive(hit ? hit.href : ""))
+            }
+            mark()
+            window.addEventListener("hashchange", mark)
+            return () => window.removeEventListener("hashchange", mark)
+        }
         let raf = 0
         const probe = () => {
             raf = 0
@@ -305,7 +361,7 @@ export default function W2Nav(props: NavProps) {
             window.removeEventListener("resize", on)
             if (raf) window.cancelAnimationFrame(raf)
         }
-    }, [isStatic])
+    }, [isStatic, pages])
 
     React.useEffect(() => {
         if (typeof document === "undefined") return
@@ -326,22 +382,33 @@ export default function W2Nav(props: NavProps) {
         }
     }, [open])
 
-    // Contact and Join us share one form; tell it which side to show.
-    const pick = React.useCallback((href: string) => {
-        if (typeof window === "undefined") return
-        if (href === "#join") window.dispatchEvent(new CustomEvent("w2:form", { detail: "creator" }))
-        else if (href === "#contact") window.dispatchEvent(new CustomEvent("w2:form", { detail: "brand" }))
+    // The globe goes back to the top, or from another page to the landing page.
+    const toTop = React.useCallback(
+        (e: React.MouseEvent) => {
+            if (typeof window === "undefined") return
+            setOpen(false)
+            if (pages && pageOf(HOME) !== pageOf(window.location.pathname)) return
+            e.preventDefault()
+            window.scrollTo({ top: 0, behavior: "smooth" })
+        },
+        [pages]
+    )
+
+    // On separate pages, skip to the page's first section, whichever it is.
+    const skip = React.useCallback((e: React.MouseEvent) => {
+        const first = document.querySelector<HTMLElement>("section.w2")
+        if (!first) return
+        e.preventDefault()
+        first.tabIndex = -1
+        first.focus({ preventScroll: true })
+        first.scrollIntoView()
     }, [])
 
-    const toTop = React.useCallback((e: React.MouseEvent) => {
-        if (typeof window === "undefined") return
-        e.preventDefault()
-        window.scrollTo({ top: 0, behavior: "smooth" })
-        setOpen(false)
-    }, [])
+    const home = pages ? HOME : "#top"
+    const homeLabel = pages ? "World Media, home" : "World Media, back to the top"
 
     const globe = (
-        <a href="#top" className="w2n-globe" onClick={toTop} aria-label="World Media, back to the top">
+        <a href={home} className="w2n-globe" onClick={toTop} aria-label={homeLabel}>
             <Globe size={28} speed={9} width={1.7} />
         </a>
     )
@@ -350,20 +417,20 @@ export default function W2Nav(props: NavProps) {
         <div className="w2 w2n" data-tone="paper">
             <Base />
             <style dangerouslySetInnerHTML={{ __html: NAV_CSS }} />
-            <a className="w2-pill w2n-skip" data-hue="paper" href="#hello">
+            <a className="w2-pill w2n-skip" data-hue="paper" href={pages ? "#top" : "#hello"} onClick={pages ? skip : undefined}>
                 Skip to content
             </a>
             <header className="w2n-bar">
                 {globe}
                 <nav className="w2n-pills" aria-label="Main">
-                    {links.map((l, i) => (
+                    {items.map((l, i) => (
                         <a
                             key={i}
                             className="w2-pill"
                             data-hue={l.hue}
                             href={l.href}
-                            aria-current={active === l.href ? "true" : undefined}
-                            onClick={() => pick(l.href)}
+                            aria-current={active === l.href ? (pages ? "page" : "true") : undefined}
+                            onClick={() => pickSide(l.href)}
                         >
                             <Roll>{l.label}</Roll>
                         </a>
@@ -382,7 +449,7 @@ export default function W2Nav(props: NavProps) {
             <style dangerouslySetInnerHTML={{ __html: NAV_CSS }} />
             <div className="w2n-swrap">
                 <div className="w2n-stop">
-                    <a href="#top" className="w2n-globe" onClick={toTop} aria-label="World Media, back to the top" tabIndex={open ? 0 : -1}>
+                    <a href={home} className="w2n-globe" onClick={toTop} aria-label={homeLabel} tabIndex={open ? 0 : -1}>
                         <Globe size={28} speed={9} width={1.7} />
                     </a>
                     <button ref={closeBtn} type="button" className="w2-pill" data-hue="ink" onClick={() => setOpen(false)} tabIndex={open ? 0 : -1}>
@@ -390,7 +457,7 @@ export default function W2Nav(props: NavProps) {
                     </button>
                 </div>
                 <nav className="w2n-list" aria-label="Main">
-                    {links.map((l, i) => (
+                    {items.map((l, i) => (
                         <a
                             key={i}
                             className="w2-pill"
@@ -399,7 +466,7 @@ export default function W2Nav(props: NavProps) {
                             style={cssVars({ "--i": i })}
                             tabIndex={open ? 0 : -1}
                             onClick={() => {
-                                pick(l.href)
+                                pickSide(l.href)
                                 setOpen(false)
                             }}
                         >
@@ -432,9 +499,18 @@ export default function W2Nav(props: NavProps) {
 }
 
 addPropertyControls(W2Nav, {
+    mode: {
+        type: ControlType.Enum,
+        title: "Links go to",
+        options: ["sections", "pages"],
+        optionTitles: ["Sections on this page", "Separate pages"],
+        defaultValue: "sections",
+        description: "Separate pages: the Services, Projects, About and Contact pages, with the same menu on every page.",
+    },
     links: {
         type: ControlType.Array,
         title: "Menu",
+        hidden: (p: NavProps) => p.mode === "pages",
         control: {
             type: ControlType.Object,
             controls: {

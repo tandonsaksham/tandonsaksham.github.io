@@ -5,7 +5,8 @@
 // globe spinning above a thin bar and a percentage, filling while the page and the video load.
 // Then the globe video in a rounded frame, with the World Media name set over it, one line
 // about World Media and the time in Delhi. Until the real video is added in the Video field,
-// a sample plays: NASA's spinning Earth.
+// a sample plays: NASA's spinning Earth. On the separate-pages landing, the loading screen can
+// be skipped when someone comes back to it during the same visit.
 
 import * as React from "react"
 import { addPropertyControls, ControlType, useIsStaticRenderer } from "framer"
@@ -245,6 +246,7 @@ type HeroProps = {
     timeZone: string
     zone: string
     intro: boolean
+    again: boolean
     style?: React.CSSProperties
 }
 
@@ -294,6 +296,7 @@ animation:w2iLoad 7s cubic-bezier(.1,.6,.2,1) both,w2iBail .6s 9s both;transitio
 .w2i-fill{position:absolute;inset:0;border-radius:2px;background:var(--paper);transform-origin:0 50%;scale:var(--w2p) 1}
 .w2i-num{font-size:11px;line-height:1;letter-spacing:.08em;font-variant-numeric:tabular-nums;color:rgba(255,255,255,.5)}
 .w2i-num::before{counter-reset:w2n var(--w2n);content:counter(w2n) "%"}
+html.w2i-again .w2i{display:none}
 html:has(.w2i:not(.out)) .w2n-fixed{opacity:0;translate:0 -16px;visibility:hidden}
 .w2n-fixed{transition:opacity .8s cubic-bezier(.16,1,.3,1) .45s,translate 1s cubic-bezier(.16,1,.3,1) .45s,visibility 0s linear .45s}
 @media (prefers-reduced-motion:reduce){.w2i{display:none}}
@@ -468,13 +471,16 @@ function DotGlobe(p: { still: boolean; paused: boolean }) {
     return <canvas ref={ref} className="w2h-cv" aria-hidden="true" />
 }
 
+/** Marks a return visit before the loading screen is drawn (it has run once this visit). */
+const AGAIN_JS = `try{sessionStorage.getItem("w2-intro")==="1"&&document.documentElement.classList.add("w2i-again")}catch(e){}`
+
 /**
  * The loading screen: small and centred, the World Media globe spinning above a thin bar and a
  * percentage. It is part of the page's HTML, so it covers the page from the very first paint;
  * CSS spins the globe and moves the bar towards 94 until the script takes over, waits for the
  * fonts, the page and the video, then fills the bar and fades into the hero.
  */
-function Loader(p: { video: React.RefObject<HTMLVideoElement>; onReveal: () => void; onGone: () => void }) {
+function Loader(p: { video: React.RefObject<HTMLVideoElement>; again: boolean; onReveal: () => void; onGone: () => void }) {
     const ref = React.useRef<HTMLDivElement>(null)
     React.useEffect(() => {
         const el = ref.current
@@ -495,6 +501,12 @@ function Loader(p: { video: React.RefObject<HTMLVideoElement>; onReveal: () => v
             seen = window.sessionStorage.getItem("w2-intro") === "1"
             window.sessionStorage.setItem("w2-intro", "1")
         } catch {}
+        // Back on this page during the same visit, with "again" off: no loading screen at all.
+        if (seen && !p.again) {
+            p.onReveal()
+            p.onGone()
+            return
+        }
         const MIN = seen ? 1000 : 2000
         const MAX = 6000
         const prev = html.style.overflow
@@ -560,17 +572,21 @@ function Loader(p: { video: React.RefObject<HTMLVideoElement>; onReveal: () => v
         }
     }, [])
     return (
-        <div ref={ref} className="w2 w2i" data-tone="ink" aria-hidden="true">
-            <div className="w2i-box">
-                <Globe size={56} speed={3.6} width={1.3} />
-                <div className="w2i-meter">
-                    <span className="w2i-bar">
-                        <i className="w2i-fill" />
-                    </span>
-                    <span className="w2i-num" />
+        <>
+            {/* Runs while the page's HTML is read, so a returning visitor never sees the screen flash up. */}
+            {p.again ? null : <script dangerouslySetInnerHTML={{ __html: AGAIN_JS }} />}
+            <div ref={ref} className="w2 w2i" data-tone="ink" aria-hidden="true">
+                <div className="w2i-box">
+                    <Globe size={56} speed={3.6} width={1.3} />
+                    <div className="w2i-meter">
+                        <span className="w2i-bar">
+                            <i className="w2i-fill" />
+                        </span>
+                        <span className="w2i-num" />
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     )
 }
 
@@ -590,6 +606,7 @@ export default function W2Hero(props: HeroProps) {
         timeZone = "Asia/Kolkata",
         zone = "IST",
         intro = true,
+        again = true,
         style,
     } = props
 
@@ -735,7 +752,7 @@ export default function W2Hero(props: HeroProps) {
                     </div>
                 </div>
             </Section>
-            {withLoader && loader ? <Loader video={vref} onReveal={reveal} onGone={gone} /> : null}
+            {withLoader && loader ? <Loader video={vref} again={again} onReveal={reveal} onGone={gone} /> : null}
         </>
     )
 }
@@ -771,4 +788,13 @@ addPropertyControls(W2Hero, {
     timeZone: { type: ControlType.String, title: "Time zone", defaultValue: "Asia/Kolkata" },
     zone: { type: ControlType.String, title: "Zone label", defaultValue: "IST" },
     intro: { type: ControlType.Boolean, title: "Loading screen", defaultValue: true, enabledTitle: "Show", disabledTitle: "Skip" },
+    again: {
+        type: ControlType.Boolean,
+        title: "On return",
+        defaultValue: true,
+        enabledTitle: "Show",
+        disabledTitle: "Skip",
+        description: "Show the loading screen again when someone comes back to this page during the same visit.",
+        hidden: (p: HeroProps) => !p.intro,
+    },
 })
