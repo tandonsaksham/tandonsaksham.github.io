@@ -249,13 +249,21 @@ function Globe(p: { size?: number; color?: string; speed?: number; width?: numbe
 }
 
 /**
- * The separate-pages version: where the landing page lives, and the pages in the menu. The menu and
- * the footer share this list, so every page shows the same links. Addresses are relative to the page
- * you are on, so they work wherever Framer serves the site. When the landing becomes the home page,
- * HOME becomes "./".
+ * The separate-pages version. Each page is named by its Framer page ID (from the project's list of pages),
+ * so a link still finds its page when the page's address changes, as when the landing becomes the home page.
  */
+const PAGE_IDS: Record<string, string> = {
+    landing: "IL130MR8X",
+    services: "LZJ9l6m1b",
+    projects: "zQKzoYWRy",
+    about: "K2GkWebhw",
+    contact: "Wsobihx9y",
+}
+
+/** Where the globe goes in the separate-pages version. */
 const HOME = "./landing"
 
+/** The menu of the separate-pages version. The menu and the footer share it, so every page shows the same links. */
 const PAGE_LINKS: { label: string; href: string; hue: Hue }[] = [
     { label: "Services", href: "./services", hue: "paper" },
     { label: "Projects", href: "./projects", hue: "paper" },
@@ -270,16 +278,45 @@ function pageOf(href: string): string {
     return s === "." ? "" : s
 }
 
+/** One of the site's pages, as Framer's Link wants it: "./contact#join" gives the Contact page and "join". Other addresses give nothing. */
+function pageTarget(href: string): { webPageId: string; hash?: string } | undefined {
+    if (/^([a-z][\w+.-]*:|\/\/)/i.test(href)) return undefined
+    const id = PAGE_IDS[pageOf(href)]
+    if (!id) return undefined
+    const hash = href.split("#")[1]
+    return hash ? { webPageId: id, hash } : { webPageId: id }
+}
+
+type PageAProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & { "data-framer-page-link-current"?: boolean }
+
+/** The link itself. Framer's Link hands it the page's address, the click that goes there, and whether it is the page you are on. */
+const PageA = React.forwardRef<HTMLAnchorElement, PageAProps>(function PageA(p, ref) {
+    return <a ref={ref} {...p} aria-current={p["data-framer-page-link-current"] ? "page" : p["aria-current"]} />
+})
+
 /**
- * Contact and Join us share one form. A link to it on the page you are on tells the form which side to
- * show; a link to another page leaves that to the address, where #join opens the Creator side.
+ * A link to one of the site's pages goes through Framer's Link, which moves between pages the way Framer's
+ * own links do, in Preview and on the live site. Any other address stays a plain link.
+ */
+function PageLink(p: PageAProps & { href: string }) {
+    const to = pageTarget(p.href)
+    if (!to) return <a {...p} />
+    return (
+        <Link href={to}>
+            <PageA {...p} />
+        </Link>
+    )
+}
+
+/**
+ * Contact and Join us share one form, and a link to it says which side to open. A form on this page
+ * hears it at once; a form on the next page finds the note when it opens. #join in the address, as in
+ * a link from outside the site, opens the Creator side too.
  */
 function pickSide(href: string) {
     if (typeof window === "undefined") return
-    const i = href.indexOf("#")
-    const path = i < 0 ? href : href.slice(0, i)
-    if (path && pageOf(path) !== pageOf(window.location.pathname)) return
-    const hash = i < 0 ? "" : href.slice(i)
-    if (hash === "#join") window.dispatchEvent(new CustomEvent("w2:form", { detail: "creator" }))
-    else if (hash === "#contact") window.dispatchEvent(new CustomEvent("w2:form", { detail: "brand" }))
+    const hash = href.split("#")[1] || ""
+    const side = hash === "join" ? "creator" : hash === "contact" || (!hash && pageOf(href) === "contact") ? "brand" : ""
+    ;(window as any).__w2side = side
+    if (side) window.dispatchEvent(new CustomEvent("w2:form", { detail: side }))
 }

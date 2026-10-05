@@ -39,6 +39,10 @@ The same components build both; these settings make the difference:
 - Hello on the About page: "Section count" hidden, and "Button link" set to `./contact`.
 - Landing: the loading screen's "On return" is "Skip", so it only shows on the first visit.
 
-When the landing becomes the home page, set `HOME` in `src/prelude.tsx` to `"./"` and rebuild.
+The menu, the footer and the About page's "Let's talk" button move between pages through Framer's
+own page links, so they work in Preview and on the published site alike. They find each page by its
+Framer page ID (`PAGE_IDS` in `src/prelude.tsx`), so changing a page's address, or making the
+landing the home page, needs no change in the code. If one of these pages is deleted and made
+again, put its new ID in `PAGE_IDS` and rebuild.
 
 Run `python3 build.py` after editing anything in `src/`.

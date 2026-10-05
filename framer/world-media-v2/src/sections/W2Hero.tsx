@@ -570,6 +570,6 @@ addPropertyControls(W2Hero, {
         enabledTitle: "Show",
         disabledTitle: "Skip",
         description: "Show the loading screen again when someone comes back to this page during the same visit.",
-        hidden: (p: HeroProps) => !p.intro,
+        hidden: (p: Partial<HeroProps>) => !p.intro,
     },
 })

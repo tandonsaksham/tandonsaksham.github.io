@@ -22,9 +22,14 @@ type NavProps = {
     style?: React.CSSProperties
 }
 
+/** One long page glides to its sections. Between pages it would glide each new page up from the old scroll position, so it is left out. */
+const SMOOTH_CSS = `
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}`
+
+/** Room for the menu when the page jumps to a section. It sits outside the floating bar, so it is in place from the first paint. */
+const PAD_CSS = `html{scroll-padding-top:84px}`
+
 const NAV_CSS = `
-@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
-html{scroll-padding-top:84px}
 .w2n-skip{position:absolute;left:12px;top:-60px;z-index:3;pointer-events:auto;transition:top .3s var(--ease)}
 .w2n-skip:focus-visible{top:12px}
 section.w2[tabindex="-1"]:focus{outline:none}
@@ -103,22 +108,10 @@ export default function W2Nav(props: NavProps) {
         }
     }, [isStatic])
 
-    // The pill of the page you are on gets a dot; on one long page, the pill of the section under
-    // the middle of the screen.
+    // On one long page, the pill of the section under the middle of the screen gets a dot. On separate
+    // pages, Framer's Link marks the pill of the page you are on.
     React.useEffect(() => {
-        if (isStatic || typeof window === "undefined") return
-        if (pages) {
-            const mark = () => {
-                const here = pageOf(window.location.pathname)
-                const hash = window.location.hash
-                const on = linksRef.current.filter((l) => pageOf(l.href) === here)
-                const hit = on.find((l) => l.href.indexOf("#") >= 0 && l.href.slice(l.href.indexOf("#")) === hash) || on.find((l) => l.href.indexOf("#") < 0)
-                React.startTransition(() => setActive(hit ? hit.href : ""))
-            }
-            mark()
-            window.addEventListener("hashchange", mark)
-            return () => window.removeEventListener("hashchange", mark)
-        }
+        if (isStatic || pages || typeof window === "undefined") return
         let raf = 0
         const probe = () => {
             raf = 0
@@ -165,12 +158,12 @@ export default function W2Nav(props: NavProps) {
         }
     }, [open])
 
-    // The globe goes back to the top, or from another page to the landing page.
+    // The globe goes back to the top; on separate pages, Framer's Link takes it to the landing page.
     const toTop = React.useCallback(
         (e: React.MouseEvent) => {
             if (typeof window === "undefined") return
             setOpen(false)
-            if (pages && pageOf(HOME) !== pageOf(window.location.pathname)) return
+            if (pages) return
             e.preventDefault()
             window.scrollTo({ top: 0, behavior: "smooth" })
         },
@@ -191,15 +184,15 @@ export default function W2Nav(props: NavProps) {
     const homeLabel = pages ? "World Media, home" : "World Media, back to the top"
 
     const globe = (
-        <a href={home} className="w2n-globe" onClick={toTop} aria-label={homeLabel}>
+        <PageLink href={home} className="w2n-globe" onClick={toTop} aria-label={homeLabel}>
             <Globe size={28} speed={9} width={1.7} />
-        </a>
+        </PageLink>
     )
 
     const bar = (
         <div className="w2 w2n" data-tone="paper">
             <Base />
-            <style dangerouslySetInnerHTML={{ __html: NAV_CSS }} />
+            <style dangerouslySetInnerHTML={{ __html: pages ? NAV_CSS : SMOOTH_CSS + NAV_CSS }} />
             <a className="w2-pill w2n-skip" data-hue="paper" href={pages ? "#top" : "#hello"} onClick={pages ? skip : undefined}>
                 Skip to content
             </a>
@@ -207,16 +200,9 @@ export default function W2Nav(props: NavProps) {
                 {globe}
                 <nav className="w2n-pills" aria-label="Main">
                     {items.map((l, i) => (
-                        <a
-                            key={i}
-                            className="w2-pill"
-                            data-hue={l.hue}
-                            href={l.href}
-                            aria-current={active === l.href ? (pages ? "page" : "true") : undefined}
-                            onClick={() => pickSide(l.href)}
-                        >
+                        <PageLink key={i} className="w2-pill" data-hue={l.hue} href={l.href} aria-current={active === l.href ? "true" : undefined} onClick={() => pickSide(l.href)}>
                             <Roll>{l.label}</Roll>
-                        </a>
+                        </PageLink>
                     ))}
                 </nav>
                 <button ref={menuBtn} type="button" className="w2-pill w2n-menu" data-hue="ink" onClick={() => setOpen(true)} aria-expanded={open} aria-label="Open menu">
@@ -232,16 +218,16 @@ export default function W2Nav(props: NavProps) {
             <style dangerouslySetInnerHTML={{ __html: NAV_CSS }} />
             <div className="w2n-swrap">
                 <div className="w2n-stop">
-                    <a href={home} className="w2n-globe" onClick={toTop} aria-label={homeLabel} tabIndex={open ? 0 : -1}>
+                    <PageLink href={home} className="w2n-globe" onClick={toTop} aria-label={homeLabel} tabIndex={open ? 0 : -1}>
                         <Globe size={28} speed={9} width={1.7} />
-                    </a>
+                    </PageLink>
                     <button ref={closeBtn} type="button" className="w2-pill" data-hue="ink" onClick={() => setOpen(false)} tabIndex={open ? 0 : -1}>
                         Close
                     </button>
                 </div>
                 <nav className="w2n-list" aria-label="Main">
                     {items.map((l, i) => (
-                        <a
+                        <PageLink
                             key={i}
                             className="w2-pill"
                             data-hue={l.hue}
@@ -254,7 +240,7 @@ export default function W2Nav(props: NavProps) {
                             }}
                         >
                             {l.label}
-                        </a>
+                        </PageLink>
                     ))}
                 </nav>
                 <div className="w2n-foot">
@@ -274,6 +260,7 @@ export default function W2Nav(props: NavProps) {
 
     return (
         <div style={{ ...style, position: "relative" }}>
+            <style dangerouslySetInnerHTML={{ __html: PAD_CSS }} />
             {isStatic ? bar : null}
             {live && host ? createPortal(<div className="w2n-fixed">{bar}</div>, host) : null}
             {live ? createPortal(sheet, document.body) : null}
@@ -293,7 +280,7 @@ addPropertyControls(W2Nav, {
     links: {
         type: ControlType.Array,
         title: "Menu",
-        hidden: (p: NavProps) => p.mode === "pages",
+        hidden: (p: Partial<NavProps>) => p.mode === "pages",
         control: {
             type: ControlType.Object,
             controls: {

@@ -48,6 +48,10 @@ const CONTACT_CSS = `
 .w2c-reach a:hover{background-size:100% 1px}
 .w2c-card{--ac:var(--red);--acf:var(--ink);--dot:var(--red);position:relative;display:flex;flex-direction:column;width:min(620px,46cqw);aspect-ratio:1/1;padding:clamp(20px,2cqw,30px);border-radius:var(--r);background:#FFFFFF;
 box-shadow:0 1px 0 rgba(0,0,0,.05),0 40px 80px -48px rgba(0,0,0,.35);border:1px solid rgba(0,0,0,.1);transition:box-shadow .6s}
+/* A jump to #join, from the menu on any page, leaves the card just under the menu, even while it is still rising into
+   place. The browser does not hold the view to the card, which moves as it rises. */
+.w2c-card{overflow-anchor:none}
+@media (prefers-reduced-motion:no-preference){.w2c-card.w2-rise:not(.w2-in){scroll-margin-top:30px}}
 .w2c-card[data-mode="creator"]{--ac:var(--ink);--acf:var(--paper);--dot:var(--paper)}
 .w2c-top{display:flex;align-items:center;justify-content:space-between;gap:14px}
 .w2c-am{font-size:13px;color:var(--mut)}
@@ -175,8 +179,10 @@ export default function W2Contact(props: ContactProps) {
     const uid = React.useId().replace(/:/g, "")
     const id = (k: string) => "w2c" + uid + k
 
-    // The menu's Contact and Join us links, and #join in the address, pick the side.
+    // The menu's Contact and Join us links pick the side: on this page at once, and from another page
+    // through the note they leave. #join in the address picks it too.
     React.useEffect(() => {
+        const w = window as any
         const pickMode = (m: Mode) =>
             React.startTransition(() => {
                 setMode(m)
@@ -185,13 +191,18 @@ export default function W2Contact(props: ContactProps) {
             })
         const onEvent = (e: Event) => {
             const d = (e as CustomEvent).detail
-            if (d === "creator" || d === "brand") pickMode(d)
+            if (d !== "creator" && d !== "brand") return
+            w.__w2side = ""
+            pickMode(d)
         }
         const onHash = () => {
             if (window.location.hash === "#join") pickMode("creator")
             else if (window.location.hash === "#contact") pickMode("brand")
         }
-        onHash()
+        const note = w.__w2side
+        w.__w2side = ""
+        if (note === "creator" || note === "brand") pickMode(note)
+        else onHash()
         window.addEventListener("w2:form", onEvent)
         window.addEventListener("hashchange", onHash)
         return () => {

@@ -108,9 +108,9 @@ export default function W2Footer(props: FooterProps) {
                     <span>{copyright}</span>
                     <nav className="w2f-links" aria-label="Footer">
                         {items.map((l, i) => (
-                            <a key={i} href={l.href} onClick={() => pickSide(l.href)}>
+                            <PageLink key={i} href={l.href} onClick={() => pickSide(l.href)}>
                                 {l.label}
-                            </a>
+                            </PageLink>
                         ))}
                     </nav>
                     <span className="w2f-note w2-it">{note}</span>
@@ -134,7 +134,7 @@ addPropertyControls(W2Footer, {
     links: {
         type: ControlType.Array,
         title: "Links",
-        hidden: (p: FooterProps) => p.mode === "pages",
+        hidden: (p: Partial<FooterProps>) => p.mode === "pages",
         control: {
             type: ControlType.Object,
             controls: {

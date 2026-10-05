@@ -141,7 +141,7 @@ export default function W2Hello(props: HelloProps) {
                     </Row>
                 </div>
                 <Reveal className="w2he-ask w2-rise" amount={0.5}>
-                    <a className="w2he-q" href={ctaHref} onClick={go}>
+                    <PageLink className="w2he-q" href={ctaHref} onClick={go}>
                         <span>{ask}</span>
                         <span className="w2he-plus" aria-hidden="true">
                             {[0, 1, 2].map((i) => (
@@ -150,10 +150,10 @@ export default function W2Hello(props: HelloProps) {
                                 </span>
                             ))}
                         </span>
-                    </a>
-                    <a className="w2-pill w2he-go" data-hue="red" href={ctaHref} onClick={go}>
+                    </PageLink>
+                    <PageLink className="w2-pill w2he-go" data-hue="red" href={ctaHref} onClick={go}>
                         <Roll>{cta}</Roll>
-                    </a>
+                    </PageLink>
                 </Reveal>
                 <div className="w2he-card">
                     <Words as="h2" className="w2-h1" text={title} stagger={0.06} />
