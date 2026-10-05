@@ -27,13 +27,14 @@ html{scroll-padding-top:84px}
 .w2n-fixed{position:fixed;top:0;left:0;right:0;z-index:2147482000;pointer-events:none}
 .w2n.w2{background:transparent;overflow:visible}
 .w2n-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:clamp(10px,1.1cqw,16px) clamp(10px,1.1cqw,16px) 0}
-.w2n-globe{pointer-events:auto;position:relative;display:grid;place-items:center;width:46px;height:46px;border-radius:13px;background:var(--ink);color:var(--lime);
-box-shadow:inset 0 0 0 1px rgba(255,248,241,.14);cursor:pointer;border:0;padding:0;transition:scale .5s var(--ease)}
+.w2n-globe{pointer-events:auto;position:relative;display:grid;place-items:center;width:46px;height:46px;border-radius:13px;background:var(--ink);color:var(--red);
+box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);cursor:pointer;border:0;padding:0;transition:scale .5s var(--ease)}
 .w2n-globe:hover{scale:1.06}
 .w2n-globe:hover .w2-globe .m{animation-duration:2.6s}
 .w2n-pills{pointer-events:auto;display:flex;align-items:center;gap:6px}
-.w2n-pills .w2-pill{box-shadow:0 6px 18px -10px rgba(22,21,20,.45)}
-.w2n .w2-pill[data-hue="ink"]{box-shadow:inset 0 0 0 1px rgba(255,248,241,.22),0 6px 18px -10px rgba(22,21,20,.45)}
+.w2n-pills .w2-pill{box-shadow:0 6px 18px -10px rgba(0,0,0,.45)}
+.w2n-pills .w2-pill:is([data-hue="paper"],[data-hue="lime"],[data-hue="sky"],[data-hue="lilac"]){box-shadow:inset 0 0 0 1px rgba(10,10,10,.12),0 6px 18px -10px rgba(0,0,0,.45)}
+.w2n .w2-pill[data-hue="ink"]{box-shadow:inset 0 0 0 1px rgba(255,255,255,.22),0 6px 18px -10px rgba(0,0,0,.45)}
 .w2n-pills .w2-pill:hover{translate:0 -2px}
 .w2n-pills .w2-pill[aria-current="true"]::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:2px}
 .w2n-menu{display:none}
@@ -57,11 +58,11 @@ clip-path:inset(0 0 100% 0 round 0 0 28px 28px);visibility:hidden;transition:cli
 export default function W2Nav(props: NavProps) {
     const {
         links = [
-            { label: "Services", href: "#services", hue: "red" as Hue },
-            { label: "Projects", href: "#projects", hue: "lime" as Hue },
-            { label: "About", href: "#about", hue: "sky" as Hue },
+            { label: "Services", href: "#services", hue: "paper" as Hue },
+            { label: "Projects", href: "#projects", hue: "paper" as Hue },
+            { label: "About", href: "#about", hue: "paper" as Hue },
             { label: "Contact", href: "#contact", hue: "ink" as Hue },
-            { label: "Join us", href: "#join", hue: "lilac" as Hue },
+            { label: "Join us", href: "#join", hue: "red" as Hue },
         ],
         email = "social@worldmedia.co.in",
         phone = "+91 8800 040 301",
@@ -261,17 +262,17 @@ addPropertyControls(W2Nav, {
                 hue: {
                     type: ControlType.Enum,
                     title: "Colour",
-                    options: ["red", "lime", "sky", "lilac", "ink", "paper"],
-                    optionTitles: ["Red", "Lime", "Sky", "Lilac", "Ink", "Paper"],
+                    options: ["paper", "ink", "red"],
+                    optionTitles: ["White", "Black", "Orange-red"],
                 },
             },
         },
         defaultValue: [
-            { label: "Services", href: "#services", hue: "red" },
-            { label: "Projects", href: "#projects", hue: "lime" },
-            { label: "About", href: "#about", hue: "sky" },
+            { label: "Services", href: "#services", hue: "paper" },
+            { label: "Projects", href: "#projects", hue: "paper" },
+            { label: "About", href: "#about", hue: "paper" },
             { label: "Contact", href: "#contact", hue: "ink" },
-            { label: "Join us", href: "#join", hue: "lilac" },
+            { label: "Join us", href: "#join", hue: "red" },
         ],
     },
     email: { type: ControlType.String, title: "Email", defaultValue: "social@worldmedia.co.in" },

@@ -17,7 +17,8 @@ import { motion, useInView, useReducedMotion, useScroll, useTransform } from "fr
    uses. The rules live in @layer w2-base, so a section's own CSS always wins, and every
    class starts with w2- so this page never collides with the first site's components.
    Reveals animate opacity and the translate property only; transform stays free.
-   paper #FFF8F1 · ink #161514 · red #F2522A · lime #D9FF3F · sky #8BDCFF · lilac #C9B6FF
+   Colours follow the deck: white first, black second, one orange-red accent.
+   white #FFFFFF · grey #F3F3F3 · black #0A0A0A · orange-red #EA5628
    Inter Tight (text and big type) · Instrument Serif italic (the odd word, for warmth)
    ─────────────────────────────────────────────────────────────────────────────── */
 
@@ -33,21 +34,21 @@ const cssVars = (o: Record<string, string | number>): React.CSSProperties => o a
 
 const BASE_CSS = `
 @layer w2-base{
-.w2{--paper:#FFF8F1;--paper2:#F5ECE2;--ink:#161514;--ink2:#24221F;--red:#F2522A;--lime:#D9FF3F;--sky:#8BDCFF;--lilac:#C9B6FF;
+.w2{--paper:#FFFFFF;--paper2:#F3F3F3;--ink:#0A0A0A;--ink2:#1C1C1C;--red:#EA5628;
 --ease:cubic-bezier(.16,1,.3,1);--ease-io:cubic-bezier(.7,0,.2,1);--r:clamp(18px,2.1cqw,30px);--m:clamp(8px,.9cqw,14px);--gut:clamp(18px,3.4cqw,52px);
 position:relative;box-sizing:border-box;width:100%;container-type:inline-size;overflow:hidden;overflow:clip;
 font-family:"Inter Tight","Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:500;letter-spacing:-.012em;
 -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;
 background:var(--bg);color:var(--fg)}
-.w2[data-tone="paper"]{--bg:var(--paper);--fg:var(--ink);--mut:rgba(22,21,20,.64);--line:rgba(22,21,20,.14);--line2:rgba(22,21,20,.42)}
-.w2[data-tone="ink"]{--bg:var(--ink);--fg:var(--paper);--mut:rgba(255,248,241,.56);--line:rgba(255,248,241,.16);--line2:rgba(255,248,241,.42)}
+.w2[data-tone="paper"]{--bg:var(--paper);--fg:var(--ink);--mut:rgba(10,10,10,.62);--line:rgba(10,10,10,.12);--line2:rgba(10,10,10,.38)}
+.w2[data-tone="ink"]{--bg:var(--ink);--fg:var(--paper);--mut:rgba(255,255,255,.58);--line:rgba(255,255,255,.16);--line2:rgba(255,255,255,.4)}
 .w2 *,.w2 *::before,.w2 *::after{box-sizing:border-box}
 .w2 :where(h1,h2,h3,h4,p,ul,ol,li,figure,blockquote){margin:0;padding:0;list-style:none}
 .w2 :where(a){color:inherit;text-decoration:none}
 .w2 :where(button){font:inherit;color:inherit;margin:0}
 .w2 :where(a,button){touch-action:manipulation}
 .w2 :where(.w2-mega,.w2-h1,.w2-h2,.w2-big,.w2-h3){text-wrap:balance}
-.w2 ::selection{background:var(--lime);color:var(--ink)}
+.w2 ::selection{background:var(--red);color:var(--ink)}
 .w2 :focus-visible{outline:2px solid var(--red);outline-offset:3px;border-radius:10px}
 .w2-it{font-family:"Instrument Serif",Georgia,"Times New Roman",serif;font-style:italic;font-weight:400;letter-spacing:-.012em}
 .w2-mega{font-size:clamp(62px,14.4cqw,232px);line-height:.88;letter-spacing:-.058em;font-weight:500}
@@ -65,11 +66,8 @@ background:var(--bg);color:var(--fg)}
 font-size:14px;font-weight:500;letter-spacing:-.01em;white-space:nowrap;cursor:pointer;background:var(--pc);color:var(--pt);text-decoration:none;
 -webkit-tap-highlight-color:transparent;transition:translate .45s var(--ease),background-color .4s,color .4s}
 .w2-pill[data-hue="red"]{--pc:var(--red);--pt:var(--ink)}
-.w2-pill[data-hue="lime"]{--pc:var(--lime);--pt:var(--ink)}
-.w2-pill[data-hue="sky"]{--pc:var(--sky);--pt:var(--ink)}
-.w2-pill[data-hue="lilac"]{--pc:var(--lilac);--pt:var(--ink)}
 .w2-pill[data-hue="ink"]{--pc:var(--ink);--pt:var(--paper)}
-.w2-pill[data-hue="paper"]{--pc:var(--paper);--pt:var(--ink)}
+.w2-pill[data-hue="paper"],.w2-pill[data-hue="lime"],.w2-pill[data-hue="sky"],.w2-pill[data-hue="lilac"]{--pc:var(--paper);--pt:var(--ink);box-shadow:inset 0 0 0 1px var(--line2)}
 .w2-roll{position:relative;display:inline-flex;overflow:hidden;line-height:1.2}
 .w2-roll>span{display:block;transition:translate .5s var(--ease)}
 .w2-roll>span+span{position:absolute;left:0;top:0;translate:0 105%}
@@ -85,7 +83,7 @@ a:hover>.w2-roll>span+span,button:hover>.w2-roll>span+span,a:focus-visible>.w2-r
 .w2-fade{opacity:0;transition:opacity 1.1s var(--ease);transition-delay:var(--d,0s)}
 .w2-fade.w2-in,.w2-in>.w2-fade{opacity:1}
 .w2-media{position:relative;display:inline-block;vertical-align:-.06em;height:.78em;width:var(--mw,1.7em);margin:0 .1em}
-.w2-media>i{position:absolute;inset:0;border-radius:99px;overflow:hidden;background:var(--mc,var(--sky));
+.w2-media>i{position:absolute;inset:0;border-radius:99px;overflow:hidden;background:var(--mc,var(--paper2));
 clip-path:inset(0 50% 0 50% round 99px);transition:clip-path 1.2s var(--ease-io);transition-delay:var(--d,0s)}
 .w2-media.w2-in>i,.w2-in .w2-media>i{clip-path:inset(0 0 0 0 round 99px)}
 .w2-media img,.w2-media video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
@@ -223,7 +221,7 @@ type Project = {
     name: string
     services: string
     year: string
-    hue: "red" | "lime" | "sky" | "lilac" | "ink"
+    hue: "red" | "ink" | "paper"
     image?: { src?: string; srcSet?: string; alt?: string }
     video?: string
 }
@@ -248,11 +246,11 @@ const PROJ_CSS = `
 .w2p-count{font-size:clamp(16px,1.45cqw,22px);color:var(--mut)}
 .w2p-stack{position:relative}
 .w2p-panel{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;background:var(--pbg);color:var(--pfg);isolation:isolate}
-.w2p-panel[data-hue="red"]{--pbg:var(--red);--pfg:var(--ink);--pcard:#D9431D}
-.w2p-panel[data-hue="lime"]{--pbg:var(--lime);--pfg:var(--ink);--pcard:#C2EA22}
-.w2p-panel[data-hue="sky"]{--pbg:var(--sky);--pfg:var(--ink);--pcard:#6CCBF6}
-.w2p-panel[data-hue="lilac"]{--pbg:var(--lilac);--pfg:var(--ink);--pcard:#B7A0FB}
-.w2p-panel[data-hue="ink"]{--pbg:#1E1C1A;--pfg:var(--paper);--pcard:#2E2B27}
+.w2p-panel[data-hue="red"]{--pbg:var(--red);--pfg:var(--ink);--pcard:#D14A1E}
+.w2p-panel:is([data-hue="ink"],[data-hue="sky"],[data-hue="lilac"]){--pbg:var(--ink);--pfg:var(--paper);--pcard:#1E1E1E}
+.w2p-panel:is([data-hue="paper"],[data-hue="lime"]){--pbg:var(--paper);--pfg:var(--ink);--pcard:#EBEBEB}
+.w2p-panel:is([data-hue="ink"],[data-hue="sky"],[data-hue="lilac"]) .w2p-blur{opacity:.2}
+.w2p-panel:is([data-hue="paper"],[data-hue="lime"]) .w2p-blur{opacity:.3}
 .w2p-blur{position:absolute;inset:-8%;z-index:-2;background-size:cover;background-position:center;filter:blur(38px);opacity:.6;scale:1.1;mix-blend-mode:luminosity}
 .w2p-grain{position:absolute;inset:0;z-index:-1;opacity:.14;mix-blend-mode:multiply;pointer-events:none;
 background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
@@ -267,7 +265,7 @@ background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000
 .w2p-mq-t span{padding-right:.35em;font-size:clamp(64px,11.6cqw,190px);line-height:1;letter-spacing:-.05em;text-transform:uppercase;font-weight:600}
 @keyframes w2pMq{to{translate:-50% 0}}
 .w2p-card{position:absolute;left:50%;top:50%;width:clamp(260px,44cqw,760px);aspect-ratio:16/10;translate:-50% -54%;border-radius:clamp(10px,1cqw,16px);overflow:hidden;
-background:var(--pcard);box-shadow:0 40px 80px -40px rgba(22,21,20,.55)}
+background:var(--pcard);box-shadow:0 40px 80px -40px rgba(0,0,0,.55)}
 .w2p-card img,.w2p-card video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .w2p-ph{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:space-between;padding:16px 18px;font-size:12px;letter-spacing:.04em;text-transform:uppercase;
 background:repeating-linear-gradient(135deg,transparent 0 22px,rgba(255,255,255,.07) 22px 23px)}
@@ -384,9 +382,9 @@ export default function W2Projects(props: ProjectsProps) {
         intro = "A few of the stories we’ve told. *The rest are better over a call.*",
         projects = [
             { name: "Brand One", services: "Influencer marketing · Video production", year: "2026", hue: "red" as const },
-            { name: "Brand Two", services: "Celebrity marketing · Content", year: "2025", hue: "lime" as const },
-            { name: "Brand Three", services: "Creator-led ads · Live reporting", year: "2025", hue: "sky" as const },
-            { name: "Brand Four", services: "Talent management · Content writing", year: "2024", hue: "lilac" as const },
+            { name: "Brand Two", services: "Celebrity marketing · Content", year: "2025", hue: "ink" as const },
+            { name: "Brand Three", services: "Creator-led ads · Live reporting", year: "2025", hue: "paper" as const },
+            { name: "Brand Four", services: "Talent management · Content writing", year: "2024", hue: "ink" as const },
         ],
         samples = true,
         style,
@@ -400,7 +398,7 @@ export default function W2Projects(props: ProjectsProps) {
         <Section tone="ink" id="projects" className="w2p" css={PROJ_CSS} label="Projects" style={style}>
             <div className="w2p-intro">
                 <span className="w2p-orb" style={{ width: "46vw", height: "46vw", left: "-12vw", top: "-14vw", background: "var(--red)" }} aria-hidden="true" />
-                <span className="w2p-orb" style={{ width: "34vw", height: "34vw", right: "-8vw", bottom: "-10vw", background: "var(--lilac)", animationDelay: "-6s" }} aria-hidden="true" />
+                <span className="w2p-orb" style={{ width: "34vw", height: "34vw", right: "-8vw", bottom: "-10vw", background: "#5C5C5C", animationDelay: "-6s" }} aria-hidden="true" />
                 <Label name="Projects" index={3} />
                 <div className="w2p-head">
                     <Words as="h2" className="w2-mega" text={title} stagger={0.08} />
@@ -451,8 +449,8 @@ addPropertyControls(W2Projects, {
                 hue: {
                     type: ControlType.Enum,
                     title: "Colour",
-                    options: ["red", "lime", "sky", "lilac", "ink"],
-                    optionTitles: ["Red", "Lime", "Sky", "Lilac", "Ink"],
+                    options: ["red", "ink", "paper"],
+                    optionTitles: ["Orange-red", "Black", "White"],
                 },
                 image: { type: ControlType.ResponsiveImage, title: "Picture" },
                 video: { type: ControlType.File, title: "Film", allowedFileTypes: ["mp4", "webm", "mov"] },
@@ -460,9 +458,9 @@ addPropertyControls(W2Projects, {
         },
         defaultValue: [
             { name: "Brand One", services: "Influencer marketing · Video production", year: "2026", hue: "red" },
-            { name: "Brand Two", services: "Celebrity marketing · Content", year: "2025", hue: "lime" },
-            { name: "Brand Three", services: "Creator-led ads · Live reporting", year: "2025", hue: "sky" },
-            { name: "Brand Four", services: "Talent management · Content writing", year: "2024", hue: "lilac" },
+            { name: "Brand Two", services: "Celebrity marketing · Content", year: "2025", hue: "ink" },
+            { name: "Brand Three", services: "Creator-led ads · Live reporting", year: "2025", hue: "paper" },
+            { name: "Brand Four", services: "Talent management · Content writing", year: "2024", hue: "ink" },
         ],
     },
     samples: {

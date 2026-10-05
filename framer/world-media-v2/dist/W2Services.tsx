@@ -1,8 +1,8 @@
 // User instructions: rebuild the World Media website as one landing page from the website
 // brief: a creative landing like rabenrifaie.com, project navigation like another.gr,
 // the tonality and plain-spoken copy of twoplusone.co (pictorial, big text, a bit of colour).
-// This file: Services. A lime "What we do" band, three columns (creators, content, growth)
-// that read as one story from first idea to proof, and a sky-blue line to close.
+// This file: Services. A black "What we do" band, three columns (creators, content, growth)
+// that read as one story from first idea to proof, and a light grey line to close.
 
 import * as React from "react"
 import { addPropertyControls, ControlType, useIsStaticRenderer } from "framer"
@@ -14,7 +14,8 @@ import { motion, useInView, useReducedMotion } from "framer-motion"
    uses. The rules live in @layer w2-base, so a section's own CSS always wins, and every
    class starts with w2- so this page never collides with the first site's components.
    Reveals animate opacity and the translate property only; transform stays free.
-   paper #FFF8F1 · ink #161514 · red #F2522A · lime #D9FF3F · sky #8BDCFF · lilac #C9B6FF
+   Colours follow the deck: white first, black second, one orange-red accent.
+   white #FFFFFF · grey #F3F3F3 · black #0A0A0A · orange-red #EA5628
    Inter Tight (text and big type) · Instrument Serif italic (the odd word, for warmth)
    ─────────────────────────────────────────────────────────────────────────────── */
 
@@ -27,21 +28,21 @@ const cssVars = (o: Record<string, string | number>): React.CSSProperties => o a
 
 const BASE_CSS = `
 @layer w2-base{
-.w2{--paper:#FFF8F1;--paper2:#F5ECE2;--ink:#161514;--ink2:#24221F;--red:#F2522A;--lime:#D9FF3F;--sky:#8BDCFF;--lilac:#C9B6FF;
+.w2{--paper:#FFFFFF;--paper2:#F3F3F3;--ink:#0A0A0A;--ink2:#1C1C1C;--red:#EA5628;
 --ease:cubic-bezier(.16,1,.3,1);--ease-io:cubic-bezier(.7,0,.2,1);--r:clamp(18px,2.1cqw,30px);--m:clamp(8px,.9cqw,14px);--gut:clamp(18px,3.4cqw,52px);
 position:relative;box-sizing:border-box;width:100%;container-type:inline-size;overflow:hidden;overflow:clip;
 font-family:"Inter Tight","Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:500;letter-spacing:-.012em;
 -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;
 background:var(--bg);color:var(--fg)}
-.w2[data-tone="paper"]{--bg:var(--paper);--fg:var(--ink);--mut:rgba(22,21,20,.64);--line:rgba(22,21,20,.14);--line2:rgba(22,21,20,.42)}
-.w2[data-tone="ink"]{--bg:var(--ink);--fg:var(--paper);--mut:rgba(255,248,241,.56);--line:rgba(255,248,241,.16);--line2:rgba(255,248,241,.42)}
+.w2[data-tone="paper"]{--bg:var(--paper);--fg:var(--ink);--mut:rgba(10,10,10,.62);--line:rgba(10,10,10,.12);--line2:rgba(10,10,10,.38)}
+.w2[data-tone="ink"]{--bg:var(--ink);--fg:var(--paper);--mut:rgba(255,255,255,.58);--line:rgba(255,255,255,.16);--line2:rgba(255,255,255,.4)}
 .w2 *,.w2 *::before,.w2 *::after{box-sizing:border-box}
 .w2 :where(h1,h2,h3,h4,p,ul,ol,li,figure,blockquote){margin:0;padding:0;list-style:none}
 .w2 :where(a){color:inherit;text-decoration:none}
 .w2 :where(button){font:inherit;color:inherit;margin:0}
 .w2 :where(a,button){touch-action:manipulation}
 .w2 :where(.w2-mega,.w2-h1,.w2-h2,.w2-big,.w2-h3){text-wrap:balance}
-.w2 ::selection{background:var(--lime);color:var(--ink)}
+.w2 ::selection{background:var(--red);color:var(--ink)}
 .w2 :focus-visible{outline:2px solid var(--red);outline-offset:3px;border-radius:10px}
 .w2-it{font-family:"Instrument Serif",Georgia,"Times New Roman",serif;font-style:italic;font-weight:400;letter-spacing:-.012em}
 .w2-mega{font-size:clamp(62px,14.4cqw,232px);line-height:.88;letter-spacing:-.058em;font-weight:500}
@@ -59,11 +60,8 @@ background:var(--bg);color:var(--fg)}
 font-size:14px;font-weight:500;letter-spacing:-.01em;white-space:nowrap;cursor:pointer;background:var(--pc);color:var(--pt);text-decoration:none;
 -webkit-tap-highlight-color:transparent;transition:translate .45s var(--ease),background-color .4s,color .4s}
 .w2-pill[data-hue="red"]{--pc:var(--red);--pt:var(--ink)}
-.w2-pill[data-hue="lime"]{--pc:var(--lime);--pt:var(--ink)}
-.w2-pill[data-hue="sky"]{--pc:var(--sky);--pt:var(--ink)}
-.w2-pill[data-hue="lilac"]{--pc:var(--lilac);--pt:var(--ink)}
 .w2-pill[data-hue="ink"]{--pc:var(--ink);--pt:var(--paper)}
-.w2-pill[data-hue="paper"]{--pc:var(--paper);--pt:var(--ink)}
+.w2-pill[data-hue="paper"],.w2-pill[data-hue="lime"],.w2-pill[data-hue="sky"],.w2-pill[data-hue="lilac"]{--pc:var(--paper);--pt:var(--ink);box-shadow:inset 0 0 0 1px var(--line2)}
 .w2-roll{position:relative;display:inline-flex;overflow:hidden;line-height:1.2}
 .w2-roll>span{display:block;transition:translate .5s var(--ease)}
 .w2-roll>span+span{position:absolute;left:0;top:0;translate:0 105%}
@@ -79,7 +77,7 @@ a:hover>.w2-roll>span+span,button:hover>.w2-roll>span+span,a:focus-visible>.w2-r
 .w2-fade{opacity:0;transition:opacity 1.1s var(--ease);transition-delay:var(--d,0s)}
 .w2-fade.w2-in,.w2-in>.w2-fade{opacity:1}
 .w2-media{position:relative;display:inline-block;vertical-align:-.06em;height:.78em;width:var(--mw,1.7em);margin:0 .1em}
-.w2-media>i{position:absolute;inset:0;border-radius:99px;overflow:hidden;background:var(--mc,var(--sky));
+.w2-media>i{position:absolute;inset:0;border-radius:99px;overflow:hidden;background:var(--mc,var(--paper2));
 clip-path:inset(0 50% 0 50% round 99px);transition:clip-path 1.2s var(--ease-io);transition-delay:var(--d,0s)}
 .w2-media.w2-in>i,.w2-in .w2-media>i{clip-path:inset(0 0 0 0 round 99px)}
 .w2-media img,.w2-media video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
@@ -224,7 +222,7 @@ type ServicesProps = {
 
 const SERV_CSS = `
 .w2s-wrap{padding:clamp(48px,6cqw,96px) var(--gut) var(--m)}
-.w2s-band{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:clamp(66px,6.4cqw,104px);padding:0 clamp(22px,2.6cqw,40px);border-radius:99px;background:var(--lime);color:var(--ink)}
+.w2s-band{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:clamp(66px,6.4cqw,104px);padding:0 clamp(22px,2.6cqw,40px);border-radius:99px;background:var(--ink);color:var(--paper)}
 .w2s-band h2{font-size:clamp(30px,3.6cqw,58px);line-height:1;letter-spacing:-.045em;text-align:center}
 .w2s-chev{display:flex;gap:clamp(6px,.7cqw,12px)}
 .w2s-chev svg{width:clamp(14px,1.3cqw,20px);height:auto;animation:w2sC 2.2s var(--ease) infinite;animation-delay:calc(var(--i) * .14s)}
@@ -241,7 +239,7 @@ const SERV_CSS = `
 .w2s-col .w2s-items li:hover span{opacity:1;translate:0 0}
 .w2s-shape{margin-top:26px;width:clamp(34px,3cqw,46px);height:clamp(34px,3cqw,46px);transition:rotate .9s var(--ease),scale .6s var(--ease)}
 .w2s-col:hover .w2s-shape{rotate:90deg;scale:1.12}
-.w2s-close{position:relative;display:flex;align-items:center;gap:clamp(16px,2cqw,32px);margin-top:var(--m);min-height:clamp(66px,6.4cqw,104px);padding:0 clamp(22px,2.6cqw,40px);border-radius:99px;background:var(--sky);color:var(--ink)}
+.w2s-close{position:relative;display:flex;align-items:center;gap:clamp(16px,2cqw,32px);margin-top:var(--m);min-height:clamp(66px,6.4cqw,104px);padding:0 clamp(22px,2.6cqw,40px);border-radius:99px;background:var(--paper2);color:var(--ink)}
 .w2s-close i{flex:1;height:1px;background:currentColor;opacity:.4;transform-origin:var(--o) 50%;scale:0 1;transition:scale 1.4s var(--ease) .2s}
 .w2s-close.w2-in i{scale:1 1}
 .w2s-close p{font-size:clamp(15px,1.5cqw,24px);letter-spacing:.01em;text-transform:uppercase;text-align:center}
@@ -303,7 +301,7 @@ export default function W2Services(props: ServicesProps) {
         style,
     } = props
     const [closeRef, closeOn] = useReveal<HTMLDivElement>(0.6)
-    const colors = ["var(--red)", "var(--lime)", "var(--sky)", "var(--lilac)"]
+    const colors = ["var(--red)", "var(--ink)", "var(--ink)"]
 
     return (
         <Section tone="paper" id="services" className="w2s" css={SERV_CSS} label="Services" style={style}>

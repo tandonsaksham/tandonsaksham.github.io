@@ -31,13 +31,13 @@ const ABOUT_CSS = `
 .w2a-row{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--m);margin-top:clamp(18px,2cqw,28px)}
 .w2a-step{position:relative;display:flex;flex-direction:column;gap:10px;min-height:clamp(190px,17cqw,250px);padding:clamp(18px,1.7cqw,26px);border-radius:var(--r);background:var(--paper2);
 transition:background-color .5s var(--ease),translate .5s var(--ease)}
-.w2a-step:hover{background:var(--sc);translate:0 -4px}
+.w2a-step:hover{background:var(--red);translate:0 -4px}
 .w2a-step em{font-style:normal;font-size:12px;color:var(--mut)}
 .w2a-step b{margin-top:auto;font-size:clamp(22px,2cqw,30px);font-weight:500;letter-spacing:-.035em}
-.w2a-step p{font-size:14.5px;line-height:1.42;font-weight:400;color:rgba(22,21,20,.72)}
+.w2a-step p{font-size:14.5px;line-height:1.42;font-weight:400;color:rgba(10,10,10,.72)}
 .w2a-bar{display:flex;align-items:center;gap:18px;margin-top:var(--m);height:58px;padding:0 24px;border:1px solid var(--line2);border-radius:99px;font-size:12px}
 .w2a-track{position:relative;flex:1;height:4px;border-radius:4px;background:var(--line);overflow:hidden}
-.w2a-fill{position:absolute;inset:0;background:var(--sky);border-radius:4px;transform-origin:0 50%}
+.w2a-fill{position:absolute;inset:0;background:var(--red);border-radius:4px;transform-origin:0 50%}
 @container (max-width:1000px){.w2a-row{grid-template-columns:repeat(2,1fr)}.w2a-step:last-child{grid-column:1/-1}}
 @container (max-width:560px){.w2a-row{grid-template-columns:1fr}.w2a-step{min-height:0}.w2a-step b{margin-top:6px}}
 `
@@ -92,7 +92,7 @@ export default function W2About(props: AboutProps) {
     let wi = 0
     // An empty slot shows a sample photo, unless samples are switched off.
     const photos = [photo1, photo2].map((ph, i) => (ph && ph.src ? ph : samples ? { src: SAMPLE + "about-" + (i + 1) + ".jpg", alt: "" } : undefined))
-    const hues = ["lime", "lilac"]
+    const hues = ["paper2", "paper2"]
     return (
         <Section tone="paper" id="about" className="w2a" css={ABOUT_CSS} label="About" style={style}>
             <div className="w2a-wrap" ref={sref as React.RefObject<HTMLDivElement>}>
@@ -126,13 +126,7 @@ export default function W2About(props: AboutProps) {
                     </Reveal>
                     <ol className="w2a-row">
                         {steps.map((s, i) => (
-                            <Reveal
-                                as="li"
-                                key={i}
-                                className="w2a-step w2-rise"
-                                delay={i * 0.08}
-                                style={cssVars({ "--sc": ["var(--red)", "var(--lime)", "var(--sky)", "var(--lilac)", "var(--red)"][i % 5] })}
-                            >
+                            <Reveal as="li" key={i} className="w2a-step w2-rise" delay={i * 0.08}>
                                 <em>({String(i + 1).padStart(2, "0")})</em>
                                 <b>{s.title}</b>
                                 <p>{s.body}</p>

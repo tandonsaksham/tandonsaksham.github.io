@@ -45,16 +45,16 @@ const CONTACT_CSS = `
 .w2c-reach a,.w2c-reach span{font-size:clamp(15px,1.15cqw,17px);letter-spacing:-.015em;overflow-wrap:anywhere}
 .w2c-reach a{background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;transition:background-size .5s var(--ease)}
 .w2c-reach a:hover{background-size:100% 1px}
-.w2c-card{--ac:var(--red);position:relative;display:flex;flex-direction:column;width:min(620px,46cqw);aspect-ratio:1/1;padding:clamp(20px,2cqw,30px);border-radius:var(--r);background:#FFFDF9;
-box-shadow:0 1px 0 rgba(22,21,20,.06),0 40px 80px -48px rgba(22,21,20,.4);border:1px solid rgba(22,21,20,.08);transition:box-shadow .6s}
-.w2c-card[data-mode="creator"]{--ac:var(--lilac)}
+.w2c-card{--ac:var(--red);--acf:var(--ink);--dot:var(--red);position:relative;display:flex;flex-direction:column;width:min(620px,46cqw);aspect-ratio:1/1;padding:clamp(20px,2cqw,30px);border-radius:var(--r);background:#FFFFFF;
+box-shadow:0 1px 0 rgba(0,0,0,.05),0 40px 80px -48px rgba(0,0,0,.35);border:1px solid rgba(0,0,0,.1);transition:box-shadow .6s}
+.w2c-card[data-mode="creator"]{--ac:var(--ink);--acf:var(--paper);--dot:var(--paper)}
 .w2c-top{display:flex;align-items:center;justify-content:space-between;gap:14px}
 .w2c-am{font-size:13px;color:var(--mut)}
 .w2c-tog{position:relative;display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:99px;background:var(--paper2);flex:none;width:230px}
 .w2c-knob{position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);border-radius:99px;background:var(--ac);transition:translate .55s cubic-bezier(.3,1.4,.5,1),background-color .45s}
 .w2c-card[data-mode="creator"] .w2c-knob{translate:100% 0}
 .w2c-tog button{position:relative;z-index:1;height:38px;border:0;background:none;border-radius:99px;font-size:14.5px;font-weight:500;cursor:pointer;color:var(--ink);opacity:.55;transition:opacity .3s}
-.w2c-tog button[aria-checked="true"]{opacity:1}
+.w2c-tog button[aria-checked="true"]{opacity:1;color:var(--acf);transition:opacity .3s,color .3s .1s}
 .w2c-h{margin:clamp(16px,1.6cqw,24px) 0 clamp(12px,1.2cqw,18px);font-size:clamp(24px,2.2cqw,34px);line-height:1.04;letter-spacing:-.04em}
 .w2c-form{flex:1;display:flex;flex-direction:column;min-height:0}
 .w2c-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px;align-content:start}
@@ -62,24 +62,24 @@ box-shadow:0 1px 0 rgba(22,21,20,.06),0 40px 80px -48px rgba(22,21,20,.4);border
 .w2c-f.wide{grid-column:1/-1}
 .w2c-f label,.w2c-lab{font-size:11.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--mut)}
 .w2c-f label i{font-style:normal;color:var(--red);margin-left:3px}
-.w2c-f input,.w2c-f select,.w2c-f textarea{width:100%;border:0;border-bottom:1px solid rgba(22,21,20,.22);border-radius:0;background:transparent;padding:7px 0 8px;font:inherit;font-size:16px;font-weight:400;color:var(--ink);outline:none;transition:border-color .3s}
+.w2c-f input,.w2c-f select,.w2c-f textarea{width:100%;border:0;border-bottom:1px solid rgba(10,10,10,.22);border-radius:0;background:transparent;padding:7px 0 8px;font:inherit;font-size:16px;font-weight:400;color:var(--ink);outline:none;transition:border-color .3s}
 .w2c-f textarea{resize:none;min-height:64px;line-height:1.4}
-.w2c-f select{appearance:none;-webkit-appearance:none;cursor:pointer;background-color:#FFFDF9;color:var(--ink);background:#FFFDF9 url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%23161514' stroke-width='1.6'><path d='M1 1.5l5 5 5-5'/></svg>") right 2px center no-repeat}
-.w2c-f input::placeholder,.w2c-f textarea::placeholder{color:rgba(22,21,20,.4)}
+.w2c-f select{appearance:none;-webkit-appearance:none;cursor:pointer;background-color:#FFFFFF;color:var(--ink);background:#FFFFFF url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%230A0A0A' stroke-width='1.6'><path d='M1 1.5l5 5 5-5'/></svg>") right 2px center no-repeat}
+.w2c-f input::placeholder,.w2c-f textarea::placeholder{color:rgba(10,10,10,.4)}
 .w2c-f input:focus,.w2c-f select:focus,.w2c-f textarea:focus{border-color:var(--ink)}
 .w2c-f [aria-invalid="true"]{border-color:var(--red)}
 .w2c-err{font-size:12px;color:#C2321A}
 .w2c-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
-.w2c-chips button{height:30px;padding:0 12px;border-radius:99px;border:1px solid rgba(22,21,20,.2);background:transparent;font-size:13px;font-weight:500;cursor:pointer;transition:background-color .3s,border-color .3s}
-.w2c-chips button[aria-pressed="true"]{background:var(--ac);border-color:transparent}
+.w2c-chips button{height:30px;padding:0 12px;border-radius:99px;border:1px solid rgba(10,10,10,.2);background:transparent;font-size:13px;font-weight:500;cursor:pointer;transition:background-color .3s,border-color .3s}
+.w2c-chips button[aria-pressed="true"]{background:var(--ac);color:var(--acf);border-color:transparent}
 .w2c-chips button:hover{border-color:var(--ink)}
 .w2c-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:auto;padding-top:16px}
 .w2c-send.w2-pill{--pc:var(--ink);--pt:var(--paper);height:48px;padding:0 24px;font-size:15px}
-.w2c-send .w2c-dot{width:9px;height:9px;border-radius:50%;background:var(--ac);transition:background-color .4s}
+.w2c-send .w2c-dot{width:9px;height:9px;border-radius:50%;background:var(--dot);transition:background-color .4s}
 .w2c-send[disabled]{opacity:.6;cursor:progress}
 .w2c-note{font-size:12px;color:var(--mut);text-align:right}
 .w2c-done{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px}
-.w2c-done .w2c-badge{display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:var(--ac)}
+.w2c-done .w2c-badge{display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:var(--ac);color:var(--acf)}
 .w2c-done p{font-size:clamp(22px,2cqw,30px);line-height:1.12;letter-spacing:-.035em;max-width:20ch}
 .w2c-done button{align-self:flex-start;border:0;background:none;padding:0;font-size:14px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;color:var(--mut)}
 @container (max-width:1000px){.w2c-wrap{grid-template-columns:1fr}.w2c-left{position:relative;top:0}.w2c-card{width:100%;aspect-ratio:auto}}
@@ -397,7 +397,7 @@ export default function W2Contact(props: ContactProps) {
                                 role="status"
                             >
                                 <span className="w2c-badge" aria-hidden="true">
-                                    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="#161514" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M6 13.5l4.6 4.6L20 8.6" />
                                     </svg>
                                 </span>

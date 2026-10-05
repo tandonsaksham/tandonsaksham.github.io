@@ -2,8 +2,8 @@
 // User instructions: rebuild the World Media website as one landing page from the website
 // brief: a creative landing like rabenrifaie.com, project navigation like another.gr,
 // the tonality and plain-spoken copy of twoplusone.co (pictorial, big text, a bit of colour).
-// This file: Services. A lime "What we do" band, three columns (creators, content, growth)
-// that read as one story from first idea to proof, and a sky-blue line to close.
+// This file: Services. A black "What we do" band, three columns (creators, content, growth)
+// that read as one story from first idea to proof, and a light grey line to close.
 //@@ BODY
 
 type Service = { title: string; lead: string; items: string; shape: "circle" | "square" | "triangle" }
@@ -17,7 +17,7 @@ type ServicesProps = {
 
 const SERV_CSS = `
 .w2s-wrap{padding:clamp(48px,6cqw,96px) var(--gut) var(--m)}
-.w2s-band{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:clamp(66px,6.4cqw,104px);padding:0 clamp(22px,2.6cqw,40px);border-radius:99px;background:var(--lime);color:var(--ink)}
+.w2s-band{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:clamp(66px,6.4cqw,104px);padding:0 clamp(22px,2.6cqw,40px);border-radius:99px;background:var(--ink);color:var(--paper)}
 .w2s-band h2{font-size:clamp(30px,3.6cqw,58px);line-height:1;letter-spacing:-.045em;text-align:center}
 .w2s-chev{display:flex;gap:clamp(6px,.7cqw,12px)}
 .w2s-chev svg{width:clamp(14px,1.3cqw,20px);height:auto;animation:w2sC 2.2s var(--ease) infinite;animation-delay:calc(var(--i) * .14s)}
@@ -34,7 +34,7 @@ const SERV_CSS = `
 .w2s-col .w2s-items li:hover span{opacity:1;translate:0 0}
 .w2s-shape{margin-top:26px;width:clamp(34px,3cqw,46px);height:clamp(34px,3cqw,46px);transition:rotate .9s var(--ease),scale .6s var(--ease)}
 .w2s-col:hover .w2s-shape{rotate:90deg;scale:1.12}
-.w2s-close{position:relative;display:flex;align-items:center;gap:clamp(16px,2cqw,32px);margin-top:var(--m);min-height:clamp(66px,6.4cqw,104px);padding:0 clamp(22px,2.6cqw,40px);border-radius:99px;background:var(--sky);color:var(--ink)}
+.w2s-close{position:relative;display:flex;align-items:center;gap:clamp(16px,2cqw,32px);margin-top:var(--m);min-height:clamp(66px,6.4cqw,104px);padding:0 clamp(22px,2.6cqw,40px);border-radius:99px;background:var(--paper2);color:var(--ink)}
 .w2s-close i{flex:1;height:1px;background:currentColor;opacity:.4;transform-origin:var(--o) 50%;scale:0 1;transition:scale 1.4s var(--ease) .2s}
 .w2s-close.w2-in i{scale:1 1}
 .w2s-close p{font-size:clamp(15px,1.5cqw,24px);letter-spacing:.01em;text-transform:uppercase;text-align:center}
@@ -96,7 +96,7 @@ export default function W2Services(props: ServicesProps) {
         style,
     } = props
     const [closeRef, closeOn] = useReveal<HTMLDivElement>(0.6)
-    const colors = ["var(--red)", "var(--lime)", "var(--sky)", "var(--lilac)"]
+    const colors = ["var(--red)", "var(--ink)", "var(--ink)"]
 
     return (
         <Section tone="paper" id="services" className="w2s" css={SERV_CSS} label="Services" style={style}>

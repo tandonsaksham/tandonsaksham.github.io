@@ -15,7 +15,8 @@ import { motion, useInView, useReducedMotion, useScroll, useTransform, useMotion
    uses. The rules live in @layer w2-base, so a section's own CSS always wins, and every
    class starts with w2- so this page never collides with the first site's components.
    Reveals animate opacity and the translate property only; transform stays free.
-   paper #FFF8F1 · ink #161514 · red #F2522A · lime #D9FF3F · sky #8BDCFF · lilac #C9B6FF
+   Colours follow the deck: white first, black second, one orange-red accent.
+   white #FFFFFF · grey #F3F3F3 · black #0A0A0A · orange-red #EA5628
    Inter Tight (text and big type) · Instrument Serif italic (the odd word, for warmth)
    ─────────────────────────────────────────────────────────────────────────────── */
 
@@ -31,21 +32,21 @@ const cssVars = (o: Record<string, string | number>): React.CSSProperties => o a
 
 const BASE_CSS = `
 @layer w2-base{
-.w2{--paper:#FFF8F1;--paper2:#F5ECE2;--ink:#161514;--ink2:#24221F;--red:#F2522A;--lime:#D9FF3F;--sky:#8BDCFF;--lilac:#C9B6FF;
+.w2{--paper:#FFFFFF;--paper2:#F3F3F3;--ink:#0A0A0A;--ink2:#1C1C1C;--red:#EA5628;
 --ease:cubic-bezier(.16,1,.3,1);--ease-io:cubic-bezier(.7,0,.2,1);--r:clamp(18px,2.1cqw,30px);--m:clamp(8px,.9cqw,14px);--gut:clamp(18px,3.4cqw,52px);
 position:relative;box-sizing:border-box;width:100%;container-type:inline-size;overflow:hidden;overflow:clip;
 font-family:"Inter Tight","Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:500;letter-spacing:-.012em;
 -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;
 background:var(--bg);color:var(--fg)}
-.w2[data-tone="paper"]{--bg:var(--paper);--fg:var(--ink);--mut:rgba(22,21,20,.64);--line:rgba(22,21,20,.14);--line2:rgba(22,21,20,.42)}
-.w2[data-tone="ink"]{--bg:var(--ink);--fg:var(--paper);--mut:rgba(255,248,241,.56);--line:rgba(255,248,241,.16);--line2:rgba(255,248,241,.42)}
+.w2[data-tone="paper"]{--bg:var(--paper);--fg:var(--ink);--mut:rgba(10,10,10,.62);--line:rgba(10,10,10,.12);--line2:rgba(10,10,10,.38)}
+.w2[data-tone="ink"]{--bg:var(--ink);--fg:var(--paper);--mut:rgba(255,255,255,.58);--line:rgba(255,255,255,.16);--line2:rgba(255,255,255,.4)}
 .w2 *,.w2 *::before,.w2 *::after{box-sizing:border-box}
 .w2 :where(h1,h2,h3,h4,p,ul,ol,li,figure,blockquote){margin:0;padding:0;list-style:none}
 .w2 :where(a){color:inherit;text-decoration:none}
 .w2 :where(button){font:inherit;color:inherit;margin:0}
 .w2 :where(a,button){touch-action:manipulation}
 .w2 :where(.w2-mega,.w2-h1,.w2-h2,.w2-big,.w2-h3){text-wrap:balance}
-.w2 ::selection{background:var(--lime);color:var(--ink)}
+.w2 ::selection{background:var(--red);color:var(--ink)}
 .w2 :focus-visible{outline:2px solid var(--red);outline-offset:3px;border-radius:10px}
 .w2-it{font-family:"Instrument Serif",Georgia,"Times New Roman",serif;font-style:italic;font-weight:400;letter-spacing:-.012em}
 .w2-mega{font-size:clamp(62px,14.4cqw,232px);line-height:.88;letter-spacing:-.058em;font-weight:500}
@@ -63,11 +64,8 @@ background:var(--bg);color:var(--fg)}
 font-size:14px;font-weight:500;letter-spacing:-.01em;white-space:nowrap;cursor:pointer;background:var(--pc);color:var(--pt);text-decoration:none;
 -webkit-tap-highlight-color:transparent;transition:translate .45s var(--ease),background-color .4s,color .4s}
 .w2-pill[data-hue="red"]{--pc:var(--red);--pt:var(--ink)}
-.w2-pill[data-hue="lime"]{--pc:var(--lime);--pt:var(--ink)}
-.w2-pill[data-hue="sky"]{--pc:var(--sky);--pt:var(--ink)}
-.w2-pill[data-hue="lilac"]{--pc:var(--lilac);--pt:var(--ink)}
 .w2-pill[data-hue="ink"]{--pc:var(--ink);--pt:var(--paper)}
-.w2-pill[data-hue="paper"]{--pc:var(--paper);--pt:var(--ink)}
+.w2-pill[data-hue="paper"],.w2-pill[data-hue="lime"],.w2-pill[data-hue="sky"],.w2-pill[data-hue="lilac"]{--pc:var(--paper);--pt:var(--ink);box-shadow:inset 0 0 0 1px var(--line2)}
 .w2-roll{position:relative;display:inline-flex;overflow:hidden;line-height:1.2}
 .w2-roll>span{display:block;transition:translate .5s var(--ease)}
 .w2-roll>span+span{position:absolute;left:0;top:0;translate:0 105%}
@@ -83,7 +81,7 @@ a:hover>.w2-roll>span+span,button:hover>.w2-roll>span+span,a:focus-visible>.w2-r
 .w2-fade{opacity:0;transition:opacity 1.1s var(--ease);transition-delay:var(--d,0s)}
 .w2-fade.w2-in,.w2-in>.w2-fade{opacity:1}
 .w2-media{position:relative;display:inline-block;vertical-align:-.06em;height:.78em;width:var(--mw,1.7em);margin:0 .1em}
-.w2-media>i{position:absolute;inset:0;border-radius:99px;overflow:hidden;background:var(--mc,var(--sky));
+.w2-media>i{position:absolute;inset:0;border-radius:99px;overflow:hidden;background:var(--mc,var(--paper2));
 clip-path:inset(0 50% 0 50% round 99px);transition:clip-path 1.2s var(--ease-io);transition-delay:var(--d,0s)}
 .w2-media.w2-in>i,.w2-in .w2-media>i{clip-path:inset(0 0 0 0 round 99px)}
 .w2-media img,.w2-media video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
@@ -226,7 +224,7 @@ function Media(p: { src?: string; video?: string; hue?: string; width?: string; 
             ref={ref}
             className={"w2-media" + on}
             aria-hidden={p.alt ? undefined : true}
-            style={cssVars({ "--mw": p.width || "1.7em", "--mc": "var(--" + (p.hue || "sky") + ")", "--d": (p.delay || 0) + "s" })}
+            style={cssVars({ "--mw": p.width || "1.7em", "--mc": "var(--" + (p.hue || "paper2") + ")", "--d": (p.delay || 0) + "s" })}
         >
             <i>{p.video ? <video src={p.video} autoPlay={!still} muted loop playsInline /> : p.src ? <img src={p.src} alt={p.alt || ""} loading="lazy" width={320} height={150} /> : <b />}</i>
         </span>
@@ -257,13 +255,13 @@ const ABOUT_CSS = `
 .w2a-row{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--m);margin-top:clamp(18px,2cqw,28px)}
 .w2a-step{position:relative;display:flex;flex-direction:column;gap:10px;min-height:clamp(190px,17cqw,250px);padding:clamp(18px,1.7cqw,26px);border-radius:var(--r);background:var(--paper2);
 transition:background-color .5s var(--ease),translate .5s var(--ease)}
-.w2a-step:hover{background:var(--sc);translate:0 -4px}
+.w2a-step:hover{background:var(--red);translate:0 -4px}
 .w2a-step em{font-style:normal;font-size:12px;color:var(--mut)}
 .w2a-step b{margin-top:auto;font-size:clamp(22px,2cqw,30px);font-weight:500;letter-spacing:-.035em}
-.w2a-step p{font-size:14.5px;line-height:1.42;font-weight:400;color:rgba(22,21,20,.72)}
+.w2a-step p{font-size:14.5px;line-height:1.42;font-weight:400;color:rgba(10,10,10,.72)}
 .w2a-bar{display:flex;align-items:center;gap:18px;margin-top:var(--m);height:58px;padding:0 24px;border:1px solid var(--line2);border-radius:99px;font-size:12px}
 .w2a-track{position:relative;flex:1;height:4px;border-radius:4px;background:var(--line);overflow:hidden}
-.w2a-fill{position:absolute;inset:0;background:var(--sky);border-radius:4px;transform-origin:0 50%}
+.w2a-fill{position:absolute;inset:0;background:var(--red);border-radius:4px;transform-origin:0 50%}
 @container (max-width:1000px){.w2a-row{grid-template-columns:repeat(2,1fr)}.w2a-step:last-child{grid-column:1/-1}}
 @container (max-width:560px){.w2a-row{grid-template-columns:1fr}.w2a-step{min-height:0}.w2a-step b{margin-top:6px}}
 `
@@ -318,7 +316,7 @@ export default function W2About(props: AboutProps) {
     let wi = 0
     // An empty slot shows a sample photo, unless samples are switched off.
     const photos = [photo1, photo2].map((ph, i) => (ph && ph.src ? ph : samples ? { src: SAMPLE + "about-" + (i + 1) + ".jpg", alt: "" } : undefined))
-    const hues = ["lime", "lilac"]
+    const hues = ["paper2", "paper2"]
     return (
         <Section tone="paper" id="about" className="w2a" css={ABOUT_CSS} label="About" style={style}>
             <div className="w2a-wrap" ref={sref as React.RefObject<HTMLDivElement>}>
@@ -352,13 +350,7 @@ export default function W2About(props: AboutProps) {
                     </Reveal>
                     <ol className="w2a-row">
                         {steps.map((s, i) => (
-                            <Reveal
-                                as="li"
-                                key={i}
-                                className="w2a-step w2-rise"
-                                delay={i * 0.08}
-                                style={cssVars({ "--sc": ["var(--red)", "var(--lime)", "var(--sky)", "var(--lilac)", "var(--red)"][i % 5] })}
-                            >
+                            <Reveal as="li" key={i} className="w2a-step w2-rise" delay={i * 0.08}>
                                 <em>({String(i + 1).padStart(2, "0")})</em>
                                 <b>{s.title}</b>
                                 <p>{s.body}</p>

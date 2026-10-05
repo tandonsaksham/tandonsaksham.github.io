@@ -46,7 +46,7 @@ const HELLO_CSS = `
 .w2he-card{margin-top:var(--m);padding:clamp(28px,3.4cqw,56px) clamp(22px,3cqw,48px) clamp(20px,2cqw,30px);background:var(--red);color:var(--ink);border-radius:var(--r)}
 .w2he-card .w2-h1{max-width:12ch}
 .w2he-list{margin-top:clamp(34px,5cqw,90px)}
-.w2he-b{position:relative;display:flex;align-items:baseline;gap:clamp(12px,1.6cqw,24px);padding:clamp(14px,1.5cqw,22px) 0;border-top:1px solid rgba(22,21,20,.28)}
+.w2he-b{position:relative;display:flex;align-items:baseline;gap:clamp(12px,1.6cqw,24px);padding:clamp(14px,1.5cqw,22px) 0;border-top:1px solid rgba(10,10,10,.25)}
 .w2he-b em{font-style:normal;font-size:12px;opacity:.7;min-width:3ch}
 .w2he-b p{font-size:clamp(24px,3cqw,48px);line-height:1.05;letter-spacing:-.035em}
 .w2he-b small{font-size:13px;opacity:.75;letter-spacing:0}
@@ -124,16 +124,16 @@ export default function W2Hello(props: HelloProps) {
             <div className="w2he-wrap">
                 <div className="w2he-rows">
                     <Row>
-                        <BigLine text={hello} className="w2he-hi" photo={pic(photo1, 1)} hue="sky" width="1.9em" />
+                        <BigLine text={hello} className="w2he-hi" photo={pic(photo1, 1)} hue="paper2" width="1.9em" />
                     </Row>
                     <Row delay={0.1}>
-                        <BigLine text={weAre} photo={pic(photo2, 2)} hue="lime" width="1.3em" delay={0.08} />
+                        <BigLine text={weAre} photo={pic(photo2, 2)} hue="paper2" width="1.3em" delay={0.08} />
                         <Reveal as="p" className="w2he-side w2-rise" delay={0.45}>
                             {side}
                         </Reveal>
                     </Row>
                     <Row delay={0.2}>
-                        <BigLine text={name} photo={pic(photo3, 3)} hue="lilac" width="1.15em" before delay={0.14} />
+                        <BigLine text={name} photo={pic(photo3, 3)} hue="paper2" width="1.15em" before delay={0.14} />
                     </Row>
                 </div>
                 <Reveal className="w2he-ask w2-rise" amount={0.5}>

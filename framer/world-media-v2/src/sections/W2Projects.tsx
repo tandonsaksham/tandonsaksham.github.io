@@ -13,7 +13,7 @@ type Project = {
     name: string
     services: string
     year: string
-    hue: "red" | "lime" | "sky" | "lilac" | "ink"
+    hue: "red" | "ink" | "paper"
     image?: { src?: string; srcSet?: string; alt?: string }
     video?: string
 }
@@ -38,11 +38,11 @@ const PROJ_CSS = `
 .w2p-count{font-size:clamp(16px,1.45cqw,22px);color:var(--mut)}
 .w2p-stack{position:relative}
 .w2p-panel{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;background:var(--pbg);color:var(--pfg);isolation:isolate}
-.w2p-panel[data-hue="red"]{--pbg:var(--red);--pfg:var(--ink);--pcard:#D9431D}
-.w2p-panel[data-hue="lime"]{--pbg:var(--lime);--pfg:var(--ink);--pcard:#C2EA22}
-.w2p-panel[data-hue="sky"]{--pbg:var(--sky);--pfg:var(--ink);--pcard:#6CCBF6}
-.w2p-panel[data-hue="lilac"]{--pbg:var(--lilac);--pfg:var(--ink);--pcard:#B7A0FB}
-.w2p-panel[data-hue="ink"]{--pbg:#1E1C1A;--pfg:var(--paper);--pcard:#2E2B27}
+.w2p-panel[data-hue="red"]{--pbg:var(--red);--pfg:var(--ink);--pcard:#D14A1E}
+.w2p-panel:is([data-hue="ink"],[data-hue="sky"],[data-hue="lilac"]){--pbg:var(--ink);--pfg:var(--paper);--pcard:#1E1E1E}
+.w2p-panel:is([data-hue="paper"],[data-hue="lime"]){--pbg:var(--paper);--pfg:var(--ink);--pcard:#EBEBEB}
+.w2p-panel:is([data-hue="ink"],[data-hue="sky"],[data-hue="lilac"]) .w2p-blur{opacity:.2}
+.w2p-panel:is([data-hue="paper"],[data-hue="lime"]) .w2p-blur{opacity:.3}
 .w2p-blur{position:absolute;inset:-8%;z-index:-2;background-size:cover;background-position:center;filter:blur(38px);opacity:.6;scale:1.1;mix-blend-mode:luminosity}
 .w2p-grain{position:absolute;inset:0;z-index:-1;opacity:.14;mix-blend-mode:multiply;pointer-events:none;
 background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
@@ -57,7 +57,7 @@ background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000
 .w2p-mq-t span{padding-right:.35em;font-size:clamp(64px,11.6cqw,190px);line-height:1;letter-spacing:-.05em;text-transform:uppercase;font-weight:600}
 @keyframes w2pMq{to{translate:-50% 0}}
 .w2p-card{position:absolute;left:50%;top:50%;width:clamp(260px,44cqw,760px);aspect-ratio:16/10;translate:-50% -54%;border-radius:clamp(10px,1cqw,16px);overflow:hidden;
-background:var(--pcard);box-shadow:0 40px 80px -40px rgba(22,21,20,.55)}
+background:var(--pcard);box-shadow:0 40px 80px -40px rgba(0,0,0,.55)}
 .w2p-card img,.w2p-card video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .w2p-ph{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:space-between;padding:16px 18px;font-size:12px;letter-spacing:.04em;text-transform:uppercase;
 background:repeating-linear-gradient(135deg,transparent 0 22px,rgba(255,255,255,.07) 22px 23px)}
@@ -174,9 +174,9 @@ export default function W2Projects(props: ProjectsProps) {
         intro = "A few of the stories we’ve told. *The rest are better over a call.*",
         projects = [
             { name: "Brand One", services: "Influencer marketing · Video production", year: "2026", hue: "red" as const },
-            { name: "Brand Two", services: "Celebrity marketing · Content", year: "2025", hue: "lime" as const },
-            { name: "Brand Three", services: "Creator-led ads · Live reporting", year: "2025", hue: "sky" as const },
-            { name: "Brand Four", services: "Talent management · Content writing", year: "2024", hue: "lilac" as const },
+            { name: "Brand Two", services: "Celebrity marketing · Content", year: "2025", hue: "ink" as const },
+            { name: "Brand Three", services: "Creator-led ads · Live reporting", year: "2025", hue: "paper" as const },
+            { name: "Brand Four", services: "Talent management · Content writing", year: "2024", hue: "ink" as const },
         ],
         samples = true,
         style,
@@ -190,7 +190,7 @@ export default function W2Projects(props: ProjectsProps) {
         <Section tone="ink" id="projects" className="w2p" css={PROJ_CSS} label="Projects" style={style}>
             <div className="w2p-intro">
                 <span className="w2p-orb" style={{ width: "46vw", height: "46vw", left: "-12vw", top: "-14vw", background: "var(--red)" }} aria-hidden="true" />
-                <span className="w2p-orb" style={{ width: "34vw", height: "34vw", right: "-8vw", bottom: "-10vw", background: "var(--lilac)", animationDelay: "-6s" }} aria-hidden="true" />
+                <span className="w2p-orb" style={{ width: "34vw", height: "34vw", right: "-8vw", bottom: "-10vw", background: "#5C5C5C", animationDelay: "-6s" }} aria-hidden="true" />
                 <Label name="Projects" index={3} />
                 <div className="w2p-head">
                     <Words as="h2" className="w2-mega" text={title} stagger={0.08} />
@@ -241,8 +241,8 @@ addPropertyControls(W2Projects, {
                 hue: {
                     type: ControlType.Enum,
                     title: "Colour",
-                    options: ["red", "lime", "sky", "lilac", "ink"],
-                    optionTitles: ["Red", "Lime", "Sky", "Lilac", "Ink"],
+                    options: ["red", "ink", "paper"],
+                    optionTitles: ["Orange-red", "Black", "White"],
                 },
                 image: { type: ControlType.ResponsiveImage, title: "Picture" },
                 video: { type: ControlType.File, title: "Film", allowedFileTypes: ["mp4", "webm", "mov"] },
@@ -250,9 +250,9 @@ addPropertyControls(W2Projects, {
         },
         defaultValue: [
             { name: "Brand One", services: "Influencer marketing · Video production", year: "2026", hue: "red" },
-            { name: "Brand Two", services: "Celebrity marketing · Content", year: "2025", hue: "lime" },
-            { name: "Brand Three", services: "Creator-led ads · Live reporting", year: "2025", hue: "sky" },
-            { name: "Brand Four", services: "Talent management · Content writing", year: "2024", hue: "lilac" },
+            { name: "Brand Two", services: "Celebrity marketing · Content", year: "2025", hue: "ink" },
+            { name: "Brand Three", services: "Creator-led ads · Live reporting", year: "2025", hue: "paper" },
+            { name: "Brand Four", services: "Talent management · Content writing", year: "2024", hue: "ink" },
         ],
     },
     samples: {

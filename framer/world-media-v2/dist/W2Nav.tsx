@@ -18,11 +18,12 @@ import { motion, useInView, useReducedMotion } from "framer-motion"
    uses. The rules live in @layer w2-base, so a section's own CSS always wins, and every
    class starts with w2- so this page never collides with the first site's components.
    Reveals animate opacity and the translate property only; transform stays free.
-   paper #FFF8F1 · ink #161514 · red #F2522A · lime #D9FF3F · sky #8BDCFF · lilac #C9B6FF
+   Colours follow the deck: white first, black second, one orange-red accent.
+   white #FFFFFF · grey #F3F3F3 · black #0A0A0A · orange-red #EA5628
    Inter Tight (text and big type) · Instrument Serif italic (the odd word, for warmth)
    ─────────────────────────────────────────────────────────────────────────────── */
 
-type Hue = "red" | "lime" | "sky" | "lilac" | "ink" | "paper"
+type Hue = "paper" | "ink" | "red"
 
 const FONT_HREF =
     "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700&display=swap"
@@ -31,21 +32,21 @@ const cssVars = (o: Record<string, string | number>): React.CSSProperties => o a
 
 const BASE_CSS = `
 @layer w2-base{
-.w2{--paper:#FFF8F1;--paper2:#F5ECE2;--ink:#161514;--ink2:#24221F;--red:#F2522A;--lime:#D9FF3F;--sky:#8BDCFF;--lilac:#C9B6FF;
+.w2{--paper:#FFFFFF;--paper2:#F3F3F3;--ink:#0A0A0A;--ink2:#1C1C1C;--red:#EA5628;
 --ease:cubic-bezier(.16,1,.3,1);--ease-io:cubic-bezier(.7,0,.2,1);--r:clamp(18px,2.1cqw,30px);--m:clamp(8px,.9cqw,14px);--gut:clamp(18px,3.4cqw,52px);
 position:relative;box-sizing:border-box;width:100%;container-type:inline-size;overflow:hidden;overflow:clip;
 font-family:"Inter Tight","Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:500;letter-spacing:-.012em;
 -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;
 background:var(--bg);color:var(--fg)}
-.w2[data-tone="paper"]{--bg:var(--paper);--fg:var(--ink);--mut:rgba(22,21,20,.64);--line:rgba(22,21,20,.14);--line2:rgba(22,21,20,.42)}
-.w2[data-tone="ink"]{--bg:var(--ink);--fg:var(--paper);--mut:rgba(255,248,241,.56);--line:rgba(255,248,241,.16);--line2:rgba(255,248,241,.42)}
+.w2[data-tone="paper"]{--bg:var(--paper);--fg:var(--ink);--mut:rgba(10,10,10,.62);--line:rgba(10,10,10,.12);--line2:rgba(10,10,10,.38)}
+.w2[data-tone="ink"]{--bg:var(--ink);--fg:var(--paper);--mut:rgba(255,255,255,.58);--line:rgba(255,255,255,.16);--line2:rgba(255,255,255,.4)}
 .w2 *,.w2 *::before,.w2 *::after{box-sizing:border-box}
 .w2 :where(h1,h2,h3,h4,p,ul,ol,li,figure,blockquote){margin:0;padding:0;list-style:none}
 .w2 :where(a){color:inherit;text-decoration:none}
 .w2 :where(button){font:inherit;color:inherit;margin:0}
 .w2 :where(a,button){touch-action:manipulation}
 .w2 :where(.w2-mega,.w2-h1,.w2-h2,.w2-big,.w2-h3){text-wrap:balance}
-.w2 ::selection{background:var(--lime);color:var(--ink)}
+.w2 ::selection{background:var(--red);color:var(--ink)}
 .w2 :focus-visible{outline:2px solid var(--red);outline-offset:3px;border-radius:10px}
 .w2-it{font-family:"Instrument Serif",Georgia,"Times New Roman",serif;font-style:italic;font-weight:400;letter-spacing:-.012em}
 .w2-mega{font-size:clamp(62px,14.4cqw,232px);line-height:.88;letter-spacing:-.058em;font-weight:500}
@@ -63,11 +64,8 @@ background:var(--bg);color:var(--fg)}
 font-size:14px;font-weight:500;letter-spacing:-.01em;white-space:nowrap;cursor:pointer;background:var(--pc);color:var(--pt);text-decoration:none;
 -webkit-tap-highlight-color:transparent;transition:translate .45s var(--ease),background-color .4s,color .4s}
 .w2-pill[data-hue="red"]{--pc:var(--red);--pt:var(--ink)}
-.w2-pill[data-hue="lime"]{--pc:var(--lime);--pt:var(--ink)}
-.w2-pill[data-hue="sky"]{--pc:var(--sky);--pt:var(--ink)}
-.w2-pill[data-hue="lilac"]{--pc:var(--lilac);--pt:var(--ink)}
 .w2-pill[data-hue="ink"]{--pc:var(--ink);--pt:var(--paper)}
-.w2-pill[data-hue="paper"]{--pc:var(--paper);--pt:var(--ink)}
+.w2-pill[data-hue="paper"],.w2-pill[data-hue="lime"],.w2-pill[data-hue="sky"],.w2-pill[data-hue="lilac"]{--pc:var(--paper);--pt:var(--ink);box-shadow:inset 0 0 0 1px var(--line2)}
 .w2-roll{position:relative;display:inline-flex;overflow:hidden;line-height:1.2}
 .w2-roll>span{display:block;transition:translate .5s var(--ease)}
 .w2-roll>span+span{position:absolute;left:0;top:0;translate:0 105%}
@@ -83,7 +81,7 @@ a:hover>.w2-roll>span+span,button:hover>.w2-roll>span+span,a:focus-visible>.w2-r
 .w2-fade{opacity:0;transition:opacity 1.1s var(--ease);transition-delay:var(--d,0s)}
 .w2-fade.w2-in,.w2-in>.w2-fade{opacity:1}
 .w2-media{position:relative;display:inline-block;vertical-align:-.06em;height:.78em;width:var(--mw,1.7em);margin:0 .1em}
-.w2-media>i{position:absolute;inset:0;border-radius:99px;overflow:hidden;background:var(--mc,var(--sky));
+.w2-media>i{position:absolute;inset:0;border-radius:99px;overflow:hidden;background:var(--mc,var(--paper2));
 clip-path:inset(0 50% 0 50% round 99px);transition:clip-path 1.2s var(--ease-io);transition-delay:var(--d,0s)}
 .w2-media.w2-in>i,.w2-in .w2-media>i{clip-path:inset(0 0 0 0 round 99px)}
 .w2-media img,.w2-media video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
@@ -169,7 +167,7 @@ function Media(p: { src?: string; video?: string; hue?: string; width?: string; 
             ref={ref}
             className={"w2-media" + on}
             aria-hidden={p.alt ? undefined : true}
-            style={cssVars({ "--mw": p.width || "1.7em", "--mc": "var(--" + (p.hue || "sky") + ")", "--d": (p.delay || 0) + "s" })}
+            style={cssVars({ "--mw": p.width || "1.7em", "--mc": "var(--" + (p.hue || "paper2") + ")", "--d": (p.delay || 0) + "s" })}
         >
             <i>{p.video ? <video src={p.video} autoPlay={!still} muted loop playsInline /> : p.src ? <img src={p.src} alt={p.alt || ""} loading="lazy" width={320} height={150} /> : <b />}</i>
         </span>
@@ -210,13 +208,14 @@ html{scroll-padding-top:84px}
 .w2n-fixed{position:fixed;top:0;left:0;right:0;z-index:2147482000;pointer-events:none}
 .w2n.w2{background:transparent;overflow:visible}
 .w2n-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:clamp(10px,1.1cqw,16px) clamp(10px,1.1cqw,16px) 0}
-.w2n-globe{pointer-events:auto;position:relative;display:grid;place-items:center;width:46px;height:46px;border-radius:13px;background:var(--ink);color:var(--lime);
-box-shadow:inset 0 0 0 1px rgba(255,248,241,.14);cursor:pointer;border:0;padding:0;transition:scale .5s var(--ease)}
+.w2n-globe{pointer-events:auto;position:relative;display:grid;place-items:center;width:46px;height:46px;border-radius:13px;background:var(--ink);color:var(--red);
+box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);cursor:pointer;border:0;padding:0;transition:scale .5s var(--ease)}
 .w2n-globe:hover{scale:1.06}
 .w2n-globe:hover .w2-globe .m{animation-duration:2.6s}
 .w2n-pills{pointer-events:auto;display:flex;align-items:center;gap:6px}
-.w2n-pills .w2-pill{box-shadow:0 6px 18px -10px rgba(22,21,20,.45)}
-.w2n .w2-pill[data-hue="ink"]{box-shadow:inset 0 0 0 1px rgba(255,248,241,.22),0 6px 18px -10px rgba(22,21,20,.45)}
+.w2n-pills .w2-pill{box-shadow:0 6px 18px -10px rgba(0,0,0,.45)}
+.w2n-pills .w2-pill:is([data-hue="paper"],[data-hue="lime"],[data-hue="sky"],[data-hue="lilac"]){box-shadow:inset 0 0 0 1px rgba(10,10,10,.12),0 6px 18px -10px rgba(0,0,0,.45)}
+.w2n .w2-pill[data-hue="ink"]{box-shadow:inset 0 0 0 1px rgba(255,255,255,.22),0 6px 18px -10px rgba(0,0,0,.45)}
 .w2n-pills .w2-pill:hover{translate:0 -2px}
 .w2n-pills .w2-pill[aria-current="true"]::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:2px}
 .w2n-menu{display:none}
@@ -240,11 +239,11 @@ clip-path:inset(0 0 100% 0 round 0 0 28px 28px);visibility:hidden;transition:cli
 export default function W2Nav(props: NavProps) {
     const {
         links = [
-            { label: "Services", href: "#services", hue: "red" as Hue },
-            { label: "Projects", href: "#projects", hue: "lime" as Hue },
-            { label: "About", href: "#about", hue: "sky" as Hue },
+            { label: "Services", href: "#services", hue: "paper" as Hue },
+            { label: "Projects", href: "#projects", hue: "paper" as Hue },
+            { label: "About", href: "#about", hue: "paper" as Hue },
             { label: "Contact", href: "#contact", hue: "ink" as Hue },
-            { label: "Join us", href: "#join", hue: "lilac" as Hue },
+            { label: "Join us", href: "#join", hue: "red" as Hue },
         ],
         email = "social@worldmedia.co.in",
         phone = "+91 8800 040 301",
@@ -444,17 +443,17 @@ addPropertyControls(W2Nav, {
                 hue: {
                     type: ControlType.Enum,
                     title: "Colour",
-                    options: ["red", "lime", "sky", "lilac", "ink", "paper"],
-                    optionTitles: ["Red", "Lime", "Sky", "Lilac", "Ink", "Paper"],
+                    options: ["paper", "ink", "red"],
+                    optionTitles: ["White", "Black", "Orange-red"],
                 },
             },
         },
         defaultValue: [
-            { label: "Services", href: "#services", hue: "red" },
-            { label: "Projects", href: "#projects", hue: "lime" },
-            { label: "About", href: "#about", hue: "sky" },
+            { label: "Services", href: "#services", hue: "paper" },
+            { label: "Projects", href: "#projects", hue: "paper" },
+            { label: "About", href: "#about", hue: "paper" },
             { label: "Contact", href: "#contact", hue: "ink" },
-            { label: "Join us", href: "#join", hue: "lilac" },
+            { label: "Join us", href: "#join", hue: "red" },
         ],
     },
     email: { type: ControlType.String, title: "Email", defaultValue: "social@worldmedia.co.in" },

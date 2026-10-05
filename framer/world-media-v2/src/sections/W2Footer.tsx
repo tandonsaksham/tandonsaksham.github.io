@@ -25,14 +25,14 @@ const FOOT_CSS = `
 .w2f-up.w2-pill:hover svg{translate:0 -3px}
 .w2f-name{display:flex;align-items:center;justify-content:center;margin:clamp(30px,4cqw,70px) 0 clamp(18px,2cqw,30px);font-size:clamp(64px,16.6cqw,268px);line-height:.86;letter-spacing:-.065em;white-space:nowrap}
 .w2f-name .w2-w{padding-bottom:.12em}
-.w2f-o{display:inline-flex;align-items:center;justify-content:center;width:.62em;height:.62em;margin:0 .02em;translate:0 .05em;color:var(--lime)}
+.w2f-o{display:inline-flex;align-items:center;justify-content:center;width:.62em;height:.62em;margin:0 .02em;translate:0 .05em;color:var(--red)}
 .w2f-o .w2-globe{width:100%;height:100%}
 .w2f-dot{color:var(--red)}
 .w2f-bot{display:flex;align-items:center;justify-content:space-between;gap:16px 28px;flex-wrap:wrap;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--mut)}
 .w2f-links{display:flex;flex-wrap:wrap;gap:6px 18px}
 .w2f-links a{color:var(--paper);transition:color .3s}
-.w2f-links a:hover{color:var(--lime)}
-.w2f-note{font-size:18px;color:var(--lilac)}
+.w2f-links a:hover{color:var(--red)}
+.w2f-note{font-size:18px;color:var(--paper)}
 @container (max-width:640px){.w2f-bot{flex-direction:column;align-items:flex-start}}
 `
 
