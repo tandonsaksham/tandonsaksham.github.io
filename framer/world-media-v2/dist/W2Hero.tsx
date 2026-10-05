@@ -648,7 +648,7 @@ function Loader(p: { name: string; note: string; video: React.RefObject<HTMLVide
                 <span className="w2i-name" translate="no" style={cssVars({ "--n": letters.length })}>
                     {letters.map((c, i) => (
                         <span key={i} style={cssVars({ "--i": i })}>
-                            {c === " " ? " " : c}
+                            {c === " " ? "\u00a0" : c}
                         </span>
                     ))}
                 </span>
@@ -782,7 +782,7 @@ export default function W2Hero(props: HeroProps) {
                             <div className="w2h-mark" aria-hidden="true" translate="no">
                                 {letters.map((c, i) => (
                                     <span key={i} className="l" style={cssVars({ "--d": (0.25 + i * 0.045).toFixed(3) + "s" })}>
-                                        {c === " " ? " " : c}
+                                        {c === " " ? "\u00a0" : c}
                                     </span>
                                 ))}
                                 <span className="l dot" style={cssVars({ "--d": (0.3 + letters.length * 0.045).toFixed(3) + "s" })}>
