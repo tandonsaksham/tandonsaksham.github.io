@@ -714,7 +714,7 @@ export default function W2Hero(props: HeroProps) {
         if (!withLoader) React.startTransition(() => setOn(true))
         // A video that failed before the page woke up still falls back to the dotted globe.
         const v = vref.current
-        if (v && v.error) setFailed(true)
+        if (v && v.error) React.startTransition(() => setFailed(true))
     }, [])
 
     // The server HTML always asks the video to autoplay; respect reduced motion once known.
@@ -724,6 +724,7 @@ export default function W2Hero(props: HeroProps) {
     }, [still, src])
 
     const reveal = React.useCallback(() => React.startTransition(() => setOn(true)), [])
+    const fail = React.useCallback(() => React.startTransition(() => setFailed(true)), [])
     const gone = React.useCallback(() => React.startTransition(() => setLoader(false)), [])
 
     const toggleSound = () => {
@@ -766,10 +767,10 @@ export default function W2Hero(props: HeroProps) {
                                 preload="auto"
                                 aria-label="World Media globe animation"
                                 // React passes a <source> error on to the video, and a skipped MP4 is not a failure.
-                                onError={sample ? undefined : () => setFailed(true)}
+                                onError={sample ? undefined : fail}
                             >
                                 {sample ? <source src={SAMPLE + "globe-loop.mp4"} type={'video/mp4; codecs="avc1.640028"'} /> : null}
-                                {sample ? <source src={SAMPLE + "globe-loop.webm"} type={'video/webm; codecs="vp9"'} onError={() => setFailed(true)} /> : null}
+                                {sample ? <source src={SAMPLE + "globe-loop.webm"} type={'video/webm; codecs="vp9"'} onError={fail} /> : null}
                             </video>
                         ) : (
                             <>
