@@ -5,8 +5,8 @@
 // This file: Projects, navigated the way another.gr/projects does it. Each project is a full
 // screen of its own colour that slides up over the one before; its name runs across the
 // screen in huge type behind a centred picture, with the services and year underneath.
-// Which projects to show will be agreed with the client, so the four here are placeholders:
-// add a picture or a video to each one in the Projects list.
+// Which projects to show will be agreed with the client, so the four here are placeholders
+// with sample photos: add a picture or a video to each one in the Projects list.
 //@@ BODY
 
 type Project = {
@@ -22,6 +22,7 @@ type ProjectsProps = {
     title: string
     intro: string
     projects: Project[]
+    samples: boolean
     style?: React.CSSProperties
 }
 
@@ -42,7 +43,7 @@ const PROJ_CSS = `
 .w2p-panel[data-hue="sky"]{--pbg:var(--sky);--pfg:var(--ink);--pcard:#6CCBF6}
 .w2p-panel[data-hue="lilac"]{--pbg:var(--lilac);--pfg:var(--ink);--pcard:#B7A0FB}
 .w2p-panel[data-hue="ink"]{--pbg:#1E1C1A;--pfg:var(--paper);--pcard:#2E2B27}
-.w2p-blur{position:absolute;inset:-8%;z-index:-2;background-size:cover;background-position:center;filter:blur(38px) saturate(1.1);opacity:.75;scale:1.1}
+.w2p-blur{position:absolute;inset:-8%;z-index:-2;background-size:cover;background-position:center;filter:blur(38px);opacity:.6;scale:1.1;mix-blend-mode:luminosity}
 .w2p-grain{position:absolute;inset:0;z-index:-1;opacity:.14;mix-blend-mode:multiply;pointer-events:none;
 background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
 .w2p-grid{position:absolute;inset:0;z-index:-1;display:grid;grid-template-columns:1fr 1fr 1fr;pointer-events:none}
@@ -75,8 +76,10 @@ background:repeating-linear-gradient(135deg,transparent 0 22px,rgba(255,255,255,
 @media (prefers-reduced-motion:reduce){.w2p-mq-t{animation:none}.w2p-orb{animation:none}}
 `
 
-function Panel(p: { item: Project; index: number; total: number; nextRef?: React.RefObject<HTMLElement>; selfRef: React.RefObject<HTMLElement>; still: boolean }) {
-    const { item, index } = p
+type Pic = { src?: string; srcSet?: string; alt?: string; sample?: boolean }
+
+function Panel(p: { item: Project; img?: Pic; index: number; total: number; nextRef?: React.RefObject<HTMLElement>; selfRef: React.RefObject<HTMLElement>; still: boolean }) {
+    const { item, index, img } = p
     const [live, setLive] = React.useState(false)
     // The panels' refs live in the parent, so measure after layout rather than during it.
     const { scrollYProgress: enter } = useScroll({ target: p.selfRef, offset: ["start end", "start start"], layoutEffect: false })
@@ -114,7 +117,7 @@ function Panel(p: { item: Project; index: number; total: number; nextRef?: React
             aria-label={nm + (item.year ? ", " + item.year : "")}
             style={{ zIndex: index + 1 }}
         >
-            {item.image && item.image.src ? <div className="w2p-blur" style={{ backgroundImage: "url(" + item.image.src + ")" }} /> : null}
+            {img && img.src ? <div className="w2p-blur" style={{ backgroundImage: "url(" + img.src + ")" }} /> : null}
             <div className="w2p-grain" />
             <motion.div className="w2p-in" style={p.still ? undefined : { scale: innerScale }}>
                 <div className="w2p-grid" aria-hidden="true">
@@ -140,9 +143,9 @@ function Panel(p: { item: Project; index: number; total: number; nextRef?: React
                 </div>
                 <motion.div className="w2p-card" style={p.still ? undefined : { scale: cardScale, y: cardY }}>
                     {item.video ? (
-                        <video ref={vref} src={item.video} muted loop playsInline preload="metadata" poster={item.image && item.image.src} />
-                    ) : item.image && item.image.src ? (
-                        <img src={item.image.src} srcSet={item.image.srcSet} alt={item.image.alt || nm} loading="lazy" width={1600} height={1000} />
+                        <video ref={vref} src={item.video} muted loop playsInline preload="metadata" poster={img && img.src} />
+                    ) : img && img.src ? (
+                        <img src={img.src} srcSet={img.srcSet} alt={img.sample ? "" : img.alt || nm} loading="lazy" width={1600} height={1000} />
                     ) : (
                         <div className="w2p-ph">
                             <b>{nm}</b>
@@ -175,6 +178,7 @@ export default function W2Projects(props: ProjectsProps) {
             { name: "Brand Three", services: "Creator-led ads · Live reporting", year: "2025", hue: "sky" as const },
             { name: "Brand Four", services: "Talent management · Content writing", year: "2024", hue: "lilac" as const },
         ],
+        samples = true,
         style,
     } = props
     const still = useStill()
@@ -200,7 +204,16 @@ export default function W2Projects(props: ProjectsProps) {
             </div>
             <div className="w2p-stack">
                 {projects.map((item, i) => (
-                    <Panel key={i} item={item} index={i} total={projects.length} selfRef={refs[i]} nextRef={refs[i + 1]} still={still} />
+                    <Panel
+                        key={i}
+                        item={item}
+                        img={item.image && item.image.src ? item.image : samples && i < 4 ? { src: SAMPLE + "project-" + (i + 1) + ".jpg", sample: true } : undefined}
+                        index={i}
+                        total={projects.length}
+                        selfRef={refs[i]}
+                        nextRef={refs[i + 1]}
+                        still={still}
+                    />
                 ))}
             </div>
         </Section>
@@ -241,5 +254,13 @@ addPropertyControls(W2Projects, {
             { name: "Brand Three", services: "Creator-led ads · Live reporting", year: "2025", hue: "sky" },
             { name: "Brand Four", services: "Talent management · Content writing", year: "2024", hue: "lilac" },
         ],
+    },
+    samples: {
+        type: ControlType.Boolean,
+        title: "Sample photos",
+        defaultValue: true,
+        enabledTitle: "Show",
+        disabledTitle: "Hide",
+        description: "Give the first four projects a sample photo until you add your own.",
     },
 })

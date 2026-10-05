@@ -15,6 +15,7 @@ type AboutProps = {
     stepsTitle: string
     photo1?: { src?: string; srcSet?: string; alt?: string }
     photo2?: { src?: string; srcSet?: string; alt?: string }
+    samples: boolean
     style?: React.CSSProperties
 }
 
@@ -58,6 +59,7 @@ export default function W2About(props: AboutProps) {
         ],
         photo1,
         photo2,
+        samples = true,
         style,
     } = props
     const still = useStill()
@@ -88,7 +90,8 @@ export default function W2About(props: AboutProps) {
     }, [still, count])
 
     let wi = 0
-    const photos = [photo1, photo2]
+    // An empty slot shows a sample photo, unless samples are switched off.
+    const photos = [photo1, photo2].map((ph, i) => (ph && ph.src ? ph : samples ? { src: SAMPLE + "about-" + (i + 1) + ".jpg", alt: "" } : undefined))
     const hues = ["lime", "lilac"]
     return (
         <Section tone="paper" id="about" className="w2a" css={ABOUT_CSS} label="About" style={style}>
@@ -160,6 +163,14 @@ addPropertyControls(W2About, {
     },
     photo1: { type: ControlType.ResponsiveImage, title: "Picture 1" },
     photo2: { type: ControlType.ResponsiveImage, title: "Picture 2" },
+    samples: {
+        type: ControlType.Boolean,
+        title: "Sample photos",
+        defaultValue: true,
+        enabledTitle: "Show",
+        disabledTitle: "Hide",
+        description: "Fill empty picture slots until you add your own.",
+    },
     stepsTitle: { type: ControlType.String, title: "Steps title", defaultValue: "How a campaign runs" },
     steps: {
         type: ControlType.Array,

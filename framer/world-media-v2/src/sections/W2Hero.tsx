@@ -2,16 +2,18 @@
 // User instructions: rebuild the World Media website as one landing page from the website
 // brief: a creative landing like rabenrifaie.com, project navigation like another.gr,
 // the tonality and plain-spoken copy of twoplusone.co (pictorial, big text, a bit of colour).
-// This file: the landing. A short intro (the name types itself in while a counter runs to
-// 100, once per visit), then the globe video full-bleed in a rounded frame, with one line
+// This file: the landing. First a loading screen: a big wireframe globe spinning with three
+// coloured satellites, a bar and a counter that run to 100 while the page and the video load.
+// Then the globe video in a rounded frame, with the World Media name set over it, one line
 // about World Media and the time in Delhi. Until the real video is added in the Video field,
-// a placeholder plays instead: a dotted globe turning, with content orbiting it and the
-// World Media name set over it.
+// a sample plays: NASA's spinning Earth, sitting exactly where the loading globe was.
 //@@ BODY
 
 type HeroProps = {
     video: string
     poster?: { src?: string; srcSet?: string; alt?: string }
+    samples: boolean
+    nameOver: boolean
     wordmark: string
     statement: string
     location: string
@@ -22,12 +24,20 @@ type HeroProps = {
     style?: React.CSSProperties
 }
 
+/* The loading globe and the sample video globe share one geometry, so the wireframe fades
+   straight into the real Earth: card = screen minus the margin, video box = the smaller of
+   76% of the card height and 88% of its width, centred 48% down the card. The NASA globe
+   fills 88.2% of its square frame; the loader's planet fills 200/260 of its SVG. */
 const HERO_CSS = `
+@property --w2p{syntax:"<number>";inherits:true;initial-value:0}
+@property --w2n{syntax:"<integer>";inherits:true;initial-value:0}
 .w2h{padding:var(--m);height:100vh;height:100svh;min-height:560px}
 .w2h-card{position:relative;height:100%;border-radius:var(--r);overflow:hidden;background:#0C0C0B;isolation:isolate}
+.w2h-card.smp{background:#000}
 .w2h-stage{position:absolute;inset:0;scale:1.08;transition:scale 2.4s var(--ease)}
-.w2h.on .w2h-stage{scale:1}
+.w2h.on .w2h-stage,.w2h.ld .w2h-stage{scale:1}
 .w2h-stage video,.w2h-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.w2h-stage .w2h-smp{inset:auto;left:50%;top:48%;width:auto;height:min(76%,calc(.88 * (100cqw - 2 * var(--m))));aspect-ratio:1;translate:-50% -50%;object-fit:contain}
 .w2h-glow{position:absolute;inset:0;background:radial-gradient(60% 55% at 50% 46%,rgba(139,220,255,.16),rgba(201,182,255,.06) 45%,transparent 70%)}
 .w2h-cv{position:absolute;inset:0;width:100%;height:100%;display:block}
 .w2h-mark{position:absolute;left:0;right:0;top:50%;translate:0 -54%;text-align:center;color:var(--paper);mix-blend-mode:difference;pointer-events:none;
@@ -47,17 +57,54 @@ font-size:clamp(54px,12.4cqw,210px);line-height:.9;letter-spacing:-.06em;font-we
 .w2h-snd{pointer-events:auto}
 .w2h-btns{display:flex;gap:6px}
 .w2h-pause.w2-pill{width:38px;padding:0}
-.w2h-hint{position:absolute;top:18px;left:50%;translate:-50% 0;padding:6px 12px;border-radius:99px;background:rgba(255,248,241,.12);color:var(--paper);font-size:12px;letter-spacing:.02em}
+.w2h-hint{position:absolute;top:18px;left:50%;translate:-50% 0;padding:6px 12px;border-radius:99px;background:rgba(255,248,241,.12);color:var(--paper);font-size:12px;letter-spacing:.02em;white-space:nowrap}
 @container (max-width:640px){.w2h-ui{flex-direction:column;align-items:flex-start}.w2h-meta{align-items:flex-start;text-align:left}.w2h-mark{top:44%}}
-.w2i.w2{position:fixed;inset:0;z-index:2147483400;background:var(--ink);color:var(--paper);display:grid;place-items:center;
-clip-path:inset(0 0 0 0);transition:clip-path 1s var(--ease-io)}
-.w2i.out{clip-path:inset(0 0 100% 0)}
-.w2i-name{display:flex;align-items:center;gap:14px;font-size:clamp(28px,3.4cqw,46px);letter-spacing:-.045em}
-.w2i-name .w2-globe{color:var(--lime)}
-.w2i-name .l{display:inline-block;opacity:.08;transition:opacity .35s}
-.w2i-name .l.on{opacity:1}
-.w2i-note{position:absolute;left:clamp(18px,2.4cqw,36px);bottom:clamp(18px,2.4cqw,36px);font-size:13px;color:rgba(255,248,241,.55)}
-.w2i-count{position:absolute;right:clamp(18px,2.4cqw,36px);bottom:clamp(12px,2cqw,30px);font-size:clamp(40px,5cqw,76px);line-height:1;font-variant-numeric:tabular-nums}
+.w2i.w2{position:fixed;inset:0 0 auto 0;height:100vh;height:100svh;z-index:2147483400;background:var(--ink);color:var(--paper);overflow:hidden;
+animation:w2iLoad 7s cubic-bezier(.1,.6,.2,1) both,w2iBail .6s 9s both;transition:background-color 1.1s var(--ease-io)}
+.w2i.js{animation:none}
+.w2i.out{background-color:transparent;pointer-events:none}
+@keyframes w2iLoad{from{--w2p:0;--w2n:0}to{--w2p:.94;--w2n:94}}
+@keyframes w2iBail{to{opacity:0;visibility:hidden}}
+.w2i-top{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:clamp(18px,2.4cqw,36px) var(--gut);font-size:13px;letter-spacing:.01em;color:rgba(255,248,241,.6)}
+.w2i-name{font-size:clamp(17px,1.5cqw,22px);letter-spacing:-.04em;color:var(--paper)}
+.w2i-name span{opacity:clamp(.16,calc((var(--w2p) * var(--n) * 1.12 - var(--i)) * .8),1)}
+.w2i-globe{position:absolute;left:50%;--H:calc(max(100svh,560px) - 2 * var(--m));top:calc(var(--m) + .48 * var(--H));
+width:calc(min(.76 * var(--H),.88 * (100cqw - 2 * var(--m))) * 1.1471);aspect-ratio:1;translate:-50% -50%;
+transition:opacity 1.1s var(--ease-io) .05s,scale 1.6s var(--ease)}
+.w2i-globe svg{display:block;width:100%;height:100%;overflow:visible}
+.w2i-glow{fill:url(#w2iGl)}
+.w2i-disc{fill:url(#w2iG)}
+.w2i-rim{fill:none;stroke:rgba(255,248,241,.86);stroke-width:1.4px;vector-effect:non-scaling-stroke}
+.w2i-lat{fill:none;stroke:rgba(255,248,241,.42);stroke-width:2.2px;stroke-linecap:round;stroke-dasharray:0 8px;vector-effect:non-scaling-stroke}
+.w2i-m{fill:none;stroke:var(--lime);stroke-width:2.6px;stroke-linecap:round;stroke-dasharray:0 9px;vector-effect:non-scaling-stroke;
+transform-box:fill-box;transform-origin:50% 50%;animation:w2iMer 8s linear infinite;animation-delay:var(--gd)}
+.w2i-orb{fill:none;stroke:rgba(255,248,241,.12);stroke-width:1px;vector-effect:non-scaling-stroke}
+.w2i-orb.f{stroke:rgba(255,248,241,.3)}
+.w2i-sx{animation:w2iSx var(--t) infinite;animation-delay:var(--lag)}
+.w2i-sy{animation:w2iSy var(--t) infinite;animation-delay:var(--lag)}
+@keyframes w2iSx{0%,100%{translate:var(--a) 0;animation-timing-function:cubic-bezier(.37,0,.63,1)}50%{translate:calc(var(--a) * -1) 0;animation-timing-function:cubic-bezier(.37,0,.63,1)}}
+@keyframes w2iSy{0%,100%{translate:0 var(--a);animation-timing-function:cubic-bezier(.37,0,.63,1)}50%{translate:0 calc(var(--a) * -1);animation-timing-function:cubic-bezier(.37,0,.63,1)}}
+@keyframes w2iMer{0%{transform:scaleX(1);animation-timing-function:cubic-bezier(.12,0,.39,0)}25%{transform:scaleX(0);animation-timing-function:cubic-bezier(.61,1,.88,1)}
+50%{transform:scaleX(-1);animation-timing-function:cubic-bezier(.12,0,.39,0)}75%{transform:scaleX(0);animation-timing-function:cubic-bezier(.61,1,.88,1)}100%{transform:scaleX(1)}}
+.w2i-foot{position:absolute;left:var(--gut);right:var(--gut);bottom:clamp(18px,2.4cqw,36px)}
+.w2i-row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:clamp(12px,1.3cqw,18px)}
+.w2i-note{padding-bottom:.4em;font-size:13px;letter-spacing:.01em;color:rgba(255,248,241,.6)}
+.w2i-num{font-size:clamp(64px,8.6cqw,144px);line-height:.78;letter-spacing:-.02em;white-space:nowrap}
+.w2i-num::before{counter-reset:w2n var(--w2n);content:counter(w2n)}
+.w2i-pc{display:inline-block;margin-left:.06em;font-size:.34em;vertical-align:top;letter-spacing:0}
+.w2i-bar{position:relative;height:6px}
+.w2i-bar::before{content:"";position:absolute;inset:0;border-radius:99px;background:rgba(255,248,241,.12)}
+.w2i-fill{position:absolute;inset:0;border-radius:99px;background:linear-gradient(90deg,var(--red),var(--lime) 38%,var(--sky) 70%,var(--lilac));
+clip-path:inset(0 calc(100% - var(--w2p) * 100%) 0 0 round 99px)}
+.w2i-head{position:absolute;top:50%;left:calc(var(--w2p) * 100%);width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--paper);
+box-shadow:0 0 0 5px rgba(255,248,241,.14),0 0 24px rgba(255,248,241,.6)}
+.w2i-top,.w2i-foot{transition:opacity .5s var(--ease),translate .7s var(--ease)}
+.w2i.out .w2i-top{opacity:0;translate:0 -14px}
+.w2i.out .w2i-foot{opacity:0;translate:0 18px}
+.w2i.out .w2i-globe{opacity:0;scale:1.04}
+html:has(.w2i:not(.out)) .w2n-fixed{opacity:0;translate:0 -16px;visibility:hidden}
+.w2n-fixed{transition:opacity .8s cubic-bezier(.16,1,.3,1) .45s,translate 1s cubic-bezier(.16,1,.3,1) .45s,visibility 0s linear .45s}
+@media (prefers-reduced-motion:reduce){.w2i{display:none}}
 `
 
 /** Live time at the studio, e.g. "10:42". */
@@ -229,55 +276,188 @@ function DotGlobe(p: { still: boolean; paused: boolean }) {
     return <canvas ref={ref} className="w2h-cv" aria-hidden="true" />
 }
 
-/** First-visit intro: the name lights up letter by letter while a counter runs to 100. */
-function Intro(p: { name: string; note: string; onDone: () => void }) {
-    const [n, setN] = React.useState(0)
-    const [out, setOut] = React.useState(false)
+/** Three satellites on tilted orbits around the loading globe. */
+const ORBITS = [
+    { rx: 126, ry: 30, rot: -16, dur: 7, r: 5.5, col: "#F2522A", cw: true, off: 0 },
+    { rx: 118, ry: 44, rot: 28, dur: 10, r: 4.6, col: "#8BDCFF", cw: false, off: 0.4 },
+    { rx: 112, ry: 20, rot: 66, dur: 5.5, r: 4, col: "#C9B6FF", cw: true, off: 0.75 },
+]
+
+/** The spinning wireframe planet: dotted meridians turn, satellites slip behind it and back. */
+function LoaderGlobe() {
+    const lats = [-70, -45, -20, 0, 20, 45, 70]
+    return (
+        <svg viewBox="-130 -130 260 260" aria-hidden="true">
+            <defs>
+                <radialGradient id="w2iG" cx="36%" cy="30%" r="80%">
+                    <stop offset="0" stopColor="#2B2926" />
+                    <stop offset="1" stopColor="#0D0C0B" />
+                </radialGradient>
+                <radialGradient id="w2iGl">
+                    <stop offset=".6" stopColor="#8BDCFF" stopOpacity=".16" />
+                    <stop offset="1" stopColor="#8BDCFF" stopOpacity="0" />
+                </radialGradient>
+                {ORBITS.map((o, i) => (
+                    <mask key={i} id={"w2iM" + i} maskUnits="userSpaceOnUse" x="-130" y="-130" width="260" height="260">
+                        <rect x="-130" y="-130" width="260" height="260" fill="#fff" />
+                        <path d="M-100 0A100 100 0 0 1 100 0Z" fill="#000" transform={"rotate(" + o.rot + ")"} />
+                    </mask>
+                ))}
+            </defs>
+            <circle className="w2i-glow" r="130" />
+            {ORBITS.map((o, i) => (
+                <ellipse key={i} className="w2i-orb" rx={o.rx} ry={o.ry} transform={"rotate(" + o.rot + ")"} />
+            ))}
+            <circle className="w2i-disc" r="100" />
+            {lats.map((d) => {
+                const y = -100 * Math.sin((d * Math.PI) / 180)
+                const x = 100 * Math.cos((d * Math.PI) / 180)
+                return <path key={d} className="w2i-lat" d={"M" + (-x).toFixed(1) + " " + y.toFixed(1) + "H" + x.toFixed(1)} />
+            })}
+            {[0, 1, 2, 3, 4, 5].map((k) => (
+                <ellipse key={k} className="w2i-m" rx="100" ry="100" style={cssVars({ "--gd": (-k * 8) / 12 + "s" })} />
+            ))}
+            <circle className="w2i-rim" r="100" />
+            {ORBITS.map((o, i) => (
+                <path key={i} className="w2i-orb f" d={"M" + -o.rx + " 0A" + o.rx + " " + o.ry + " 0 0 0 " + o.rx + " 0"} transform={"rotate(" + o.rot + ")"} />
+            ))}
+            {ORBITS.map((o, i) => {
+                // Two nested sine-eased moves trace the ellipse: across by rx, and a quarter turn later, down by ry.
+                const lag = o.off * o.dur
+                return (
+                    <g key={i} mask={"url(#w2iM" + i + ")"}>
+                        <g transform={"rotate(" + o.rot + ")"}>
+                            <g className="w2i-sx" style={cssVars({ "--a": o.rx + "px", "--t": o.dur + "s", "--lag": -lag + "s" })}>
+                                <g className="w2i-sy" style={cssVars({ "--a": o.ry + "px", "--t": o.dur + "s", "--lag": -(lag + (o.cw ? 0.75 : 0.25) * o.dur) + "s" })}>
+                                    <circle r={o.r} fill={o.col} />
+                                </g>
+                            </g>
+                        </g>
+                    </g>
+                )
+            })}
+        </svg>
+    )
+}
+
+/**
+ * The loading screen. It is part of the page's HTML, so it covers the page from the very first
+ * paint; CSS runs the globe and moves the bar towards 94 until the script takes over, waits for
+ * the fonts, the page and the video, then runs the count to 100 and fades into the hero.
+ */
+function Loader(p: { name: string; note: string; video: React.RefObject<HTMLVideoElement>; onReveal: () => void; onGone: () => void }) {
+    const ref = React.useRef<HTMLDivElement>(null)
     const letters = Array.from(p.name)
     React.useEffect(() => {
+        const el = ref.current
+        if (!el) return
         const html = document.documentElement
+        const css = typeof el.getAnimations === "function" ? el.getAnimations().find((a) => (a as CSSAnimation).animationName === "w2iLoad") : undefined
+        const shown = css && typeof css.currentTime === "number" ? css.currentTime : 0
+        const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        // Reduced motion, or a script so late the CSS fail-safe has already hidden the screen.
+        if (reduce || shown > 8800) {
+            p.onReveal()
+            p.onGone()
+            return
+        }
+        const start = performance.now() - shown
+        let seen = false
+        try {
+            seen = window.sessionStorage.getItem("w2-intro") === "1"
+            window.sessionStorage.setItem("w2-intro", "1")
+        } catch {}
+        const MIN = seen ? 1000 : 2000
+        const MAX = 6000
         const prev = html.style.overflow
         html.style.overflow = "hidden"
-        const t0 = performance.now()
-        const dur = 1700
+        let alive = true
         let raf = 0
-        let t1 = 0
-        const step = (t: number) => {
-            const k = Math.min(1, (t - t0) / dur)
-            setN(Math.round((1 - Math.pow(1 - k, 2.2)) * 100))
-            if (k < 1) raf = requestAnimationFrame(step)
-            else {
-                t1 = window.setTimeout(() => {
-                    setOut(true)
-                    html.style.overflow = prev
-                    p.onDone()
-                }, 220)
-            }
+        const timers: number[] = []
+        const after = (ms: number) => new Promise<void>((r) => timers.push(window.setTimeout(r, Math.max(0, ms))))
+        const since = () => performance.now() - start
+
+        const leave = () => {
+            el.classList.add("out")
+            html.style.overflow = prev
+            if (!window.location.hash && window.scrollY > 0) window.scrollTo(0, 0)
+            p.onReveal()
+            timers.push(window.setTimeout(p.onGone, 1300))
         }
-        raf = requestAnimationFrame(step)
+        const finish = () => {
+            const cs = getComputedStyle(el)
+            const from = Math.min(1, parseFloat(cs.getPropertyValue("--w2p")) || 0)
+            el.style.setProperty("--w2p", String(from))
+            el.style.setProperty("--w2n", String(Math.round(from * 100)))
+            el.classList.add("js")
+            const t0 = performance.now()
+            const dur = 650
+            const step = (now: number) => {
+                const k = Math.min(1, (now - t0) / dur)
+                const v = from + (1 - from) * (1 - Math.pow(1 - k, 3))
+                el.style.setProperty("--w2p", v.toFixed(4))
+                el.style.setProperty("--w2n", String(Math.round(v * 100)))
+                if (k < 1) raf = requestAnimationFrame(step)
+                else timers.push(window.setTimeout(leave, 180))
+            }
+            raf = requestAnimationFrame(step)
+        }
+
+        const waits: Promise<unknown>[] = []
+        const fonts = (document as any).fonts
+        if (fonts && fonts.ready) waits.push(fonts.ready)
+        if (document.readyState !== "complete") waits.push(new Promise((r) => window.addEventListener("load", r, { once: true })))
+        const v = p.video.current
+        if (v && v.readyState < 2 && !v.error) {
+            waits.push(
+                Promise.race([
+                    new Promise((r) => {
+                        v.addEventListener("loadeddata", r, { once: true })
+                        v.addEventListener("error", r, { once: true })
+                    }),
+                    after(3500),
+                ])
+            )
+        }
+        Promise.race([Promise.all(waits), after(MAX - since())])
+            .then(() => after(MIN - since()))
+            .then(() => {
+                if (alive) finish()
+            })
         return () => {
+            alive = false
             cancelAnimationFrame(raf)
-            window.clearTimeout(t1)
+            timers.forEach((t) => window.clearTimeout(t))
             html.style.overflow = prev
         }
     }, [])
-    const lit = Math.floor((n / 100) * letters.length * 1.25)
     return (
-        <div className={"w2 w2i" + (out ? " out" : "")} data-tone="ink" aria-hidden="true">
-            <Base />
-            <style>{HERO_CSS}</style>
-            <div className="w2i-name" translate="no">
-                <Globe size={44} speed={3.2} width={1.6} />
-                <span>
+        <div ref={ref} className="w2 w2i" data-tone="ink" aria-hidden="true">
+            <div className="w2i-top">
+                <span className="w2i-name" translate="no" style={cssVars({ "--n": letters.length })}>
                     {letters.map((c, i) => (
-                        <span key={i} className={"l" + (i < lit ? " on" : "")}>
-                            {c === " " ? "\u00a0" : c}
+                        <span key={i} style={cssVars({ "--i": i })}>
+                            {c === " " ? " " : c}
                         </span>
                     ))}
                 </span>
+                <span>(Loading)</span>
             </div>
-            <div className="w2i-note">{p.note}</div>
-            <div className="w2i-count w2-it">{n}</div>
+            <div className="w2i-globe">
+                <LoaderGlobe />
+            </div>
+            <div className="w2i-foot">
+                <div className="w2i-row">
+                    <span className="w2i-note">{p.note}</span>
+                    <span className="w2i-num w2-it">
+                        <span className="w2i-pc">%</span>
+                    </span>
+                </div>
+                <div className="w2i-bar">
+                    <i className="w2i-fill" />
+                    <b className="w2i-head" />
+                </div>
+            </div>
         </div>
     )
 }
@@ -290,6 +470,8 @@ export default function W2Hero(props: HeroProps) {
     const {
         video = "",
         poster,
+        samples = true,
+        nameOver = true,
         wordmark = "world media",
         statement = "A creator-first media agency. We put brands *where the conversation is.*",
         location = "Delhi, India",
@@ -303,29 +485,35 @@ export default function W2Hero(props: HeroProps) {
     const isStatic = useIsStaticRenderer()
     const still = useStill()
     const time = useClock(timeZone)
-    const [mounted, setMounted] = React.useState(false)
-    const [showIntro, setShowIntro] = React.useState(false)
+    const withLoader = intro && !isStatic
+    const [loader, setLoader] = React.useState(withLoader)
     const [on, setOn] = React.useState(false)
     const [muted, setMuted] = React.useState(true)
     const [paused, setPaused] = React.useState(false)
+    const [failed, setFailed] = React.useState(false)
     const vref = React.useRef<HTMLVideoElement>(null)
 
+    // Your own video wins; otherwise the sample globe, unless samples are switched off.
+    const sample = !video && samples
+    const src = failed ? "" : video || (sample ? SAMPLE + "globe-loop.mp4" : "")
+    const posterSrc = (poster && poster.src) || (sample ? SAMPLE + "globe-poster.jpg" : undefined)
+    const showName = !src || nameOver
+
     React.useEffect(() => {
-        let seen = false
-        try {
-            seen = window.sessionStorage.getItem("w2-intro") === "1"
-            window.sessionStorage.setItem("w2-intro", "1")
-        } catch {}
-        const deep = !!window.location.hash && window.location.hash !== "#top"
-        const play = intro && !still && !seen && !deep
-        React.startTransition(() => {
-            setMounted(true)
-            setShowIntro(play)
-            if (!play) setOn(true)
-        })
+        if (!withLoader) React.startTransition(() => setOn(true))
+        // A video that failed before the page woke up still falls back to the dotted globe.
+        const v = vref.current
+        if (v && v.error) setFailed(true)
     }, [])
 
-    const done = React.useCallback(() => React.startTransition(() => setOn(true)), [])
+    // The server HTML always asks the video to autoplay; respect reduced motion once known.
+    React.useEffect(() => {
+        const v = vref.current
+        if (v && still) v.pause()
+    }, [still, src])
+
+    const reveal = React.useCallback(() => React.startTransition(() => setOn(true)), [])
+    const gone = React.useCallback(() => React.startTransition(() => setLoader(false)), [])
 
     const toggleSound = () => {
         const v = vref.current
@@ -348,92 +536,117 @@ export default function W2Hero(props: HeroProps) {
 
     const letters = Array.from(wordmark)
     const ready = still || on
-    const live = mounted && !isStatic && typeof document !== "undefined"
 
     return (
-        <Section tone="ink" id="top" className={"w2h" + (ready ? " on" : "")} css={HERO_CSS} label="World Media" style={style}>
-            <div className="w2h-card">
-                <div className="w2h-stage">
-                    {video ? (
-                        <video
-                            ref={vref}
-                            src={video}
-                            poster={poster && poster.src}
-                            autoPlay={!still}
-                            muted
-                            loop
-                            playsInline
-                            preload="auto"
-                            aria-label="World Media globe animation"
-                        />
-                    ) : (
-                        <>
-                            <div className="w2h-glow" />
-                            <DotGlobe still={still} paused={paused} />
+        <>
+            <Section tone="ink" id="top" className={"w2h" + (ready ? " on" : "") + (withLoader ? " ld" : "")} css={HERO_CSS} label="World Media" style={style}>
+                <div className={"w2h-card" + (src && sample ? " smp" : "")}>
+                    <div className="w2h-stage">
+                        {src ? (
+                            <video
+                                ref={vref}
+                                className={sample ? "w2h-smp" : undefined}
+                                src={sample ? undefined : src}
+                                poster={posterSrc}
+                                autoPlay={!still}
+                                muted
+                                loop
+                                playsInline
+                                preload="auto"
+                                aria-label="World Media globe animation"
+                                // React passes a <source> error on to the video, and a skipped MP4 is not a failure.
+                                onError={sample ? undefined : () => setFailed(true)}
+                            >
+                                {sample ? <source src={SAMPLE + "globe-loop.mp4"} type={'video/mp4; codecs="avc1.640028"'} /> : null}
+                                {sample ? <source src={SAMPLE + "globe-loop.webm"} type={'video/webm; codecs="vp9"'} onError={() => setFailed(true)} /> : null}
+                            </video>
+                        ) : (
+                            <>
+                                <div className="w2h-glow" />
+                                <DotGlobe still={still} paused={paused} />
+                            </>
+                        )}
+                        {showName ? (
                             <div className="w2h-mark" aria-hidden="true" translate="no">
                                 {letters.map((c, i) => (
                                     <span key={i} className="l" style={cssVars({ "--d": (0.25 + i * 0.045).toFixed(3) + "s" })}>
-                                        {c === " " ? "\u00a0" : c}
+                                        {c === " " ? " " : c}
                                     </span>
                                 ))}
                                 <span className="l dot" style={cssVars({ "--d": (0.3 + letters.length * 0.045).toFixed(3) + "s" })}>
                                     .
                                 </span>
                             </div>
-                            {isStatic ? <div className="w2h-hint">Video placeholder: add the globe video in the Video field</div> : null}
-                        </>
-                    )}
-                </div>
-                <div className="w2h-shade" />
-                <div className="w2h-ui">
-                    {ready ? (
-                        <Words as="h1" className="w2h-say" text={statement} delay={0.5} stagger={0.045} />
-                    ) : (
-                        <h1 className="w2h-say" style={{ opacity: 0 }}>
-                            {statement.replace(/\*/g, "")}
-                        </h1>
-                    )}
-                    <div className="w2h-meta">
-                        <div className="w2h-btns">
-                        {still ? null : (
-                            <button type="button" className="w2-pill w2h-snd w2h-pause" data-hue="paper" onClick={togglePause} aria-pressed={paused} aria-label={paused ? "Play the animation" : "Pause the animation"}>
-                                {paused ? (
-                                    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-                                        <path d="M2.5 1.5v9l8-4.5z" fill="currentColor" />
-                                    </svg>
-                                ) : (
-                                    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-                                        <path d="M2.5 1.5h2.4v9H2.5zM7.1 1.5h2.4v9H7.1z" fill="currentColor" />
-                                    </svg>
-                                )}
-                            </button>
-                        )}
-                        {video ? (
-                            <button type="button" className="w2-pill w2h-snd" data-hue="paper" onClick={toggleSound} aria-pressed={!muted}>
-                                <Roll>{muted ? "Sound on" : "Sound off"}</Roll>
-                            </button>
                         ) : null}
-                        </div>
-                        <div className="w2h-where">
-                            <i aria-hidden="true" />
-                            <span>{location}</span>
-                            {time ? (
-                                <b>
-                                    {time} {zone}
-                                </b>
-                            ) : null}
+                        {isStatic && !video ? <div className="w2h-hint">{src ? "Sample video: add yours in the Video field" : "Video placeholder: add the globe video in the Video field"}</div> : null}
+                    </div>
+                    <div className="w2h-shade" />
+                    <div className="w2h-ui">
+                        {ready ? (
+                            <Words as="h1" className="w2h-say" text={statement} delay={0.5} stagger={0.045} />
+                        ) : (
+                            <h1 className="w2h-say" style={{ opacity: 0 }}>
+                                {statement.replace(/\*/g, "")}
+                            </h1>
+                        )}
+                        <div className="w2h-meta">
+                            <div className="w2h-btns">
+                                {still ? null : (
+                                    <button type="button" className="w2-pill w2h-snd w2h-pause" data-hue="paper" onClick={togglePause} aria-pressed={paused} aria-label={paused ? "Play the animation" : "Pause the animation"}>
+                                        {paused ? (
+                                            <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+                                                <path d="M2.5 1.5v9l8-4.5z" fill="currentColor" />
+                                            </svg>
+                                        ) : (
+                                            <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+                                                <path d="M2.5 1.5h2.4v9H2.5zM7.1 1.5h2.4v9H7.1z" fill="currentColor" />
+                                            </svg>
+                                        )}
+                                    </button>
+                                )}
+                                {video && !failed ? (
+                                    <button type="button" className="w2-pill w2h-snd" data-hue="paper" onClick={toggleSound} aria-pressed={!muted}>
+                                        <Roll>{muted ? "Sound on" : "Sound off"}</Roll>
+                                    </button>
+                                ) : null}
+                            </div>
+                            <div className="w2h-where">
+                                <i aria-hidden="true" />
+                                <span>{location}</span>
+                                {time ? (
+                                    <b>
+                                        {time} {zone}
+                                    </b>
+                                ) : null}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            {live && showIntro ? createPortal(<Intro name={wordmark} note={introNote} onDone={done} />, document.body) : null}
-        </Section>
+            </Section>
+            {withLoader && loader ? <Loader name={wordmark} note={introNote} video={vref} onReveal={reveal} onGone={gone} /> : null}
+        </>
     )
 }
 
 addPropertyControls(W2Hero, {
     video: { type: ControlType.File, title: "Video", allowedFileTypes: ["mp4", "webm", "mov"] },
     poster: { type: ControlType.ResponsiveImage, title: "Poster" },
+    samples: {
+        type: ControlType.Boolean,
+        title: "Sample video",
+        defaultValue: true,
+        enabledTitle: "Show",
+        disabledTitle: "Hide",
+        description: "NASA’s spinning Earth plays until you add your own video.",
+    },
+    nameOver: {
+        type: ControlType.Boolean,
+        title: "Name on video",
+        defaultValue: true,
+        enabledTitle: "Show",
+        disabledTitle: "Hide",
+        description: "Turn off if your video already shows the name.",
+    },
     wordmark: { type: ControlType.String, title: "Name", defaultValue: "world media" },
     statement: {
         type: ControlType.String,
@@ -445,6 +658,6 @@ addPropertyControls(W2Hero, {
     location: { type: ControlType.String, title: "Location", defaultValue: "Delhi, India" },
     timeZone: { type: ControlType.String, title: "Time zone", defaultValue: "Asia/Kolkata" },
     zone: { type: ControlType.String, title: "Zone label", defaultValue: "IST" },
-    intro: { type: ControlType.Boolean, title: "Intro", defaultValue: true, enabledTitle: "Play", disabledTitle: "Skip" },
-    introNote: { type: ControlType.String, title: "Intro note", defaultValue: "Spinning up the globe…" },
+    intro: { type: ControlType.Boolean, title: "Loading screen", defaultValue: true, enabledTitle: "Show", disabledTitle: "Skip" },
+    introNote: { type: ControlType.String, title: "Loading note", defaultValue: "Spinning up the globe…" },
 })

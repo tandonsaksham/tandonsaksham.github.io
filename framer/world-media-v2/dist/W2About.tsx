@@ -24,6 +24,9 @@ type Tone = "paper" | "ink"
 const FONT_HREF =
     "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700&display=swap"
 
+/** Sample photos and the globe video, kept in the site's GitHub repo and served by jsDelivr, pinned to one commit. */
+const SAMPLE = "https://cdn.jsdelivr.net/gh/tandonsaksham/tandonsaksham.github.io@16cfefc4bae4bbd2c69898b7d689135c895bf250/framer/world-media-v2/placeholders/"
+
 const cssVars = (o: Record<string, string | number>): React.CSSProperties => o as React.CSSProperties
 
 const BASE_CSS = `
@@ -96,12 +99,20 @@ clip-path:inset(0 50% 0 50% round 99px);transition:clip-path 1.2s var(--ease-io)
 @keyframes w2shine{0%{background-position:120% 0}60%,100%{background-position:-60% 0}}
 `
 
-const NOJS_CSS = `.w2-w>span,.w2-rise,.w2-fade{translate:none!important;opacity:1!important}.w2-media>i{clip-path:none!important}`
+const NOJS_CSS = `.w2-w>span,.w2-rise,.w2-fade{translate:none!important;opacity:1!important}.w2-media>i{clip-path:none!important}.w2i{display:none!important}`
 
+const noSub = () => () => {}
+
+/**
+ * True on Framer's canvas and for visitors who prefer reduced motion. The reduced-motion half
+ * only applies once the page has hydrated, so the first client render matches the server HTML;
+ * until then the prefers-reduced-motion CSS keeps everything still.
+ */
 function useStill(): boolean {
     const isStatic = useIsStaticRenderer()
     const reduce = useReducedMotion()
-    return isStatic || !!reduce
+    const client = React.useSyncExternalStore(noSub, () => true, () => false)
+    return isStatic || (client && !!reduce)
 }
 
 function Base() {
@@ -110,7 +121,8 @@ function Base() {
             <link rel="preconnect" href="https://fonts.googleapis.com" />
             <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
             <link rel="stylesheet" href={FONT_HREF} />
-            <style>{BASE_CSS}</style>
+            {/* Raw CSS: as text, React's server render would escape the quotes and break it before hydration. */}
+            <style dangerouslySetInnerHTML={{ __html: BASE_CSS }} />
             <noscript dangerouslySetInnerHTML={{ __html: "<style>" + NOJS_CSS + "</style>" }} />
         </>
     )
@@ -121,7 +133,7 @@ function Section(p: { tone?: Tone; id?: string; className?: string; css?: string
     return (
         <section className={"w2 " + (p.className || "")} data-tone={p.tone || "paper"} id={p.id || undefined} aria-label={p.label} style={p.style}>
             <Base />
-            {p.css ? <style>{p.css}</style> : null}
+            {p.css ? <style dangerouslySetInnerHTML={{ __html: p.css }} /> : null}
             {p.children}
         </section>
     )
@@ -229,6 +241,7 @@ type AboutProps = {
     stepsTitle: string
     photo1?: { src?: string; srcSet?: string; alt?: string }
     photo2?: { src?: string; srcSet?: string; alt?: string }
+    samples: boolean
     style?: React.CSSProperties
 }
 
@@ -272,6 +285,7 @@ export default function W2About(props: AboutProps) {
         ],
         photo1,
         photo2,
+        samples = true,
         style,
     } = props
     const still = useStill()
@@ -302,7 +316,8 @@ export default function W2About(props: AboutProps) {
     }, [still, count])
 
     let wi = 0
-    const photos = [photo1, photo2]
+    // An empty slot shows a sample photo, unless samples are switched off.
+    const photos = [photo1, photo2].map((ph, i) => (ph && ph.src ? ph : samples ? { src: SAMPLE + "about-" + (i + 1) + ".jpg", alt: "" } : undefined))
     const hues = ["lime", "lilac"]
     return (
         <Section tone="paper" id="about" className="w2a" css={ABOUT_CSS} label="About" style={style}>
@@ -374,6 +389,14 @@ addPropertyControls(W2About, {
     },
     photo1: { type: ControlType.ResponsiveImage, title: "Picture 1" },
     photo2: { type: ControlType.ResponsiveImage, title: "Picture 2" },
+    samples: {
+        type: ControlType.Boolean,
+        title: "Sample photos",
+        defaultValue: true,
+        enabledTitle: "Show",
+        disabledTitle: "Hide",
+        description: "Fill empty picture slots until you add your own.",
+    },
     stepsTitle: { type: ControlType.String, title: "Steps title", defaultValue: "How a campaign runs" },
     steps: {
         type: ControlType.Array,

@@ -2,7 +2,7 @@
 
 Stand-ins for the World Media one-page site until the real video and photos are added in
 Framer. Each section shows these only while its own picture or video field is empty, and the
-"Sample media" switch on each section hides them.
+"Sample video" / "Sample photos" switch on each section hides them.
 
 | File | Used in | Source | Licence |
 | --- | --- | --- | --- |

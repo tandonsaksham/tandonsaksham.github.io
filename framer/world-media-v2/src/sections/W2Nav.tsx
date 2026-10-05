@@ -167,7 +167,7 @@ export default function W2Nav(props: NavProps) {
     const bar = (
         <div className="w2 w2n" data-tone="paper">
             <Base />
-            <style>{NAV_CSS}</style>
+            <style dangerouslySetInnerHTML={{ __html: NAV_CSS }} />
             <a className="w2-pill w2n-skip" data-hue="paper" href="#hello">
                 Skip to content
             </a>
@@ -197,7 +197,7 @@ export default function W2Nav(props: NavProps) {
     const sheet = (
         <div className={"w2 w2n-sheet" + (open ? " open" : "")} data-tone="paper" role="dialog" aria-modal="true" aria-hidden={!open} aria-label="Menu">
             <Base />
-            <style>{NAV_CSS}</style>
+            <style dangerouslySetInnerHTML={{ __html: NAV_CSS }} />
             <div className="w2n-swrap">
                 <div className="w2n-stop">
                     <a href="#top" className="w2n-globe" onClick={toTop} aria-label="World Media, back to the top" tabIndex={open ? 0 : -1}>

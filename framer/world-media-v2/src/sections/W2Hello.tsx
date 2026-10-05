@@ -3,7 +3,7 @@
 // brief: a creative landing like rabenrifaie.com, project navigation like another.gr,
 // the tonality and plain-spoken copy of twoplusone.co (pictorial, big text, a bit of colour).
 // This file: "Hello! We are world media." in very big type, with small pictures set right
-// into the words (blank colour pills until photos are added), a quick way to get in touch,
+// into the words (sample photos until the real ones are added), a quick way to get in touch,
 // and a bright card with the three things World Media believes.
 //@@ BODY
 
@@ -24,6 +24,7 @@ type HelloProps = {
     photo1?: Img
     photo2?: Img
     photo3?: Img
+    samples: boolean
     style?: React.CSSProperties
 }
 
@@ -106,8 +107,13 @@ export default function W2Hello(props: HelloProps) {
         photo1,
         photo2,
         photo3,
+        samples = true,
         style,
     } = props
+
+    // An empty slot shows a sample photo, unless samples are switched off.
+    const pic = (ph: Img | undefined, n: number): Img | undefined =>
+        ph && ph.src ? ph : samples ? { src: SAMPLE + "hello-" + n + ".jpg", alt: "" } : undefined
 
     const go = () => {
         if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("w2:form", { detail: "brand" }))
@@ -118,16 +124,16 @@ export default function W2Hello(props: HelloProps) {
             <div className="w2he-wrap">
                 <div className="w2he-rows">
                     <Row>
-                        <BigLine text={hello} className="w2he-hi" photo={photo1} hue="sky" width="1.9em" />
+                        <BigLine text={hello} className="w2he-hi" photo={pic(photo1, 1)} hue="sky" width="1.9em" />
                     </Row>
                     <Row delay={0.1}>
-                        <BigLine text={weAre} photo={photo2} hue="lime" width="1.3em" delay={0.08} />
+                        <BigLine text={weAre} photo={pic(photo2, 2)} hue="lime" width="1.3em" delay={0.08} />
                         <Reveal as="p" className="w2he-side w2-rise" delay={0.45}>
                             {side}
                         </Reveal>
                     </Row>
                     <Row delay={0.2}>
-                        <BigLine text={name} photo={photo3} hue="lilac" width="1.15em" before delay={0.14} />
+                        <BigLine text={name} photo={pic(photo3, 3)} hue="lilac" width="1.15em" before delay={0.14} />
                     </Row>
                 </div>
                 <Reveal className="w2he-ask w2-rise" amount={0.5}>
@@ -172,6 +178,14 @@ addPropertyControls(W2Hello, {
     photo1: { type: ControlType.ResponsiveImage, title: "Photo 1" },
     photo2: { type: ControlType.ResponsiveImage, title: "Photo 2" },
     photo3: { type: ControlType.ResponsiveImage, title: "Photo 3" },
+    samples: {
+        type: ControlType.Boolean,
+        title: "Sample photos",
+        defaultValue: true,
+        enabledTitle: "Show",
+        disabledTitle: "Hide",
+        description: "Fill empty photo slots until you add your own.",
+    },
     ask: { type: ControlType.String, title: "Question", defaultValue: "Want to talk about your brand right away?" },
     cta: { type: ControlType.String, title: "Button", defaultValue: "Let’s talk" },
     ctaHref: { type: ControlType.String, title: "Button link", defaultValue: "#contact" },

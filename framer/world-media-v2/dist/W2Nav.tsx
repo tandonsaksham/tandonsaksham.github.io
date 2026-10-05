@@ -99,12 +99,20 @@ clip-path:inset(0 50% 0 50% round 99px);transition:clip-path 1.2s var(--ease-io)
 @keyframes w2shine{0%{background-position:120% 0}60%,100%{background-position:-60% 0}}
 `
 
-const NOJS_CSS = `.w2-w>span,.w2-rise,.w2-fade{translate:none!important;opacity:1!important}.w2-media>i{clip-path:none!important}`
+const NOJS_CSS = `.w2-w>span,.w2-rise,.w2-fade{translate:none!important;opacity:1!important}.w2-media>i{clip-path:none!important}.w2i{display:none!important}`
 
+const noSub = () => () => {}
+
+/**
+ * True on Framer's canvas and for visitors who prefer reduced motion. The reduced-motion half
+ * only applies once the page has hydrated, so the first client render matches the server HTML;
+ * until then the prefers-reduced-motion CSS keeps everything still.
+ */
 function useStill(): boolean {
     const isStatic = useIsStaticRenderer()
     const reduce = useReducedMotion()
-    return isStatic || !!reduce
+    const client = React.useSyncExternalStore(noSub, () => true, () => false)
+    return isStatic || (client && !!reduce)
 }
 
 function Base() {
@@ -113,7 +121,8 @@ function Base() {
             <link rel="preconnect" href="https://fonts.googleapis.com" />
             <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
             <link rel="stylesheet" href={FONT_HREF} />
-            <style>{BASE_CSS}</style>
+            {/* Raw CSS: as text, React's server render would escape the quotes and break it before hydration. */}
+            <style dangerouslySetInnerHTML={{ __html: BASE_CSS }} />
             <noscript dangerouslySetInnerHTML={{ __html: "<style>" + NOJS_CSS + "</style>" }} />
         </>
     )
@@ -341,7 +350,7 @@ export default function W2Nav(props: NavProps) {
     const bar = (
         <div className="w2 w2n" data-tone="paper">
             <Base />
-            <style>{NAV_CSS}</style>
+            <style dangerouslySetInnerHTML={{ __html: NAV_CSS }} />
             <a className="w2-pill w2n-skip" data-hue="paper" href="#hello">
                 Skip to content
             </a>
@@ -371,7 +380,7 @@ export default function W2Nav(props: NavProps) {
     const sheet = (
         <div className={"w2 w2n-sheet" + (open ? " open" : "")} data-tone="paper" role="dialog" aria-modal="true" aria-hidden={!open} aria-label="Menu">
             <Base />
-            <style>{NAV_CSS}</style>
+            <style dangerouslySetInnerHTML={{ __html: NAV_CSS }} />
             <div className="w2n-swrap">
                 <div className="w2n-stop">
                     <a href="#top" className="w2n-globe" onClick={toTop} aria-label="World Media, back to the top" tabIndex={open ? 0 : -1}>
