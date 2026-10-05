@@ -17,4 +17,12 @@ page from the first paint, then waits for the fonts, the page and the video befo
 into the hero. Each section's "Sample video" or
 "Sample photos" switch hides the samples; a real picture or video always wins.
 
+Colours follow the client's deck: white first, black second, and one orange-red accent
+(#EA5628). Each menu pill and each project screen has a Colour setting (White, Black or
+Orange-red) in Framer's right-hand panel.
+
+Framer saves a section's settings when the section is placed on the page. Changing a default
+in the code later does not change sections already on the page: change the setting in the
+right-hand panel, or place the section again.
+
 Run `python3 build.py` after editing anything in `src/`.

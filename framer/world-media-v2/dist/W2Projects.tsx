@@ -286,12 +286,18 @@ background:repeating-linear-gradient(135deg,transparent 0 22px,rgba(255,255,255,
 
 type Pic = { src?: string; srcSet?: string; alt?: string; sample?: boolean }
 
+/**
+ * Each panel also watches the next panel, whose ref is only set after this panel's layout effects.
+ * framer-motion up to v12 needs layoutEffect: false to wait for it; v14 waits on its own and no
+ * longer lists the option, so it is spread in untyped and simply ignored there.
+ */
+const AFTER_LAYOUT = { layoutEffect: false } as {}
+
 function Panel(p: { item: Project; img?: Pic; index: number; total: number; nextRef?: React.RefObject<HTMLElement>; selfRef: React.RefObject<HTMLElement>; still: boolean }) {
     const { item, index, img } = p
     const [live, setLive] = React.useState(false)
-    // The panels' refs live in the parent, so measure after layout rather than during it.
-    const { scrollYProgress: enter } = useScroll({ target: p.selfRef, offset: ["start end", "start start"], layoutEffect: false })
-    const { scrollYProgress: cover } = useScroll({ target: p.nextRef || p.selfRef, offset: ["start end", "start start"], layoutEffect: false })
+    const { scrollYProgress: enter } = useScroll({ target: p.selfRef, offset: ["start end", "start start"], ...AFTER_LAYOUT })
+    const { scrollYProgress: cover } = useScroll({ target: p.nextRef || p.selfRef, offset: ["start end", "start start"], ...AFTER_LAYOUT })
     const cardScale = useTransform(enter, [0, 1], [0.78, 1])
     const cardY = useTransform(enter, [0, 1], [90, 0])
     const innerScale = useTransform(cover, [0, 1], [1, p.nextRef ? 0.9 : 1])
