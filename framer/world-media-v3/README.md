@@ -13,15 +13,16 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
 - The land as dots, India in orange, and the sea as a fainter grid of dots. Routes fly out of Delhi
   and between cities round the world, three orbit rings with small moons turn round it, and tags
   (Live, #collab, @creator…) float over cities.
-- Fifteen video tiles sit on the globe and turn with it, spread so they never touch. Each tile
-  takes the shape of its video: 9:16, 1:1, 16:9 or anything in between.
+- Eleven video tiles sit on the globe and turn with it, spread so they never touch, each playing a
+  clip. Each tile takes the shape of its video: 9:16, 1:1, 16:9 or anything in between.
+- The four pages ride the globe too, as miniatures of themselves.
 - It turns on its own, can be dragged sideways, and leans a little towards the pointer.
 
 ## How it moves
 
-- Scrolling turns the globe from city to city. At each one, a video tile rides the turn to the
-  front, lifts off and opens into a page while the globe sinks back; then it closes and the globe
-  turns on to the next city.
+- Scrolling turns the globe from city to city. At each one, a page in miniature rides the turn to
+  the front, lifts straight off the globe and grows to full size while the globe sinks back; then it
+  shrinks back onto the globe and the globe turns on to the next city.
 - The four pages: The why (Delhi), What we do (New York), The work (Tokyo), The brands (London).
 - After the last page the globe turns home to Delhi and asks "Your brand, next on the globe?".
 - Then the rest of the site: the enquiry form (brands and creators, as in the client's contact
@@ -36,13 +37,12 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
 - The globe's glass body, its glow and the lines across the screen are drawn once and only moved;
   the canvas draws just the moving lines and dots, at no more than about 2.4 million pixels.
 - Styles are only touched when they change, nothing that moves uses a background blur, and a
-  page's picture is scaled, not redrawn, while the page opens.
+  page only scales (it is never laid out again) while it grows out of the globe.
 - The globe turns between pages with a soft ease over a longer stretch of scroll.
 
 ## Settings in Framer
 
-- **Globe media**: videos and photos for the fifteen tiles, in order. The first four open into the
-  pages.
+- **Globe media**: videos and photos for the eleven video tiles, in order.
 - **Rest of site**: hide it for a globe-only demo (no form, careers or footer). The /globe-demo
   page uses this.
 - **Form endpoint**: optional address of a form service. Empty, the form opens an email to the
@@ -51,12 +51,12 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
 
 ## Placeholders
 
-- Tiles show the sample photos from `../world-media-v2/placeholders` until videos or photos are
-  added.
+- Tiles and the reels on "The work" play free sample clips from Mixkit (free licence, no
+  attribution needed), streamed from Mixkit's own servers, until the real videos are added.
 - Numbers are in brackets (`[00]M+`) until World Media confirms them; brand plates are names, not
   logos, until the logo files arrive.
-- The reels on "The work" link to the five World Media originals on Instagram, with photo
-  stand-ins and `[0.0]M views` until the videos and view counts arrive.
+- The reels on "The work" link to the five World Media originals on Instagram, with `[0.0]M`
+  views until the view counts arrive.
 
 ## The world map
 
