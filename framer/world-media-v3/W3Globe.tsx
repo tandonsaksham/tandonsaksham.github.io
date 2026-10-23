@@ -1,6 +1,6 @@
 // World Media, the globe showcase. One component for a whole page, in black and dark grey.
 // The landing is the World Media globe: a wireframe globe with dotted continents (India in
-// orange), routes flying out of Delhi, two orbit rings and video tiles that turn with it. Scrolling
+// orange), routes flying out of Delhi, orbit rings and video tiles that turn with it. Scrolling
 // spins the globe from city to city; at each one a video tile peels off the globe, grows into a
 // page, then sinks back as the globe turns on. After the globe comes the rest of the site: the
 // enquiry form, careers and the footer. Place it on its own page, width 100%. Videos and photos
@@ -38,7 +38,19 @@ const easeInOut = (v: number) => {
     const x = clamp(v)
     return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2
 }
+/** A soft ease for the globe's turns: it never moves faster than half as fast again as on average. */
+const glide = (v: number) => 0.5 - 0.5 * Math.cos(Math.PI * clamp(v))
 const mod = (a: number, n: number) => ((a % n) + n) % n
+const LAST = new WeakMap<object, Record<string, string>>()
+/** Sets a style only when it changes, so a still moment costs the browser nothing. */
+const put = (el: HTMLElement | SVGElement | null, k: string, v: string) => {
+    if (!el) return
+    let m = LAST.get(el)
+    if (!m) LAST.set(el, (m = {}))
+    if (m[k] === v) return
+    m[k] = v
+    ;(el.style as unknown as Record<string, string>)[k] = v
+}
 /** An angle brought into -180…180. */
 const wrap = (a: number) => mod(a + 180, 360) - 180
 const isVideo = (src: string) => /\.(mp4|webm|mov)(\?|$)/i.test(src)
@@ -110,35 +122,42 @@ function grid(s: string, cols: number): Uint8Array[] {
     })
 }
 
-type Dots = { n: number; cl: Float32Array; sl: Float32Array; lon: Float32Array; hi: Uint8Array }
+type Dots = { n: number; x: Float32Array; y: Float32Array; z: Float32Array; k: Uint8Array }
 let DOTS: Dots | null = null
-/** The dots of the land, spread evenly over the globe. Built once, on first use. */
-function landDots(): Dots {
+/**
+ * The dots of the globe, spread evenly: the land close together (k 1, India k 2), the sea in a
+ * wider, fainter grid (k 0) so the whole globe reads as one surface. Built once, on first use.
+ */
+function globeDots(): Dots {
     if (DOTS) return DOTS
     const land = grid(LAND, 360)
     const india = grid(INDIA, INDIA_COLS)
-    const cl: number[] = []
-    const sl: number[] = []
-    const lon: number[] = []
-    const hi: number[] = []
-    const step = 1.45
-    for (let lat = 82; lat > -57; lat -= step) {
-        const r = Math.min(179, Math.floor(90 - lat))
-        const c = Math.cos(lat * D2R)
-        const n = Math.max(1, Math.round((360 * c) / step))
-        for (let i = 0; i < n; i++) {
-            const lo = -180 + ((i + 0.5) * 360) / n
-            const col = Math.min(359, Math.floor(lo + 180))
-            if (!land[r] || !land[r][col]) continue
-            const ir = r - INDIA_ROW
-            const ic = col - INDIA_COL
-            cl.push(c)
-            sl.push(Math.sin(lat * D2R))
-            lon.push(lo * D2R)
-            hi.push(ir >= 0 && ir < india.length && ic >= 0 && ic < INDIA_COLS && india[ir][ic] ? 1 : 0)
+    const xs: number[] = []
+    const ys: number[] = []
+    const zs: number[] = []
+    const ks: number[] = []
+    const pass = (from: number, to: number, step: number, sea: boolean) => {
+        for (let lat = from; lat > to; lat -= step) {
+            const r = Math.min(179, Math.floor(90 - lat))
+            const c = Math.cos(lat * D2R)
+            const n = Math.max(1, Math.round((360 * c) / step))
+            for (let i = 0; i < n; i++) {
+                const lo = -180 + ((i + (sea ? 0 : 0.5)) * 360) / n
+                const col = Math.min(359, Math.floor(lo + 180))
+                const isLand = !!(land[r] && land[r][col])
+                if (isLand === sea) continue
+                const ir = r - INDIA_ROW
+                const ic = col - INDIA_COL
+                xs.push(c * Math.sin(lo * D2R))
+                ys.push(-Math.sin(lat * D2R))
+                zs.push(c * Math.cos(lo * D2R))
+                ks.push(sea ? 0 : ir >= 0 && ir < india.length && ic >= 0 && ic < INDIA_COLS && india[ir][ic] ? 2 : 1)
+            }
         }
     }
-    DOTS = { n: cl.length, cl: Float32Array.from(cl), sl: Float32Array.from(sl), lon: Float32Array.from(lon), hi: Uint8Array.from(hi) }
+    pass(82, -57, 1.15, false)
+    pass(78, -78, 2.6, true)
+    DOTS = { n: xs.length, x: Float32Array.from(xs), y: Float32Array.from(ys), z: Float32Array.from(zs), k: Uint8Array.from(ks) }
     return DOTS
 }
 
@@ -157,6 +176,13 @@ const CITY: Record<string, [number, number]> = {
     Moscow: [37.6, 55.8],
     Nairobi: [36.8, -1.3],
     "Mexico City": [-99.1, 19.4],
+    Jakarta: [106.8, -6.2],
+    Cairo: [31.2, 30],
+    Beijing: [116.4, 39.9],
+    "Buenos Aires": [-58.4, -34.6],
+    Paris: [2.35, 48.9],
+    Toronto: [-79.4, 43.7],
+    "Cape Town": [18.4, -33.9],
 }
 const ROUTES: [string, string][] = [
     ["Delhi", "London"],
@@ -170,11 +196,22 @@ const ROUTES: [string, string][] = [
     ["London", "New York"],
     ["Tokyo", "Los Angeles"],
     ["Mumbai", "Nairobi"],
+    ["Delhi", "Beijing"],
+    ["Delhi", "Moscow"],
+    ["Delhi", "Cape Town"],
+    ["London", "Lagos"],
+    ["New York", "São Paulo"],
+    ["Los Angeles", "Mexico City"],
+    ["Dubai", "Paris"],
+    ["Singapore", "Sydney"],
+    ["Tokyo", "Jakarta"],
+    ["Toronto", "London"],
+    ["Cairo", "Buenos Aires"],
 ]
 /** Small tags that float over the globe, each pinned to a city. */
 const BADGES: { at: string; text: string; live?: boolean; left?: boolean }[] = [
     { at: "Dubai", text: "Live · 1,248 watching", live: true, left: true },
-    { at: "Singapore", text: "#collab" },
+    { at: "Beijing", text: "#collab", left: true },
     { at: "Mexico City", text: "@creator" },
     { at: "Moscow", text: "Podcast" },
     { at: "Nairobi", text: "UGC" },
@@ -241,15 +278,16 @@ type Kit = { dots: Dots; grid: Float32Array[]; routes: Float32Array[]; cities: [
 
 /** The orbit rings: radius (in globe radii), tilt, lean, how fast their moon goes round, brightness. */
 const RINGS = [
-    { r: 1.24, ax: 76, az: -14, sp: 0.00016, ph: 0.4, a: 0.3 },
-    { r: 1.42, ax: 62, az: 26, sp: -0.00011, ph: 2.6, a: 0.2 },
-    { r: 1.33, ax: 88, az: 52, sp: 0.00008, ph: 4.4, a: 0.1 },
+    { r: 1.2, ax: 76, az: -14, sp: 0.00016, ph: 0.4, a: 0.3 },
+    { r: 1.36, ax: 62, az: 26, sp: -0.00011, ph: 2.6, a: 0.2 },
+    { r: 1.28, ax: 88, az: 52, sp: 0.00008, ph: 4.4, a: 0.1 },
 ]
 
 /**
- * Draws the globe on the canvas: the grid, the dotted land, the routes, the cities and the orbit
- * rings. It uses the same perspective as the CSS layers above it, so the video tiles and the pages
- * sit exactly on its surface.
+ * Draws the globe's moving lines and dots on the canvas: the grid, the land, the routes, the cities
+ * and the orbit rings. The globe's glass body, its halo and the lines across the screen are CSS
+ * underneath, drawn once. The canvas uses the same perspective as the CSS layers above it, so the
+ * video tiles and the pages sit exactly on the globe.
  */
 function drawScene(ctx: CanvasRenderingContext2D, sc: Scene, kit: Kit) {
     const { w, h, cx, cy, R, P, wz, time } = sc
@@ -263,6 +301,8 @@ function drawScene(ctx: CanvasRenderingContext2D, sc: Scene, kit: Kit) {
     const D = P - wz
     const zc = (R * R) / D // a point on the globe is in view when it is nearer than this
     const rs = (R * P) / Math.sqrt(Math.max(1, D * D - R * R)) // the globe's outline on screen
+    // Whether a point on screen lies over the globe (so a far-side point there is hidden by it).
+    const behind = (x: number, y: number) => (x - cx) * (x - cx) + (y - cy) * (y - cy) < rs * rs
     const near = 1 - 0.65 * sc.lift
     const intro = sc.intro
     const o = { x: 0, y: 0, z: 0, s: 1 }
@@ -278,37 +318,6 @@ function drawScene(ctx: CanvasRenderingContext2D, sc: Scene, kit: Kit) {
         o.z = z1
         o.s = s
     }
-
-    // Lines across the whole screen, through the globe's centre.
-    if (near > 0.05) {
-        const a = 0.13 * near * intro
-        const gx = ctx.createLinearGradient(0, 0, w, 0)
-        gx.addColorStop(0, "rgba(255,255,255,0)")
-        gx.addColorStop(0.5, `rgba(255,255,255,${a})`)
-        gx.addColorStop(1, "rgba(255,255,255,0)")
-        ctx.strokeStyle = gx
-        ctx.lineWidth = 1
-        ctx.beginPath()
-        ctx.moveTo(0, Math.round(cy) + 0.5)
-        ctx.lineTo(w, Math.round(cy) + 0.5)
-        ctx.stroke()
-        const gy = ctx.createLinearGradient(0, 0, 0, h)
-        gy.addColorStop(0, "rgba(255,255,255,0)")
-        gy.addColorStop(0.5, `rgba(255,255,255,${a})`)
-        gy.addColorStop(1, "rgba(255,255,255,0)")
-        ctx.strokeStyle = gy
-        ctx.beginPath()
-        ctx.moveTo(Math.round(cx) + 0.5, 0)
-        ctx.lineTo(Math.round(cx) + 0.5, h)
-        ctx.stroke()
-    }
-
-    // A soft halo round the globe.
-    const halo = ctx.createRadialGradient(cx, cy, rs * 0.92, cx, cy, rs * 1.5)
-    halo.addColorStop(0, `rgba(255,255,255,${0.07 * intro})`)
-    halo.addColorStop(1, "rgba(255,255,255,0)")
-    ctx.fillStyle = halo
-    ctx.fillRect(cx - rs * 1.6, cy - rs * 1.6, rs * 3.2, rs * 3.2)
 
     // The orbit rings. Their far halves go behind the globe, their near halves in front.
     const rings = RINGS.map((g) => {
@@ -335,11 +344,11 @@ function drawScene(ctx: CanvasRenderingContext2D, sc: Scene, kit: Kit) {
                 const x = rad * (u[0] * Math.cos(a) + v[0] * Math.sin(a))
                 const y = rad * (u[1] * Math.cos(a) + v[1] * Math.sin(a))
                 const z = rad * (u[2] * Math.cos(a) + v[2] * Math.sin(a))
-                if (z >= 0 !== front) {
+                const s = P / (P - (z + wz))
+                if (z >= 0 !== front || (!front && behind(cx + x * s, cy + y * s))) {
                     pen = false
                     continue
                 }
-                const s = P / (P - (z + wz))
                 if (pen) ctx.lineTo(cx + x * s, cy + y * s)
                 else ctx.moveTo(cx + x * s, cy + y * s)
                 pen = true
@@ -351,8 +360,9 @@ function drawScene(ctx: CanvasRenderingContext2D, sc: Scene, kit: Kit) {
             const x = rad * (u[0] * Math.cos(m) + v[0] * Math.sin(m))
             const y = rad * (u[1] * Math.cos(m) + v[1] * Math.sin(m))
             const z = rad * (u[2] * Math.cos(m) + v[2] * Math.sin(m))
-            if (z >= 0 === front) {
-                const s = P / (P - (z + wz))
+            const ms = P / (P - (z + wz))
+            if (z >= 0 === front && (front || !behind(cx + x * ms, cy + y * ms))) {
+                const s = ms
                 const bx = cx + x * s
                 const by = cy + y * s
                 const br = Math.max(2.5, R * 0.018) * s
@@ -392,46 +402,41 @@ function drawScene(ctx: CanvasRenderingContext2D, sc: Scene, kit: Kit) {
         }
     }
     ctx.lineWidth = 1
-    ctx.strokeStyle = `rgba(255,255,255,${0.07 * intro})`
+    ctx.strokeStyle = `rgba(255,255,255,${0.06 * intro})`
     ctx.stroke(back)
 
-    // The body of the globe: dark glass, lit from the top left, with a bright rim.
-    const body = ctx.createRadialGradient(cx - rs * 0.35, cy - rs * 0.45, rs * 0.05, cx, cy, rs)
-    body.addColorStop(0, "rgba(38,38,38,0.94)")
-    body.addColorStop(0.55, "rgba(18,18,18,0.92)")
-    body.addColorStop(1, "rgba(8,8,8,0.9)")
-    ctx.fillStyle = body
-    ctx.beginPath()
-    ctx.arc(cx, cy, rs, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.strokeStyle = `rgba(255,255,255,${0.3 * intro})`
-    ctx.stroke()
     ctx.strokeStyle = `rgba(255,255,255,${0.17 * intro})`
     ctx.stroke(front)
 
-    // The land, as dots: brighter where they face you, India in the signal colour.
+    // The dots: the land brighter where it faces you, India in the signal colour, the sea faint.
     const dots = kit.dots
-    const size = clamp(R / 185, 1.3, 2.8)
+    const size = clamp(R / 215, 1.1, 2.4)
     const shades = [new Path2D(), new Path2D(), new Path2D(), new Path2D()]
     const hot = new Path2D()
+    const sea = new Path2D()
     const show = intro * 1.25
     for (let i = 0; i < dots.n; i++) {
-        const a = dots.lon[i] + rr
-        const x0 = R * dots.cl[i] * Math.sin(a)
-        const z0 = R * dots.cl[i] * Math.cos(a)
-        const y0 = -R * dots.sl[i]
+        const x = dots.x[i]
+        const z = dots.z[i]
+        const y0 = dots.y[i] * R
+        const z0 = (z * cr - x * sr) * R
         const z1 = y0 * st + z0 * ct
         if (z1 < zc) continue
         const f = (z1 - zc) / (R - zc)
         if (f < 1 - show) continue
+        const x1 = (x * cr + z * sr) * R
         const y1 = y0 * ct - z0 * st
         const s = P / (P - (z1 + wz))
-        const d = size * s
-        const x = cx + x0 * s - d / 2
-        const y = cy + y1 * s - d / 2
-        if (dots.hi[i]) hot.rect(x, y, d * 1.15, d * 1.15)
-        else shades[Math.min(3, Math.floor(f * 4))].rect(x, y, d, d)
+        const k = dots.k[i]
+        const d = (k ? size : size * 0.8) * s
+        const px = cx + x1 * s - d / 2
+        const py = cy + y1 * s - d / 2
+        if (k === 2) hot.rect(px, py, d * 1.15, d * 1.15)
+        else if (k === 1) shades[Math.min(3, Math.floor(f * 4))].rect(px, py, d, d)
+        else sea.rect(px, py, d, d)
     }
+    ctx.fillStyle = `rgba(243,241,236,${0.11 * intro})`
+    ctx.fill(sea)
     const alphas = [0.24, 0.44, 0.68, 0.92]
     shades.forEach((p, i) => {
         ctx.fillStyle = `rgba(243,241,236,${alphas[i] * intro})`
@@ -515,7 +520,7 @@ function drawScene(ctx: CanvasRenderingContext2D, sc: Scene, kit: Kit) {
 
 type TileDef = { lon: number; lat: number; ar: number; tag: string; page?: number }
 
-/** The video tiles on the globe. The first four open into the pages; the rest are reels in orbit. */
+/** The video tiles on the globe, spread so they never touch. The first four open into the pages. */
 const TILES: TileDef[] = [
     { lon: 77.2, lat: 28.6, ar: 9 / 16, tag: "01 Why", page: 0 },
     { lon: -74, lat: 40.7, ar: 4 / 5, tag: "02 Services", page: 1 },
@@ -525,6 +530,13 @@ const TILES: TileDef[] = [
     { lon: 150, lat: -28, ar: 9 / 16, tag: "Live" },
     { lon: -52, lat: -16, ar: 4 / 5, tag: "UGC 0:30" },
     { lon: -116, lat: 28, ar: 1, tag: "Shorts" },
+    { lon: 105, lat: -5, ar: 9 / 16, tag: "Reel 0:22" },
+    { lon: 30, lat: 30, ar: 4 / 5, tag: "GRWM" },
+    { lon: -20, lat: 25, ar: 1, tag: "Live" },
+    { lon: -90, lat: -5, ar: 16 / 9, tag: "Vlog" },
+    { lon: -160, lat: 10, ar: 4 / 5, tag: "Unboxing" },
+    { lon: 60, lat: -30, ar: 16 / 9, tag: "Podcast" },
+    { lon: -170, lat: 48, ar: 9 / 16, tag: "Shorts" },
 ]
 
 /** A tile's width and height for its shape, all tiles having about the same area. */
@@ -1119,23 +1131,30 @@ background:radial-gradient(ellipse 70% 60% at 50% var(--gy),#181818 0%,#0E0E0E 4
 .w3-still .w3-stage{position:relative;height:820px}
 .w3-word{position:absolute;left:0;right:0;top:var(--gy);translate:0 -52%;text-align:center;font-family:var(--disp);font-weight:600;font-size:min(19vw,30vh);line-height:.8;letter-spacing:-.06em;color:rgba(255,255,255,.035);white-space:nowrap;pointer-events:none}
 .w3-cv{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab}
+.w3-cross{position:absolute;pointer-events:none;will-change:opacity}
+.w3-cross.x{left:0;right:0;top:var(--gy);height:1px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.13),rgba(255,255,255,0))}
+.w3-cross.y{top:0;bottom:0;left:50%;width:1px;background:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,.13),rgba(255,255,255,0))}
+.w3-halo,.w3-ball{position:absolute;left:50%;top:var(--gy);border-radius:50%;pointer-events:none;will-change:transform,opacity}
+.w3-halo{width:calc(var(--R) * 3.2);height:calc(var(--R) * 3.2);margin:calc(var(--R) * -1.6) 0 0 calc(var(--R) * -1.6);background:radial-gradient(closest-side,rgba(255,255,255,.07) 57%,rgba(255,255,255,0))}
+.w3-ball{width:calc(var(--R) * 2);height:calc(var(--R) * 2);margin:calc(var(--R) * -1) 0 0 calc(var(--R) * -1);
+background:radial-gradient(farthest-corner at 32% 27%,rgba(40,40,40,.95),rgba(18,18,18,.93) 45%,rgba(8,8,8,.92) 75%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
 .w3-cv:active{cursor:grabbing}
 .w3-3d{position:absolute;inset:0;perspective:var(--P);perspective-origin:50% var(--gy);transform-style:preserve-3d;pointer-events:none}
 .w3-o{position:absolute;left:50%;top:var(--gy);width:0;height:0;transform-style:preserve-3d}
 .w3-world,.w3-spin{position:absolute;left:0;top:0;transform-style:preserve-3d;will-change:transform}
 .w3-tile{position:absolute;border-radius:10px;overflow:hidden;background:#1C1C1C;backface-visibility:hidden;-webkit-backface-visibility:hidden;
-box-shadow:0 0 0 1px rgba(255,255,255,.16),0 18px 40px -18px rgba(0,0,0,.9)}
+box-shadow:0 0 0 1px rgba(255,255,255,.16)}
 .w3-tile img,.w3-tile video,.w3-cover img,.w3-cover video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
 .w3-blank{position:absolute;inset:0;background:linear-gradient(135deg,#222,#141414)}
 .w3-tag{position:absolute;left:6px;right:6px;bottom:6px;display:flex;align-items:center;gap:4px;font:500 9.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:#fff}
-.w3-tag i{display:grid;place-items:center;width:17px;height:17px;border-radius:50%;background:rgba(10,10,10,.6);backdrop-filter:blur(4px);flex:none}
-.w3-tag span{padding:4px 6px;border-radius:99px;background:rgba(10,10,10,.6);backdrop-filter:blur(4px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.w3-tag i{display:grid;place-items:center;width:17px;height:17px;border-radius:50%;background:rgba(10,10,10,.72);flex:none}
+.w3-tag span{padding:4px 6px;border-radius:99px;background:rgba(10,10,10,.72);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .w3-tile[data-page] .w3-tag span{background:var(--signal);color:var(--ink)}
 .w3-badges{position:absolute;inset:0;pointer-events:none}
 .w3-bd{position:absolute;left:0;top:0;opacity:0;will-change:transform,opacity}
 .w3-bd::before{content:"";position:absolute;left:0;bottom:0;width:1px;height:16px;background:rgba(255,255,255,.45);transform-origin:50% 100%;rotate:40deg}
 .w3-bd span{position:absolute;left:9px;bottom:12px;display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:7px;white-space:nowrap;
-background:rgba(16,16,16,.82);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font:500 10.5px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--text)}
+background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);font:500 10.5px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--text)}
 .w3-bd span i{width:6px;height:6px;border-radius:50%;background:#fff}
 .w3-bd[data-live] span i{background:var(--signal);box-shadow:0 0 0 3px rgba(234,86,40,.25);animation:w3blink 1.6s ease-in-out infinite}
 .w3-bd[data-left]::before{rotate:-40deg}
@@ -1148,8 +1167,9 @@ background:rgba(16,16,16,.82);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);b
 .w3-pn{position:absolute;left:calc(var(--W) / -2);top:calc(var(--H) / -2);width:var(--W);height:var(--H);display:none;place-items:center;
 backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:none}
 .w3-pn.live{pointer-events:auto}
-.w3-cover{position:relative;width:100%;height:100%;border-radius:26px;overflow:hidden;background:var(--tone);box-shadow:0 0 0 1px rgba(255,255,255,.1),0 60px 120px -50px rgba(0,0,0,.9)}
-.w3-cover .w3-cm{position:absolute;inset:0}
+.w3-cover{position:relative;width:100%;height:100%;border-radius:26px;overflow:hidden;background:var(--tone);box-shadow:0 0 0 1px rgba(255,255,255,.1)}
+.w3-pn.live .w3-cover{box-shadow:0 0 0 1px rgba(255,255,255,.1),0 60px 120px -50px rgba(0,0,0,.9)}
+.w3-cover .w3-cm{position:absolute;left:50%;top:50%;width:var(--W);height:var(--H);margin:calc(var(--H) / -2) 0 0 calc(var(--W) / -2);will-change:transform,opacity}
 .w3-pn[data-tone="char"],.w3-flatpn[data-tone="char"]{--tone:var(--char);color:var(--text);--hair:rgba(255,255,255,.14)}
 .w3-pn[data-tone="ink"],.w3-flatpn[data-tone="ink"]{--tone:#0D0D0D;color:var(--text);--hair:rgba(255,255,255,.14)}
 .w3-pn[data-tone="signal"],.w3-flatpn[data-tone="signal"]{--tone:var(--signal);color:var(--ink);--mute:rgba(10,10,10,.68);--hair:rgba(10,10,10,.2)}
@@ -1194,7 +1214,7 @@ backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:non
 .w3-more{background:none;box-shadow:inset 0 0 0 1px var(--hair);color:var(--mute);font-weight:500}
 
 /* the landing and the way out */
-.w3-land,.w3-outro{position:absolute;inset:0;pointer-events:none}
+.w3-land,.w3-outro{position:absolute;inset:0;pointer-events:none;will-change:opacity,transform}
 .w3-head{position:absolute;left:clamp(16px,2.6vw,40px);bottom:clamp(28px,5vh,56px);font-family:var(--disp);font-weight:500;font-size:clamp(40px,5.4vw,90px);line-height:.92;letter-spacing:-.05em}
 .w3-head em{font-style:normal;color:var(--signal)}
 .w3-side{position:absolute;right:clamp(16px,2.6vw,40px);bottom:clamp(28px,5vh,56px);display:flex;flex-direction:column;align-items:flex-end;gap:16px;max-width:320px;text-align:right;pointer-events:auto}
@@ -1224,14 +1244,14 @@ backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:non
 .w3-nav.hide{transform:translateY(-130%);opacity:0}
 .w3-nav:focus-within{transform:none;opacity:1}
 .w3-still .w3-nav{position:absolute}
-.w3-brand{display:inline-flex;align-items:center;gap:10px;padding:4px 16px 4px 4px;border-radius:99px;background:rgba(18,18,18,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);pointer-events:auto;font-family:var(--disp);font-weight:600;font-size:21px;letter-spacing:-.04em}
+.w3-brand{display:inline-flex;align-items:center;gap:10px;padding:4px 16px 4px 4px;border-radius:99px;background:rgba(18,18,18,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);pointer-events:auto;font-family:var(--disp);font-weight:600;font-size:21px;letter-spacing:-.04em}
 .w3-brand .ic{position:relative;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#fff;color:var(--ink)}
 .w3-brand .ic svg.w3-prog{position:absolute;inset:-4px;width:52px;height:52px;rotate:-90deg}
 .w3-brand b{font-weight:600}
 .w3-brand b span{color:var(--signal)}
 .w3-mg .m{transform-box:fill-box;transform-origin:50% 50%;animation:w3mer 9s linear infinite;animation-delay:var(--gd,0s)}
 @keyframes w3mer{0%{transform:scaleX(1)}25%{transform:scaleX(0)}50%{transform:scaleX(-1)}75%{transform:scaleX(0)}100%{transform:scaleX(1)}}
-.w3-links{display:flex;align-items:center;gap:4px;padding:4px;border-radius:99px;background:rgba(18,18,18,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);pointer-events:auto}
+.w3-links{display:flex;align-items:center;gap:4px;padding:4px;border-radius:99px;background:rgba(18,18,18,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);pointer-events:auto}
 .w3-links button{height:38px;padding:0 15px;border-radius:99px;font-size:14px;font-weight:500;transition:background-color .3s,color .3s}
 .w3-links button:hover{background:rgba(255,255,255,.08)}
 .w3-links button[aria-current]{background:#fff;color:var(--ink)}
@@ -1369,8 +1389,8 @@ backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:non
 // a hold with the page up front, then a last turn back to the globe before the rest of the site.
 const N = PAGES.length
 const REST = 0.12 // the landing at rest
-const TURN = 1.1 // a turn of the globe from one city to the next
-const HOLD = 1.5 // a page held up front
+const TURN = 1.4 // a turn of the globe from one city to the next
+const HOLD = 1.4 // a page held up front
 const OUT = 0.9 // the globe again, spinning on its own, before the rest of the site
 const TILT = -16 // the globe leans towards you, so you see a little of the north
 const holdStart = (k: number) => REST + TURN + k * (HOLD + TURN)
@@ -1393,19 +1413,19 @@ function motion(u: number, spin: number, spin2: number): Frame {
     if (u < holdStart(0)) {
         // From the landing into the first page: whatever way the globe faces, it turns at least a
         // third of a turn forward to India.
-        const e = easeInOut((u - REST) / TURN)
+        const e = glide((u - REST) / TURN)
         const w0 = mod(spin + PAGE_LON[0] + 120, 360) - 480
         return { rot: -PAGE_LON[0] + w0 * (1 - e), free: e <= 0 ? 1 : 0, lifts }
     }
     const last = holdEnd(N - 1)
     if (u >= last) {
-        const e = easeInOut((u - last) / TURN)
+        const e = glide((u - last) / TURN)
         return { rot: -PAGE_LON[N - 1] + GAP[N - 1] * e + wrap(spin2) * e, free: e >= 1 ? 2 : 0, lifts }
     }
     const k = Math.min(N - 1, Math.floor((u - holdStart(0)) / (HOLD + TURN)))
     const into = u - holdStart(k)
     if (into <= HOLD) return { rot: -PAGE_LON[k], free: 0, lifts }
-    return { rot: -PAGE_LON[k] + GAP[k] * easeInOut((into - HOLD) / TURN), free: 0, lifts }
+    return { rot: -PAGE_LON[k] + GAP[k] * glide((into - HOLD) / TURN), free: 0, lifts }
 }
 
 /** The element whose scrolling moves this page: a scrolling box around it, or the window. */
@@ -1437,6 +1457,10 @@ export default function W3Globe(props: Props) {
     const trackRef = React.useRef<HTMLDivElement>(null)
     const stageRef = React.useRef<HTMLDivElement>(null)
     const canvasRef = React.useRef<HTMLCanvasElement>(null)
+    const haloRef = React.useRef<HTMLDivElement>(null)
+    const ballRef = React.useRef<HTMLDivElement>(null)
+    const crossX = React.useRef<HTMLDivElement>(null)
+    const crossY = React.useRef<HTMLDivElement>(null)
     const worldRef = React.useRef<HTMLDivElement>(null)
     const spinRef = React.useRef<HTMLDivElement>(null)
     const veilRef = React.useRef<HTMLDivElement>(null)
@@ -1448,6 +1472,7 @@ export default function W3Globe(props: Props) {
     const progRef = React.useRef<SVGCircleElement>(null)
     const tileEls = React.useRef<(HTMLDivElement | null)[]>([])
     const tileVids = React.useRef<(HTMLVideoElement | null)[]>([])
+    const natural = React.useRef<number[]>([])
     const badgeEls = React.useRef<(HTMLDivElement | null)[]>([])
     const panels = React.useRef<(HTMLDivElement | null)[]>([])
     const covers = React.useRef<(HTMLDivElement | null)[]>([])
@@ -1518,13 +1543,14 @@ export default function W3Globe(props: Props) {
         const ctx = cv.getContext("2d")
         if (!ctx) return
         const kit: Kit = {
-            dots: landDots(),
+            dots: globeDots(),
             grid: graticule(),
             routes: routes(),
             cities: Object.values(CITY).map(([lon, lat]) => onGlobe(lon, lat)),
             hot: [0, ...BADGES.map((b) => Object.keys(CITY).indexOf(b.at))],
         }
-        const dpr = Math.min(2, window.devicePixelRatio || 1)
+        // Sharp, but never more than about 2.4 million pixels a frame, however big the screen.
+        const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(2400000 / (size.w * size.h))))
         cv.width = Math.round(size.w * dpr)
         cv.height = Math.round(size.h * dpr)
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
@@ -1551,7 +1577,7 @@ export default function W3Globe(props: Props) {
             const vh = size.h
             const rect = track.getBoundingClientRect()
             const target = clamp(-rect.top / vh, 0, TOTAL)
-            s.cur += (target - s.cur) * (1 - Math.pow(0.86, dt / 16.7))
+            s.cur += (target - s.cur) * (1 - Math.pow(0.9, dt / 16.7))
             if (Math.abs(target - s.cur) < 0.0005) s.cur = target
             const u = s.cur
 
@@ -1560,7 +1586,7 @@ export default function W3Globe(props: Props) {
                 s.fix = true
                 stage.classList.add("fix")
             }
-            if (s.fix) stage.style.transform = `translateY(${clamp(-rect.top, 0, rect.height - vh).toFixed(1)}px)`
+            if (s.fix) put(stage, "transform", `translateY(${clamp(-rect.top, 0, rect.height - vh).toFixed(1)}px)`)
 
             // The globe spins on its own and can be dragged while it is free: on the landing and at the end.
             const m0 = motion(u, s.spin, s.spin2)
@@ -1583,9 +1609,18 @@ export default function W3Globe(props: Props) {
 
             if (lift < 0.995 || lastLift < 0.995) drawScene(ctx, { w: size.w, h: size.h, cx, cy, R, P, rot, tilt, wz, lift, intro, time: now }, kit)
             lastLift = lift
-            if (worldRef.current) worldRef.current.style.transform = `translateZ(${wz.toFixed(1)}px)`
-            if (spinRef.current) spinRef.current.style.transform = `rotateX(${tilt.toFixed(2)}deg) rotateY(${rot.toFixed(2)}deg)`
-            if (veilRef.current) veilRef.current.style.opacity = (0.74 * lift).toFixed(3)
+            put(worldRef.current, "transform", `translateZ(${wz.toFixed(1)}px)`)
+            // The glass body and its halo shrink with the globe as it sinks back.
+            const D = P - wz
+            const ballScale = (P / Math.sqrt(Math.max(1, D * D - R * R))).toFixed(4)
+            put(ballRef.current, "transform", `scale(${ballScale})`)
+            put(haloRef.current, "transform", `scale(${ballScale})`)
+            put(haloRef.current, "opacity", intro.toFixed(3))
+            const near = ((1 - 0.65 * lift) * intro).toFixed(3)
+            put(crossX.current, "opacity", near)
+            put(crossY.current, "opacity", near)
+            put(spinRef.current, "transform", `rotateX(${tilt.toFixed(2)}deg) rotateY(${rot.toFixed(2)}deg)`)
+            put(veilRef.current, "opacity", (0.74 * lift).toFixed(3))
 
             // How squarely a point of the globe faces you: 1 at the front, 0 at the edge.
             const cr = Math.cos(rot * D2R)
@@ -1600,7 +1635,7 @@ export default function W3Globe(props: Props) {
                 const f = facing(tileAt[i])
                 const pg = TILES[i].page
                 const up = pg !== undefined && m.lifts[pg] > 0
-                el.style.opacity = up ? "0" : (smooth((f + 0.05) / 0.4) * smooth(intro * 1.6 - 0.5 - i * 0.06)).toFixed(3)
+                put(el, "opacity", up ? "0" : (smooth((f + 0.05) / 0.4) * smooth(intro * 1.6 - 0.5 - i * 0.06)).toFixed(3))
                 const v = tileVids.current[i]
                 if (v) {
                     if (f < -0.2 && !v.paused) v.pause()
@@ -1618,24 +1653,24 @@ export default function W3Globe(props: Props) {
                 const z1 = p[1] * R * st + z0 * ct
                 const sc = P / (P - (z1 + wz))
                 const a = smooth((z1 / R - 0.15) / 0.3) * (1 - lift) * smooth((intro - 0.6) / 0.4)
-                el.style.opacity = a.toFixed(3)
-                el.style.transform = `translate3d(${(cx + x0 * sc).toFixed(1)}px,${(cy + y1 * sc).toFixed(1)}px,0)`
+                put(el, "opacity", a.toFixed(3))
+                put(el, "transform", `translate3d(${(cx + x0 * sc).toFixed(1)}px,${(cy + y1 * sc).toFixed(1)}px,0)`)
             })
 
             // The landing steps back as the globe starts to turn; the way out comes in at the end.
             const fade = smooth((u - 0.04) / 0.4)
             if (landRef.current) {
-                landRef.current.style.opacity = (1 - fade).toFixed(3)
-                landRef.current.style.transform = `translateY(${(fade * 30).toFixed(1)}px)`
-                landRef.current.style.visibility = fade > 0.99 ? "hidden" : "visible"
+                put(landRef.current, "opacity", (1 - fade).toFixed(3))
+                put(landRef.current, "transform", `translateY(${(fade * 30).toFixed(1)}px)`)
+                put(landRef.current, "visibility", fade > 0.99 ? "hidden" : "visible")
             }
             const out = smooth((u - (holdEnd(N - 1) + TURN * 0.55)) / 0.5)
             if (outroRef.current) {
-                outroRef.current.style.opacity = out.toFixed(3)
-                outroRef.current.style.transform = `translateY(${((1 - out) * 30).toFixed(1)}px)`
-                outroRef.current.style.visibility = out < 0.01 ? "hidden" : "visible"
+                put(outroRef.current, "opacity", out.toFixed(3))
+                put(outroRef.current, "transform", `translateY(${((1 - out) * 30).toFixed(1)}px)`)
+                put(outroRef.current, "visibility", out < 0.01 ? "hidden" : "visible")
             }
-            if (wordRef.current) wordRef.current.style.opacity = (1 - lift).toFixed(3)
+            put(wordRef.current, "opacity", (1 - lift).toFixed(3))
 
             // The pages: a page starts as its video tile on the globe, rides the turn to the front,
             // then lifts off towards you and opens up while the globe sinks back.
@@ -1644,7 +1679,7 @@ export default function W3Globe(props: Props) {
                 if (!el) return
                 const lk = m.lifts[k]
                 if (lk <= 0) {
-                    if (el.style.display !== "none") el.style.display = "none"
+                    put(el, "display", "none")
                     el.classList.remove("on", "live")
                     return
                 }
@@ -1655,24 +1690,33 @@ export default function W3Globe(props: Props) {
                 const rt = R * 1.02
                 const r = rt + (-wz - rt) * l
                 const theta = wrap(rot + t.lon)
-                el.style.display = "grid"
-                el.style.transform =
+                put(el, "display", "grid")
+                put(
+                    el,
+                    "transform",
                     l > 0.999 && Math.abs(theta) < 0.01
                         ? `translateY(${dy}px)`
                         : `translateY(${(dy * l).toFixed(1)}px) translateZ(${wz.toFixed(1)}px) rotateX(${(tilt * (1 - l)).toFixed(2)}deg) rotateY(${theta.toFixed(2)}deg) rotateX(${(t.lat * (1 - l)).toFixed(2)}deg) translateZ(${r.toFixed(1)}px)`
+                )
+                // The page's window grows from the tile's size to the page's; the picture inside keeps
+                // filling it, scaled rather than redrawn.
+                const bw = sz.w + (W - sz.w) * l
+                const bh = sz.h + (H - sz.h) * l
                 const c = covers.current[k]
                 if (c) {
-                    c.style.width = (sz.w + (W - sz.w) * l).toFixed(1) + "px"
-                    c.style.height = (sz.h + (H - sz.h) * l).toFixed(1) + "px"
-                    c.style.borderRadius = (10 + 16 * l).toFixed(1) + "px"
+                    put(c, "width", bw.toFixed(1) + "px")
+                    put(c, "height", bh.toFixed(1) + "px")
+                    put(c, "borderRadius", (10 + 16 * l).toFixed(1) + "px")
                 }
+                const ai = natural.current[ti] || shapes[ti]
                 const show = clamp((l - 0.72) / 0.22)
                 const cm = coverMedia.current[k]
-                if (cm) cm.style.opacity = (1 - show).toFixed(3)
+                put(cm, "opacity", (1 - show).toFixed(3))
+                put(cm, "transform", `scale(${(Math.max(bw, bh * ai) / Math.max(W, H * ai)).toFixed(4)})`)
                 const b = bodies.current[k]
                 if (b) {
-                    b.style.opacity = show.toFixed(3)
-                    b.style.visibility = show > 0 ? "visible" : "hidden"
+                    put(b, "opacity", show.toFixed(3))
+                    put(b, "visibility", show > 0 ? "visible" : "hidden")
                 }
                 el.classList.toggle("on", l > 0.85)
                 el.classList.toggle("live", l > 0.95)
@@ -1689,7 +1733,7 @@ export default function W3Globe(props: Props) {
                 idxBtns.current.forEach((b, i) => b && (i === cur ? b.setAttribute("aria-current", "true") : b.removeAttribute("aria-current")))
             }
             if (idxRef.current) idxRef.current.classList.toggle("on", u > REST + TURN * 0.5 && u < holdEnd(N - 1) + TURN * 0.6)
-            if (progRef.current) progRef.current.style.strokeDashoffset = (151 * (1 - u / TOTAL)).toFixed(1)
+            put(progRef.current, "strokeDashoffset", (151 * (1 - u / TOTAL)).toFixed(1))
 
             if (visible || Math.abs(s.vel) > 0.01 || Math.abs(target - s.cur) > 0.001) raf = requestAnimationFrame(frame)
         }
@@ -1906,7 +1950,10 @@ export default function W3Globe(props: Props) {
                                     <Media
                                         src={src}
                                         play={!still}
-                                        onShape={items[i] ? (ar) => setShape(i, ar) : undefined}
+                                        onShape={(ar) => {
+                                            natural.current[i] = ar
+                                            if (items[i]) setShape(i, ar)
+                                        }}
                                         vref={(el) => {
                                             tileVids.current[i] = el
                                         }}
@@ -1962,15 +2009,15 @@ export default function W3Globe(props: Props) {
                                 >
                                     <Media src={srcOf(PAGE_TILES[k])} play={!still} />
                                 </div>
-                            </div>
-                            <div
-                                className="w3-pg"
-                                ref={(el) => {
-                                    bodies.current[k] = el
-                                }}
-                                style={{ opacity: 0, visibility: "hidden" }}
-                            >
-                                <PageBody id={pg.id} samples={samples} />
+                                <div
+                                    className="w3-pg"
+                                    ref={(el) => {
+                                        bodies.current[k] = el
+                                    }}
+                                    style={{ opacity: 0, visibility: "hidden" }}
+                                >
+                                    <PageBody id={pg.id} samples={samples} />
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -1992,6 +2039,10 @@ export default function W3Globe(props: Props) {
                     <div className="w3-word" ref={wordRef} aria-hidden="true">
                         world media.
                     </div>
+                    <div className="w3-cross x" ref={crossX} aria-hidden="true" />
+                    <div className="w3-cross y" ref={crossY} aria-hidden="true" />
+                    <div className="w3-halo" ref={haloRef} aria-hidden="true" />
+                    <div className="w3-ball" ref={ballRef} aria-hidden="true" />
                     <canvas className="w3-cv" ref={canvasRef} aria-hidden="true" />
                     {tiles}
                     <div className="w3-badges" aria-hidden="true">
@@ -2100,7 +2151,7 @@ addPropertyControls(W3Globe, {
         type: ControlType.Array,
         title: "Globe media",
         control: { type: ControlType.File, allowedFileTypes: ["mp4", "webm", "mov", "jpg", "jpeg", "png", "webp"] },
-        description: "Videos and photos for the globe’s eight tiles, in order; the first four open into the pages. Any shape works: each tile takes the shape of its video.",
+        description: "Videos and photos for the globe’s fifteen tiles, in order; the first four open into the pages. Any shape works: each tile takes the shape of its video.",
     },
     samples: { type: ControlType.Boolean, title: "Sample photos", defaultValue: true, enabledTitle: "Show", disabledTitle: "Hide" },
     rest: { type: ControlType.Boolean, title: "Rest of site", defaultValue: true, enabledTitle: "Show", disabledTitle: "Hide", description: "Hide for a globe-only demo: no form, careers or footer." },

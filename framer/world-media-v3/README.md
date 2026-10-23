@@ -10,10 +10,11 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
 
 - A wireframe globe: lines of longitude and latitude, the far side faintly visible through it, and
   lines across the whole screen through its centre.
-- The land as dots, India in orange. Routes fly out of Delhi to the rest of the world, two orbit
-  rings with small moons turn round it, and tags (Live, #collab, @creator…) float over cities.
-- Eight video tiles sit on the globe and turn with it. Each tile takes the shape of its video:
-  9:16, 1:1, 16:9 or anything in between.
+- The land as dots, India in orange, and the sea as a fainter grid of dots. Routes fly out of Delhi
+  and between cities round the world, three orbit rings with small moons turn round it, and tags
+  (Live, #collab, @creator…) float over cities.
+- Fifteen video tiles sit on the globe and turn with it, spread so they never touch. Each tile
+  takes the shape of its video: 9:16, 1:1, 16:9 or anything in between.
 - It turns on its own, can be dragged sideways, and leans a little towards the pointer.
 
 ## How it moves
@@ -30,9 +31,17 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
 - On Framer's canvas, and for visitors who prefer reduced motion, the pages simply stack under the
   globe.
 
+## Keeping it smooth
+
+- The globe's glass body, its glow and the lines across the screen are drawn once and only moved;
+  the canvas draws just the moving lines and dots, at no more than about 2.4 million pixels.
+- Styles are only touched when they change, nothing that moves uses a background blur, and a
+  page's picture is scaled, not redrawn, while the page opens.
+- The globe turns between pages with a soft ease over a longer stretch of scroll.
+
 ## Settings in Framer
 
-- **Globe media**: videos and photos for the eight tiles, in order. The first four open into the
+- **Globe media**: videos and photos for the fifteen tiles, in order. The first four open into the
   pages.
 - **Rest of site**: hide it for a globe-only demo (no form, careers or footer). The /globe-demo
   page uses this.
