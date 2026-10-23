@@ -847,7 +847,7 @@ export default function W3Globe(props: Props) {
             </button>
             <div className="w3-links">
                 {navItems.map(([l, i]) => (
-                    <button key={l} type="button" ref={(el) => (navBtns.current[i] = el)} onClick={() => go(i)}>
+                    <button key={l} type="button" ref={(el) => { navBtns.current[i] = el }} onClick={() => go(i)}>
                         {l}
                     </button>
                 ))}
@@ -907,15 +907,15 @@ export default function W3Globe(props: Props) {
             <div className="w3-3d w3-pages">
                 <div className="w3-o">
                     {PAGES.map((pg, i) => (
-                          <div key={pg.id} className="w3-pn" data-tone={pg.tone} ref={(el) => (panels.current[i] = el)} aria-label={pg.title} role="region">
-                              <div className="w3-cover" ref={(el) => (covers.current[i] = el)}>
-                                  <Icon name={pg.icon} size={Math.round(Math.min(W, H) * 0.22)} width={1.2} />
-                              </div>
-                              <div className="w3-pg" ref={(el) => (bodies.current[i] = el)} style={{ opacity: 0 }}>
-                                  <PageBody id={pg.id} samples={samples} email={email} phone={phone} />
-                              </div>
-                          </div>
-                      ))}
+                        <div key={pg.id} className="w3-pn" data-tone={pg.tone} ref={(el) => { panels.current[i] = el }} aria-label={pg.title} role="region">
+                            <div className="w3-cover" ref={(el) => { covers.current[i] = el }}>
+                                <Icon name={pg.icon} size={Math.round(Math.min(W, H) * 0.22)} width={1.2} />
+                            </div>
+                            <div className="w3-pg" ref={(el) => { bodies.current[i] = el }} style={{ opacity: 0 }}>
+                                <PageBody id={pg.id} samples={samples} email={email} phone={phone} />
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         </>
@@ -955,7 +955,7 @@ export default function W3Globe(props: Props) {
                 </div>
                 <div className="w3-idx" ref={idxRef}>
                     {PAGES.map((pg, i) => (
-                        <button key={pg.id} type="button" ref={(el) => (idxBtns.current[i] = el)} onClick={() => go(i)} aria-label={"Go to " + pg.title}>
+                        <button key={pg.id} type="button" ref={(el) => { idxBtns.current[i] = el }} onClick={() => go(i)} aria-label={"Go to " + pg.title}>
                             <span>
                                 {String(i + 1).padStart(2, "0")} {pg.title}
                             </span>
