@@ -20,7 +20,7 @@ type Props = {
     style?: React.CSSProperties
 }
 
-const FONT_HREF = "https://fonts.googleapis.com/css2?family=Funnel+Display:wght@400;500;600;700&family=Funnel+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"
+const FONT_HREF = "https://fonts.googleapis.com/css2?family=Funnel+Display:wght@400;500;600;700&family=Funnel+Sans:wght@400;500;600&display=swap"
 
 const NO_MEDIA: string[] = []
 /** Sample clips (Mixkit, free licence), streamed from Mixkit until the real videos are added. */
@@ -605,13 +605,11 @@ const ORIGINALS = [
     "https://www.instagram.com/reel/DaKzM9HSTlw/",
 ]
 
-function Top(p: { n: number; title: string; aside: string }) {
+function Top(p: { n: number; title: string }) {
     return (
         <div className="w3-top">
-            <span className="w3-lab">
-                {String(p.n).padStart(2, "0")} — {p.title}
-            </span>
-            <span className="w3-lab w3-aside">{p.aside}</span>
+            <b>{String(p.n).padStart(2, "0")}</b>
+            {p.title}
         </div>
     )
 }
@@ -621,7 +619,7 @@ function Top(p: { n: number; title: string; aside: string }) {
 function PageWhy() {
     return (
         <>
-            <Top n={1} title="The why" aside="(psst… this site is our portfolio too)" />
+            <Top n={1} title="The why" />
             <h2 className="w3-big">
                 People skip ads.
                 <br />
@@ -649,7 +647,7 @@ function PageServices() {
     ]
     return (
         <>
-            <Top n={2} title="What we do" aside="(six, if you count replying fast)" />
+            <Top n={2} title="What we do" />
             <div className="w3-svc">
                 <h2 className="w3-big">
                     Five things.
@@ -675,7 +673,7 @@ function PageServices() {
 function PageWork(p: { samples: boolean }) {
     return (
         <>
-            <Top n={3} title="The work" aside="(sound on. trust us.)" />
+            <Top n={3} title="The work" />
             <h2 className="w3-big">
                 Reels people
                 <br />
@@ -706,7 +704,7 @@ function PageBrands() {
     ]
     return (
         <>
-            <Top n={4} title="The brands" aside="(numbers don’t lie. we checked twice.)" />
+            <Top n={4} title="The brands" />
             <h2 className="w3-big">
                 Big names.
                 <br />
@@ -744,16 +742,8 @@ function PageBody(p: { id: string; samples: boolean }) {
 
 /* ─────────────────────────────── After the globe ─────────────────────────────── */
 
-const SERVICES = [
-    ["Influencer Marketing", "Creator discovery, campaigns, negotiation and reporting, end to end.", "Our core"],
-    ["Social Media Production", "Reels, shoots and ad films made by our in-house crew.", ""],
-    ["Social Media Management", "Strategy, calendars, posting and community, handled monthly.", ""],
-    ["UGC Content", "Creator-made videos for ads, product pages and ecommerce.", ""],
-    ["Paid Amplification", "Boost the best creator content with targeted ads.", ""],
-    ["Celebrity & Talent Tie-ups", "Bigger names for launches, events and brand faces.", ""],
-]
+const SERVICES = ["Influencer marketing", "Production", "Social media", "UGC", "Paid ads", "Celebrities & talent"]
 const BUDGETS = ["Under ₹2L", "₹2L – 5L", "₹5L – 15L", "₹15L – 50L", "₹50L+"]
-const PLATFORMS = ["Instagram", "YouTube", "Snapchat", "X", "LinkedIn", "Other"]
 const FOLLOWERS = ["Under 10K", "10K – 100K", "100K – 1M", "1M+"]
 
 function Chips(p: { items: string[]; value: string[]; onChange: (v: string[]) => void; multi?: boolean; label: string }) {
@@ -777,15 +767,15 @@ function Chips(p: { items: string[]; value: string[]; onChange: (v: string[]) =>
     )
 }
 
-function Field(p: { name: string; label: string; type?: string; need?: boolean; area?: boolean; auto?: string; hint?: string }) {
+function Field(p: { name: string; label: string; type?: string; need?: boolean; area?: boolean; wide?: boolean; auto?: string; hint?: string }) {
     return (
-        <label className={"w3-field" + (p.area ? " w3-wide" : "")}>
+        <label className={"w3-field" + (p.area || p.wide ? " w3-wide" : "")}>
             <span>
                 {p.label}
                 {p.need ? " *" : ""}
             </span>
             {p.area ? (
-                <textarea name={p.name} required={p.need} rows={4} placeholder={p.hint} />
+                <textarea name={p.name} required={p.need} rows={3} placeholder={p.hint} />
             ) : (
                 <input name={p.name} type={p.type || "text"} required={p.need} autoComplete={p.auto} placeholder={p.hint} />
             )}
@@ -793,10 +783,10 @@ function Field(p: { name: string; label: string; type?: string; need?: boolean; 
     )
 }
 
-function Contact(p: { email: string; phone: string; endpoint: string; side: "brand" | "creator"; setSide: (s: "brand" | "creator") => void }) {
+/** The enquiry form: one short column, for brands or for creators. */
+function Contact(p: { email: string; endpoint: string; side: "brand" | "creator"; setSide: (s: "brand" | "creator") => void }) {
     const [services, setServices] = React.useState<string[]>([])
     const [budget, setBudget] = React.useState<string[]>([])
-    const [platforms, setPlatforms] = React.useState<string[]>([])
     const [followers, setFollowers] = React.useState<string[]>([])
     const [sent, setSent] = React.useState<"" | "sending" | "done" | "mail">("")
     const brand = p.side === "brand"
@@ -807,12 +797,9 @@ function Contact(p: { email: string; phone: string; endpoint: string; side: "bra
         const fields: [string, string][] = []
         data.forEach((v, k) => fields.push([k, String(v)]))
         if (brand) {
-            fields.push(["What we can help with", services.join(", ")])
+            fields.push(["Looking for", services.join(", ")])
             fields.push(["Monthly budget", budget.join(", ")])
-        } else {
-            fields.push(["Platforms", platforms.join(", ")])
-            fields.push(["Followers", followers.join(", ")])
-        }
+        } else fields.push(["Followers", followers.join(", ")])
         const filled = fields.filter(([, v]) => v.trim())
         const subject = brand ? "New brief from the website" : "Creator application from the website"
         if (p.endpoint) {
@@ -837,221 +824,107 @@ function Contact(p: { email: string; phone: string; endpoint: string; side: "bra
     }
 
     return (
-        <section className="w3-sec w3-contact" id="w3-contact" aria-label="Let’s talk">
-            <div className="w3-ct-l">
-                <span className="w3-lab w3-eyebrow">Let’s talk</span>
-                <h2 className="w3-h2">
-                    Got a brand
-                    <br />
-                    <em>worth talking about?</em>
-                </h2>
-                <ol className="w3-next">
-                    {["We read every note and reply within a day.", "A quick call to understand your goals.", "A plan made for you. Then we get to work."].map((t, i) => (
-                        <li key={t}>
-                            <b>{String(i + 1).padStart(2, "0")}</b>
-                            <span>{t}</span>
-                        </li>
-                    ))}
-                </ol>
-                <dl className="w3-dl">
-                    <div>
-                        <dt>Write to us</dt>
-                        <dd>
-                            <a href={"mailto:" + p.email}>{p.email}</a>
-                        </dd>
-                    </div>
-                    <div>
-                        <dt>Call us</dt>
-                        <dd>
-                            <a href={"tel:" + p.phone.replace(/[^+\d]/g, "")}>{p.phone}</a>
-                        </dd>
-                    </div>
-                    <div>
-                        <dt>Find us</dt>
-                        <dd>New Friends Colony, New Delhi</dd>
-                    </div>
-                </dl>
-            </div>
-            <div className="w3-form">
-                {sent === "done" || sent === "mail" ? (
-                    <div className="w3-thanks" role="status">
-                        <span className="w3-tick">
-                            <Icon name="check" size={28} width={2} />
-                        </span>
-                        <h3>{brand ? "Got it. Your brief is with the team." : "Welcome aboard (almost)."}</h3>
-                        <p>{sent === "mail" ? "Your email app should have opened with everything filled in. Hit send and a real person replies within a day." : brand ? "A real person replies within a day." : "We’ll look through your work and get back to you within a week."}</p>
-                        <button type="button" className="w3-link" onClick={() => setSent("")}>
-                            Send another
+        <section className="w3-sec w3-contact" id="w3-contact" aria-labelledby="w3-ct-h">
+            <h2 className="w3-h2" id="w3-ct-h">
+                Got a brand <em>worth talking about?</em>
+            </h2>
+            {sent === "done" || sent === "mail" ? (
+                <div className="w3-thanks" role="status">
+                    <span className="w3-tick">
+                        <Icon name="check" size={28} width={2} />
+                    </span>
+                    <h3>{brand ? "Got it. Your brief is with the team." : "Welcome aboard (almost)."}</h3>
+                    <p>{sent === "mail" ? "Your email app should have opened with everything filled in. Hit send and a real person replies within a day." : brand ? "A real person replies within a day." : "We’ll look through your work and reply within a week."}</p>
+                    <button type="button" className="w3-link" onClick={() => setSent("")}>
+                        Send another
+                    </button>
+                </div>
+            ) : (
+                <form className="w3-form" onSubmit={submit}>
+                    <div className="w3-seg" role="group" aria-label="Who’s saying hello?">
+                        <button type="button" aria-pressed={brand} onClick={() => p.setSide("brand")}>
+                            I’m a brand
+                        </button>
+                        <button type="button" aria-pressed={!brand} onClick={() => p.setSide("creator")}>
+                            I’m a creator
                         </button>
                     </div>
-                ) : (
-                    <form onSubmit={submit}>
-                        <div className="w3-who">
-                            <span className="w3-lab">Who’s saying hello?</span>
-                            <div className="w3-seg" role="group" aria-label="Who’s saying hello?">
-                                <button type="button" aria-pressed={brand} onClick={() => p.setSide("brand")}>
-                                    I’m a brand
-                                </button>
-                                <button type="button" aria-pressed={!brand} onClick={() => p.setSide("creator")}>
-                                    I’m a creator
-                                </button>
+                    {brand ? (
+                        <>
+                            <div className="w3-q">
+                                <span className="w3-lab">What do you need?</span>
+                                <Chips items={SERVICES} value={services} onChange={setServices} multi label="What do you need?" />
                             </div>
-                        </div>
-                        {brand ? (
-                            <>
-                                <div className="w3-q">
-                                    <span className="w3-lab">What can we help you with?</span>
-                                    <div className="w3-svcpick">
-                                        {SERVICES.map(([h, t, tag]) => {
-                                            const on = services.includes(h)
-                                            return (
-                                                <button key={h} type="button" aria-pressed={on} onClick={() => setServices(on ? services.filter((v) => v !== h) : [...services, h])}>
-                                                    <b>
-                                                        {h}
-                                                        {tag ? <i>{tag}</i> : null}
-                                                    </b>
-                                                    <span>{t}</span>
-                                                    <em aria-hidden="true">{on ? <Icon name="check" size={14} width={2.2} /> : null}</em>
-                                                </button>
-                                            )
-                                        })}
-                                    </div>
-                                </div>
-                                <div className="w3-fields">
-                                    <Field name="Brand name" label="Brand name" need auto="organization" />
-                                    <Field name="Work email" label="Work email" type="email" need auto="email" />
-                                    <Field name="Website or Instagram" label="Website or Instagram" />
-                                    <Field name="Phone / WhatsApp" label="Phone / WhatsApp" type="tel" auto="tel" />
-                                </div>
-                                <div className="w3-q">
-                                    <span className="w3-lab">Monthly budget</span>
-                                    <Chips items={BUDGETS} value={budget} onChange={setBudget} label="Monthly budget" />
-                                </div>
-                                <div className="w3-fields">
-                                    <Field name="Brief" label="Your brief" area need hint="What are you launching, and who should hear about it?" />
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <div className="w3-fields">
-                                    <Field name="Name" label="Your name" need auto="name" />
-                                    <Field name="Email" label="Email" type="email" need auto="email" />
-                                    <Field name="Handle" label="Instagram or YouTube handle" need hint="@" />
-                                    <Field name="Phone / WhatsApp" label="Phone / WhatsApp" type="tel" auto="tel" />
-                                </div>
-                                <div className="w3-q">
-                                    <span className="w3-lab">Where you post</span>
-                                    <Chips items={PLATFORMS} value={platforms} onChange={setPlatforms} multi label="Where you post" />
-                                </div>
-                                <div className="w3-q">
-                                    <span className="w3-lab">Followers</span>
-                                    <Chips items={FOLLOWERS} value={followers} onChange={setFollowers} label="Followers" />
-                                </div>
-                                <div className="w3-fields">
-                                    <Field name="About your content" label="Tell us about your content" area hint="What you make, who watches, brands you’ve loved working with." />
-                                </div>
-                            </>
-                        )}
-                        <div className="w3-send">
-                            <button type="submit" className="w3-btn" data-tone="signal" disabled={sent === "sending"}>
-                                {sent === "sending" ? "Sending…" : brand ? "Let’s plan your campaign" : "Join the roster"} <Icon name="arrow" size={18} />
-                            </button>
-                            <span>* needed · no spam, no sales scripts, a real person replies</span>
-                        </div>
-                    </form>
-                )}
-            </div>
+                            <div className="w3-fields">
+                                <Field name="Brand name" label="Brand name" need auto="organization" />
+                                <Field name="Work email" label="Work email" type="email" need auto="email" />
+                            </div>
+                            <div className="w3-q">
+                                <span className="w3-lab">Monthly budget</span>
+                                <Chips items={BUDGETS} value={budget} onChange={setBudget} label="Monthly budget" />
+                            </div>
+                            <div className="w3-fields">
+                                <Field name="Brief" label="Anything else?" area hint="What are you launching, and who should hear about it?" />
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="w3-fields">
+                                <Field name="Name" label="Your name" need auto="name" />
+                                <Field name="Email" label="Email" type="email" need auto="email" />
+                                <Field name="Handle" label="Instagram or YouTube handle" need wide hint="@" />
+                            </div>
+                            <div className="w3-q">
+                                <span className="w3-lab">Followers</span>
+                                <Chips items={FOLLOWERS} value={followers} onChange={setFollowers} label="Followers" />
+                            </div>
+                        </>
+                    )}
+                    <div className="w3-send">
+                        <button type="submit" className="w3-btn" data-tone="signal" disabled={sent === "sending"}>
+                            {sent === "sending" ? "Sending…" : brand ? "Send brief" : "Join the roster"} <Icon name="arrow" size={18} />
+                        </button>
+                        <span>A real person replies within a day.</span>
+                    </div>
+                </form>
+            )}
         </section>
     )
 }
 
 const ROLES = [
-    {
-        role: "Influencer Marketing Manager",
-        team: "Brand Partnerships",
-        years: "4–7 years",
-        sum: "You own brand campaigns end to end, from the first pitch to the final report, and lead a small team of executives.",
-        do: ["Turn briefs into campaign strategies: creator mix, formats, timelines and KPIs.", "Pitch, negotiate and keep clients happy.", "Lead and mentor our Influencer Marketing Executives.", "Report on reach, engagement, CPV and sales with clear learnings."],
-    },
-    {
-        role: "Influencer Marketing Executive",
-        team: "Brand Partnerships",
-        years: "1–3 years",
-        sum: "You’re the engine of our campaigns: you find the right creators, bring them on board and make sure every post goes live on time and on brief.",
-        do: ["Shortlist creators by niche, audience and brand fit.", "Check profiles for fake followers before recommending them.", "Write clear creator briefs and chase approvals.", "Track every deliverable so nothing is missed."],
-    },
-    {
-        role: "Talent Manager",
-        team: "Creator Management",
-        years: "2–5 years",
-        sum: "You manage a roster of World Media creators and help them turn their content into a career.",
-        do: ["Bring in brand deals and negotiate fees and usage rights.", "Plan growth with each creator using their analytics.", "Book our studio and crew for creator shoots.", "Find and sign promising new creators."],
-    },
-    {
-        role: "Social Media Executive",
-        team: "Social & Content",
-        years: "1–3 years",
-        sum: "You run the day-to-day social presence for our brand clients and for World Media itself.",
-        do: ["Plan monthly calendars across Instagram, YouTube and LinkedIn.", "Write captions, hooks and scripts in each brand’s voice.", "Brief editors and attend shoots.", "Report on reach, engagement and growth every month."],
-    },
-    {
-        role: "Video Editor",
-        team: "Production & Studio",
-        years: "2–4 years",
-        sum: "You turn raw footage into content people watch to the end: Reels, Shorts, YouTube videos and ad films.",
-        do: ["Build strong hooks in the first three seconds.", "Add motion graphics, captions, sound and colour.", "Adapt one shoot into 9:16, 1:1 and 16:9.", "Turn revisions around fast."],
-    },
+    { role: "Influencer Marketing Manager", team: "Brand Partnerships", years: "4–7 years" },
+    { role: "Influencer Marketing Executive", team: "Brand Partnerships", years: "1–3 years" },
+    { role: "Talent Manager", team: "Creator Management", years: "2–5 years" },
+    { role: "Social Media Executive", team: "Social & Content", years: "1–3 years" },
+    { role: "Video Editor", team: "Production & Studio", years: "2–4 years" },
 ]
 
+/** The open roles: one line each, which opens an email to apply. */
 function Careers(p: { email: string }) {
-    const [open, setOpen] = React.useState(0)
     return (
-        <section className="w3-sec w3-careers" id="w3-careers" aria-label="Careers">
-            <div className="w3-cr-head">
-                <span className="w3-lab w3-eyebrow">Careers</span>
-                <h2 className="w3-h2">
-                    Join the crew.
-                    <br />
-                    <em>Real briefs from day one.</em>
-                </h2>
-                <p className="w3-lead">In New Friends Colony, New Delhi.</p>
-            </div>
-            <div className="w3-roles">
-                {ROLES.map((r, i) => {
-                    const on = open === i
-                    return (
-                        <div key={r.role} className={"w3-role" + (on ? " on" : "")}>
-                            <button type="button" aria-expanded={on} onClick={() => setOpen(on ? -1 : i)}>
-                                <b>{r.role}</b>
-                                <span>
-                                    {r.team} · {r.years}
-                                </span>
-                                <i aria-hidden="true">
-                                    <Icon name="plus" size={18} />
-                                </i>
-                            </button>
-                            <div className="w3-rbody" hidden={!on}>
-                                <p>{r.sum}</p>
-                                <ul>
-                                    {r.do.map((d) => (
-                                        <li key={d}>{d}</li>
-                                    ))}
-                                </ul>
-                                <a
-                                    className="w3-btn"
-                                    data-tone="line"
-                                    href={"mailto:" + p.email + "?subject=" + encodeURIComponent("Application: " + r.role) + "&body=" + encodeURIComponent("Hi World Media,\n\nI’d like to apply for the " + r.role + " role. My CV (and portfolio or showreel) is attached.\n\n")}
-                                >
-                                    Apply for this role <Icon name="arrow" size={18} />
-                                </a>
-                            </div>
-                        </div>
-                    )
-                })}
-                <p className="w3-note">
-                    Send your CV to <a href={"mailto:" + p.email}>{p.email}</a> with the role in the subject line. For creative roles, add a portfolio or showreel.
-                </p>
-            </div>
+        <section className="w3-sec w3-careers" id="w3-careers" aria-labelledby="w3-cr-h">
+            <h2 className="w3-h2" id="w3-cr-h">
+                Join the <em>crew.</em>
+            </h2>
+            <ul className="w3-roles">
+                {ROLES.map((r) => (
+                    <li key={r.role}>
+                        <a href={"mailto:" + p.email + "?subject=" + encodeURIComponent("Application: " + r.role) + "&body=" + encodeURIComponent("Hi World Media,\n\nI’d like to apply for the " + r.role + " role. My CV (and portfolio or showreel) is attached.\n\n")}>
+                            <b>{r.role}</b>
+                            <span>
+                                {r.team} · {r.years}
+                            </span>
+                            <i aria-hidden="true">
+                                <Icon name="arrow" size={18} />
+                            </i>
+                        </a>
+                    </li>
+                ))}
+            </ul>
+            <p className="w3-note">
+                Not on the list? Send your CV to <a href={"mailto:" + p.email}>{p.email}</a>.
+            </p>
         </section>
     )
 }
@@ -1059,9 +932,11 @@ function Careers(p: { email: string }) {
 function Footer(p: { email: string; phone: string; go: (to: number | string) => void }) {
     return (
         <footer className="w3-foot">
-            <div className="w3-fcols">
-                <div>
-                    <span className="w3-lab">Explore</span>
+            <div className="w3-fword" aria-hidden="true">
+                world media<span>.</span>
+            </div>
+            <div className="w3-frow">
+                <nav aria-label="Footer">
                     {PAGES.map((pg, i) => (
                         <button key={pg.id} type="button" onClick={() => p.go(i)}>
                             {pg.nav}
@@ -1070,26 +945,17 @@ function Footer(p: { email: string; phone: string; go: (to: number | string) => 
                     <button type="button" onClick={() => p.go("careers")}>
                         Careers
                     </button>
-                </div>
+                </nav>
                 <div>
-                    <span className="w3-lab">Say hello</span>
                     <a href={"mailto:" + p.email}>{p.email}</a>
                     <a href={"tel:" + p.phone.replace(/[^+\d]/g, "")}>{p.phone}</a>
-                    <span>New Friends Colony, New Delhi</span>
-                </div>
-                <div>
-                    <span className="w3-lab">Follow</span>
                     <a href="https://www.instagram.com/worldmedia.co.in" target="_blank" rel="noreferrer">
                         Instagram <Icon name="out" size={14} />
                     </a>
                 </div>
-                <p className="w3-fnote">Thanks for making it all the way down here. (psst… this site is our portfolio too)</p>
-            </div>
-            <div className="w3-fword" aria-hidden="true">
-                world media<span>.</span>
             </div>
             <div className="w3-fbase">
-                <span>© 2026 World Media · Delhi, India</span>
+                <span>© 2026 World Media · New Friends Colony, New Delhi</span>
                 <button type="button" onClick={() => p.go(-1)}>
                     Back to the globe <Icon name="up" size={14} />
                 </button>
@@ -1102,7 +968,7 @@ function Footer(p: { email: string; phone: string; go: (to: number | string) => 
 
 const CSS = `
 .w3{--bg:#0A0A0A;--char:#161616;--line:rgba(255,255,255,.12);--text:#F3F1EC;--mute:rgba(243,241,236,.6);--signal:#EA5628;--paper:#F3F1EC;--ink:#0A0A0A;
---ease:cubic-bezier(.16,1,.3,1);--disp:"Funnel Display","Helvetica Neue",Arial,sans-serif;--sans:"Funnel Sans","Helvetica Neue",Arial,sans-serif;--mono:"Geist Mono",ui-monospace,Menlo,monospace;
+--ease:cubic-bezier(.16,1,.3,1);--disp:"Funnel Display","Helvetica Neue",Arial,sans-serif;--sans:"Funnel Sans","Helvetica Neue",Arial,sans-serif;
 position:relative;width:100%;background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;color-scheme:dark}
 .w3 *,.w3 *::before,.w3 *::after{box-sizing:border-box}
 .w3 :where(h1,h2,h3,p,ul,ol,li,dl,dd,figure){margin:0;padding:0;list-style:none}
@@ -1110,7 +976,7 @@ position:relative;width:100%;background:var(--bg);color:var(--text);font-family:
 .w3 :where(button){font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 .w3 :focus-visible{outline:2px solid var(--signal);outline-offset:3px;border-radius:8px}
 .w3 ::selection{background:var(--signal);color:var(--ink)}
-.w3-lab{font-family:var(--mono);font-size:11.5px;line-height:1.3;letter-spacing:.06em;text-transform:uppercase}
+.w3-lab{font-size:15px;font-weight:500;line-height:1.3}
 
 /* the stage: held in place while the track scrolls past */
 .w3-track{position:relative}
@@ -1135,7 +1001,7 @@ background:radial-gradient(farthest-corner at 32% 27%,rgba(40,40,40,.95),rgba(18
 box-shadow:0 0 0 1px rgba(255,255,255,.16)}
 .w3-tile img,.w3-tile video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
 .w3-blank{position:absolute;inset:0;background:linear-gradient(135deg,#222,#141414)}
-.w3-tag{position:absolute;left:6px;right:6px;bottom:6px;display:flex;align-items:center;gap:4px;font:500 9.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:#fff}
+.w3-tag{position:absolute;left:6px;right:6px;bottom:6px;display:flex;align-items:center;gap:4px;font:600 11.5px/1 var(--sans);color:#fff}
 .w3-tag i{display:grid;place-items:center;width:17px;height:17px;border-radius:50%;background:rgba(10,10,10,.72);flex:none}
 .w3-tag span{padding:4px 6px;border-radius:99px;background:rgba(10,10,10,.72);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .w3-tile[data-page] .w3-tag span{background:var(--signal);color:var(--ink)}
@@ -1143,7 +1009,7 @@ box-shadow:0 0 0 1px rgba(255,255,255,.16)}
 .w3-bd{position:absolute;left:0;top:0;opacity:0;will-change:transform,opacity}
 .w3-bd::before{content:"";position:absolute;left:0;bottom:0;width:1px;height:16px;background:rgba(255,255,255,.45);transform-origin:50% 100%;rotate:40deg}
 .w3-bd span{position:absolute;left:9px;bottom:12px;display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:7px;white-space:nowrap;
-background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);font:500 10.5px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--text)}
+background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);font:500 13px/1 var(--sans);color:var(--text)}
 .w3-bd span i{width:6px;height:6px;border-radius:50%;background:#fff}
 .w3-bd[data-live] span i{background:var(--signal);box-shadow:0 0 0 3px rgba(234,86,40,.25);animation:w3blink 1.6s ease-in-out infinite}
 .w3-bd[data-left]::before{rotate:-40deg}
@@ -1161,36 +1027,37 @@ box-shadow:0 0 0 1px rgba(255,255,255,.12);backface-visibility:hidden;-webkit-ba
 .w3-pn[data-tone="signal"],.w3-flatpn[data-tone="signal"]{--tone:var(--signal);color:var(--ink);--mute:rgba(10,10,10,.68);--hair:rgba(10,10,10,.2)}
 .w3-pn[data-tone="paper"],.w3-flatpn[data-tone="paper"]{--tone:var(--paper);color:var(--ink);--mute:rgba(10,10,10,.58);--hair:rgba(10,10,10,.14)}
 .w3-pg{position:absolute;inset:0;container-type:inline-size;padding:clamp(20px,3.2cqw,46px);display:flex;flex-direction:column;justify-content:space-between;gap:clamp(14px,2.4cqw,32px);overflow:auto;scrollbar-width:none}
-.w3-top{display:flex;justify-content:space-between;gap:16px;color:var(--mute)}
+.w3-top{display:flex;align-items:baseline;gap:12px;font-family:var(--disp);font-weight:600;font-size:clamp(17px,1.8cqw,24px);line-height:1;letter-spacing:-.025em}
+.w3-top b{font-weight:700;color:var(--signal)}
+.w3-pn[data-tone="signal"] .w3-top b,.w3-flatpn[data-tone="signal"] .w3-top b{color:#fff}
 .w3-big{font-family:var(--disp);font-weight:700;font-size:clamp(42px,9.6cqw,150px);line-height:.86;letter-spacing:-.055em;text-wrap:balance}
 .w3-big em,.w3-h2 em{font-style:normal;color:var(--signal)}
 .w3-pn[data-tone="signal"] .w3-big em,.w3-flatpn[data-tone="signal"] .w3-big em{color:#fff}
-.w3-lead{font-size:clamp(15px,1.45cqw,19px);line-height:1.5;color:var(--mute);max-width:46ch}
 .w3-r{opacity:0;translate:0 26px;transition:opacity .9s var(--ease),translate 1s var(--ease);transition-delay:var(--d,0s)}
 .w3-pn.on .w3-r,.w3-still .w3-r{opacity:1;translate:0 0}
 .w3-beliefs{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,1.6cqw,22px)}
 .w3-beliefs li{display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--hair)}
-.w3-beliefs i{font:500 12px/1 var(--mono);font-style:normal;color:var(--signal)}
+.w3-beliefs i{font-family:var(--disp);font-weight:700;font-size:clamp(18px,1.7cqw,24px);line-height:1;font-style:normal;color:var(--signal)}
 .w3-beliefs b{font-family:var(--disp);font-weight:600;font-size:clamp(22px,2.8cqw,40px);line-height:1;letter-spacing:-.035em}
 .w3-svc{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(20px,4cqw,64px);align-items:end;flex:1}
 .w3-svc ol{display:flex;flex-direction:column}
 .w3-svc li{display:flex;align-items:center;gap:16px;padding:clamp(10px,1.3cqw,18px) 0;border-top:1px solid var(--hair)}
 .w3-svi{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--ink);color:var(--signal);flex:none}
 .w3-svc b{font-family:var(--disp);font-weight:600;font-size:clamp(22px,2.7cqw,38px);letter-spacing:-.035em;line-height:1}
-.w3-svc li i{font:500 9.5px/1 var(--mono);font-style:normal;letter-spacing:.08em;text-transform:uppercase;padding:5px 8px;border-radius:99px;background:var(--ink);color:#fff}
+.w3-svc li i{font:600 12px/1 var(--sans);font-style:normal;padding:6px 10px;border-radius:99px;background:var(--ink);color:#fff}
 .w3-reels{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(8px,1.2cqw,16px)}
 .w3-reel{display:flex;flex-direction:column;gap:10px;min-width:0}
 .w3-rv{position:relative;aspect-ratio:9/14;border-radius:16px;overflow:hidden;background:#1C1C1C;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
 .w3-rv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:scale .8s var(--ease)}
 .w3-reel:hover .w3-rv video{scale:1.05}
-.w3-views{position:absolute;left:8px;bottom:8px;display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:99px;background:rgba(10,10,10,.72);font:500 10.5px/1 var(--mono);letter-spacing:.03em;color:#fff}
+.w3-views{position:absolute;left:8px;bottom:8px;display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:99px;background:rgba(10,10,10,.72);font:600 12px/1 var(--sans);color:#fff}
 .w3-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,2cqw,28px)}
 .w3-stat{display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px solid var(--hair)}
 .w3-stat strong{font-family:var(--disp);font-weight:700;font-size:clamp(40px,6.4cqw,96px);line-height:.9;letter-spacing:-.055em}
 .w3-stat span{font-size:14.5px;color:var(--mute)}
 .w3-logos{display:flex;flex-wrap:wrap;gap:8px}
 .w3-logo{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:132px;height:64px;padding:0 20px;border-radius:14px;background:rgba(10,10,10,.06);font-family:var(--disp);font-weight:600;font-size:19px;letter-spacing:-.02em}
-.w3-logo i{position:absolute;top:6px;right:8px;font:500 8.5px/1 var(--mono);font-style:normal;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.w3-logo i{position:absolute;top:6px;right:9px;font:500 10.5px/1 var(--sans);font-style:normal;color:var(--mute)}
 .w3-more{background:none;box-shadow:inset 0 0 0 1px var(--hair);color:var(--mute);font-weight:500}
 
 /* the landing and the way out */
@@ -1213,7 +1080,7 @@ box-shadow:0 0 0 1px rgba(255,255,255,.12);backface-visibility:hidden;-webkit-ba
 .w3-idx.on{opacity:1}
 .w3-idx.on button{pointer-events:auto}
 .w3-idx button{display:flex;align-items:center;justify-content:flex-end;gap:10px;height:28px;color:rgba(255,255,255,.45)}
-.w3-idx button span{font:500 10.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;opacity:0;translate:6px 0;transition:opacity .3s,translate .3s var(--ease)}
+.w3-idx button span{font:500 13.5px/1 var(--sans);opacity:0;translate:6px 0;transition:opacity .3s,translate .3s var(--ease)}
 .w3-idx button i{width:8px;height:8px;border-radius:50%;box-shadow:inset 0 0 0 1.5px currentColor;transition:background-color .3s,scale .3s}
 .w3-idx button:hover span{opacity:1;translate:0 0}
 .w3-idx button[aria-current]{color:#fff}
@@ -1242,95 +1109,61 @@ box-shadow:0 0 0 1px rgba(255,255,255,.12);backface-visibility:hidden;-webkit-ba
 .w3-sheet button{display:flex;justify-content:space-between;align-items:center;height:54px;padding:0 16px;border-radius:14px;font-family:var(--disp);font-weight:500;font-size:22px;letter-spacing:-.03em}
 .w3-sheet button:hover{background:rgba(255,255,255,.06)}
 
-/* after the globe */
+/* after the globe: one calm column */
 .w3-rest{position:relative;background:var(--bg);border-top:1px solid rgba(255,255,255,.06)}
-.w3-sec{padding:clamp(72px,10vw,140px) clamp(16px,4vw,64px);max-width:1440px;margin:0 auto;scroll-margin-top:24px}
-.w3-eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--mute);margin-bottom:22px}
-.w3-eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--signal);box-shadow:0 0 0 4px rgba(234,86,40,.2)}
-.w3-h2{font-family:var(--disp);font-weight:700;font-size:clamp(48px,7vw,116px);line-height:.88;letter-spacing:-.055em;text-wrap:balance;margin-bottom:26px}
-.w3-contact{display:grid;grid-template-columns:1fr 1.15fr;gap:clamp(32px,5vw,88px);align-items:start}
-.w3-ct-l{position:sticky;top:40px}
-.w3-next{display:flex;flex-direction:column;margin:36px 0}
-.w3-next li{display:grid;grid-template-columns:44px 1fr;padding:14px 0;border-top:1px solid var(--line);font-size:15.5px}
-.w3-next b{font:500 12px/1.6 var(--mono);color:var(--signal)}
-.w3-dl{display:grid;grid-template-columns:repeat(3,auto);gap:16px 28px;justify-content:start}
-.w3-dl dt,.w3-fcols .w3-lab{font:500 11px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin-bottom:6px}
-.w3-dl dd{margin:0;font-size:15px}
-.w3-dl a,.w3-note a{background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;transition:background-size .4s var(--ease)}
-.w3-dl a:hover,.w3-note a:hover{background-size:100% 1px}
-.w3-form{border-radius:28px;background:#121212;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);padding:clamp(20px,3vw,40px)}
-.w3-form form{display:flex;flex-direction:column;gap:28px}
-.w3-who{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
-.w3-who .w3-lab,.w3-q .w3-lab{color:var(--mute)}
-.w3-seg{display:inline-flex;padding:4px;border-radius:99px;background:rgba(255,255,255,.06)}
-.w3-seg button{height:40px;padding:0 18px;border-radius:99px;font-weight:500;font-size:14.5px;color:var(--mute);transition:background-color .3s,color .3s}
+.w3-sec{padding:clamp(80px,11vw,160px) clamp(16px,4vw,64px) 0;max-width:880px;margin:0 auto;scroll-margin-top:24px}
+.w3-sec:last-of-type{padding-bottom:clamp(80px,11vw,160px)}
+.w3-h2{font-family:var(--disp);font-weight:700;font-size:clamp(44px,6.4vw,96px);line-height:.9;letter-spacing:-.055em;text-wrap:balance;text-align:center;margin-bottom:clamp(36px,5vw,60px)}
+.w3-form{display:flex;flex-direction:column;gap:32px}
+.w3-seg{align-self:center;display:inline-flex;padding:4px;border-radius:99px;background:rgba(255,255,255,.06)}
+.w3-seg button{height:44px;padding:0 22px;border-radius:99px;font-weight:500;font-size:15px;color:var(--mute);transition:background-color .3s,color .3s}
 .w3-seg button[aria-pressed="true"]{background:#fff;color:var(--ink)}
 .w3-q{display:flex;flex-direction:column;gap:12px}
-.w3-svcpick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.w3-svcpick button{position:relative;display:flex;flex-direction:column;gap:4px;padding:14px 40px 14px 16px;border-radius:16px;text-align:left;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);transition:box-shadow .3s,background-color .3s}
-.w3-svcpick button:hover{background:rgba(255,255,255,.03)}
-.w3-svcpick button[aria-pressed="true"]{box-shadow:inset 0 0 0 1.5px var(--signal);background:rgba(234,86,40,.08)}
-.w3-svcpick b{display:flex;align-items:center;gap:8px;font-family:var(--disp);font-weight:500;font-size:16.5px;letter-spacing:-.02em}
-.w3-svcpick b i{font:500 9px/1 var(--mono);font-style:normal;letter-spacing:.08em;text-transform:uppercase;padding:4px 7px;border-radius:99px;background:var(--signal);color:var(--ink)}
-.w3-svcpick span{font-size:13px;line-height:1.4;color:var(--mute)}
-.w3-svcpick em{position:absolute;top:14px;right:14px;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);color:var(--ink)}
-.w3-svcpick button[aria-pressed="true"] em{background:var(--signal);box-shadow:none}
+.w3-q .w3-lab{color:var(--mute)}
 .w3-chips{display:flex;flex-wrap:wrap;gap:6px}
-.w3-chips button{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 15px;border-radius:99px;font-size:14px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);transition:background-color .3s,color .3s,box-shadow .3s}
-.w3-chips button:hover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}
-.w3-chips button[aria-pressed="true"]{background:#fff;color:var(--ink);box-shadow:none}
-.w3-fields{display:grid;grid-template-columns:1fr 1fr;gap:18px 20px}
+.w3-chips button{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;border-radius:99px;font-size:14.5px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);transition:background-color .3s,color .3s,box-shadow .3s}
+.w3-chips button:hover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.45)}
+.w3-chips button[aria-pressed="true"]{background:var(--signal);color:var(--ink);box-shadow:none}
+.w3-fields{display:grid;grid-template-columns:1fr 1fr;gap:24px 24px}
 .w3-field{display:flex;flex-direction:column;gap:8px}
 .w3-field.w3-wide{grid-column:1/-1}
-.w3-field span{font:500 11px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
-.w3-field input,.w3-field textarea{width:100%;font:inherit;font-size:16px;color:var(--text);background:transparent;border:0;border-bottom:1px solid rgba(255,255,255,.18);border-radius:0;padding:8px 0 10px;outline:none;transition:border-color .3s;resize:vertical}
+.w3-field span{font-size:15px;font-weight:500;line-height:1.3;color:var(--mute)}
+.w3-field input,.w3-field textarea{width:100%;font:inherit;font-size:17px;color:var(--text);background:transparent;border:0;border-bottom:1px solid rgba(255,255,255,.18);border-radius:0;padding:8px 0 10px;outline:none;transition:border-color .3s;resize:vertical}
 .w3-field input:focus,.w3-field textarea:focus{border-color:var(--signal)}
 .w3-field ::placeholder{color:rgba(243,241,236,.3)}
-.w3-send{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.w3-send span{font-size:12.5px;color:var(--mute)}
-.w3-btn{display:inline-flex;align-items:center;justify-content:space-between;gap:24px;height:58px;padding:0 22px 0 26px;border-radius:99px;font-family:var(--disp);font-weight:500;font-size:18px;letter-spacing:-.02em;transition:background-color .3s,color .3s,box-shadow .3s}
+.w3-send{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding-top:4px}
+.w3-send span{font-size:13.5px;color:var(--mute)}
+.w3-btn{display:inline-flex;align-items:center;justify-content:space-between;gap:24px;height:58px;padding:0 22px 0 26px;border-radius:99px;font-family:var(--disp);font-weight:600;font-size:18px;letter-spacing:-.02em;transition:background-color .3s,color .3s}
 .w3-btn[data-tone="signal"]{background:var(--signal);color:var(--ink)}
 .w3-btn[data-tone="signal"]:hover{background:#fff}
 .w3-btn[data-tone="signal"]:disabled{opacity:.6;cursor:progress}
-.w3-btn[data-tone="line"]{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5)}
-.w3-btn[data-tone="line"]:hover{background:#fff;color:var(--ink)}
 .w3-btn svg{transition:translate .4s var(--ease)}
 .w3-btn:hover svg{translate:4px 0}
-.w3-thanks{display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:40px 0}
-.w3-thanks h3{font-family:var(--disp);font-weight:500;font-size:clamp(28px,3vw,40px);letter-spacing:-.04em;line-height:1}
+.w3-thanks{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.w3-thanks h3{font-family:var(--disp);font-weight:600;font-size:clamp(28px,3vw,40px);letter-spacing:-.04em;line-height:1}
 .w3-thanks p{color:var(--mute);max-width:44ch;line-height:1.5}
 .w3-tick{display:grid;place-items:center;width:58px;height:58px;border-radius:50%;background:var(--signal);color:var(--ink)}
 .w3-link{text-decoration:underline;text-underline-offset:4px;color:var(--mute)}
-.w3-careers{display:grid;grid-template-columns:1fr 1.25fr;gap:clamp(32px,5vw,88px);align-items:start;border-top:1px solid rgba(255,255,255,.06)}
-.w3-cr-head{position:sticky;top:40px}
-.w3-roles{display:flex;flex-direction:column}
-.w3-role{border-top:1px solid var(--line)}
-.w3-role:last-of-type{border-bottom:1px solid var(--line)}
-.w3-role>button{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;column-gap:16px;row-gap:4px;width:100%;padding:22px 0;text-align:left}
-.w3-role>button b{font-family:var(--disp);font-weight:500;font-size:clamp(22px,2.2vw,30px);letter-spacing:-.03em;transition:color .3s}
-.w3-role>button:hover b{color:var(--signal)}
-.w3-role>button span{grid-row:2;font-size:14px;color:var(--mute)}
-.w3-role>button i{grid-row:1/span 2;grid-column:2;align-self:center;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);transition:rotate .4s var(--ease),background-color .3s,color .3s}
-.w3-role.on>button i{rotate:45deg;background:var(--signal);color:var(--ink);box-shadow:none}
-.w3-rbody{display:flex;flex-direction:column;align-items:flex-start;gap:16px;padding:0 0 28px}
-.w3-rbody[hidden]{display:none}
-.w3-rbody p{font-size:16px;line-height:1.55;max-width:56ch}
-.w3-rbody ul{display:flex;flex-direction:column;gap:8px}
-.w3-rbody li{position:relative;padding-left:20px;font-size:14.5px;line-height:1.5;color:var(--mute)}
-.w3-rbody li::before{content:"";position:absolute;left:2px;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--signal)}
-.w3-note{margin-top:22px;font-size:14px;line-height:1.5;color:var(--mute)}
-.w3-note a{color:var(--text)}
-.w3-foot{position:relative;overflow:hidden;padding:clamp(56px,7vw,96px) clamp(16px,4vw,64px) 28px;background:#060606;border-top:1px solid rgba(255,255,255,.06)}
-.w3-fcols{display:grid;grid-template-columns:repeat(3,auto) 1fr;gap:28px clamp(28px,5vw,80px);max-width:1440px;margin:0 auto}
-.w3-fcols>div{display:flex;flex-direction:column;align-items:flex-start;gap:8px;font-size:15px}
-.w3-fcols>div a,.w3-fcols>div button{display:inline-flex;align-items:center;gap:6px;transition:color .3s}
-.w3-fcols>div a:hover,.w3-fcols>div button:hover{color:var(--signal)}
-.w3-fcols>div>span:not(.w3-lab){color:var(--mute)}
-.w3-fnote{justify-self:end;max-width:24ch;text-align:right;font-size:14px;line-height:1.45;color:var(--mute)}
-.w3-fword{margin:clamp(40px,6vw,80px) auto 0;max-width:1440px;font-family:var(--disp);font-weight:600;font-size:clamp(64px,17vw,260px);line-height:.8;letter-spacing:-.065em;white-space:nowrap}
+.w3-roles li{border-top:1px solid var(--line)}
+.w3-roles li:last-child{border-bottom:1px solid var(--line)}
+.w3-roles a{display:grid;grid-template-columns:1fr auto;column-gap:16px;row-gap:4px;align-items:center;padding:22px 0}
+.w3-roles b{font-family:var(--disp);font-weight:600;font-size:clamp(21px,2.3vw,30px);letter-spacing:-.03em;line-height:1.1;transition:color .3s}
+.w3-roles span{grid-row:2;font-size:14px;color:var(--mute)}
+.w3-roles i{grid-row:1/span 2;grid-column:2;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);transition:background-color .3s,color .3s,box-shadow .3s,rotate .4s var(--ease)}
+.w3-roles a:hover b{color:var(--signal)}
+.w3-roles a:hover i{background:var(--signal);color:var(--ink);box-shadow:none;rotate:-45deg}
+.w3-note{margin-top:24px;text-align:center;font-size:14.5px;line-height:1.5;color:var(--mute)}
+.w3-note a{color:var(--text);text-decoration:underline;text-underline-offset:4px;text-decoration-color:rgba(255,255,255,.3)}
+.w3-note a:hover{text-decoration-color:currentColor}
+.w3-foot{position:relative;overflow:hidden;padding:clamp(48px,6vw,80px) clamp(16px,4vw,64px) 28px;background:#060606;border-top:1px solid rgba(255,255,255,.06)}
+.w3-fword{max-width:1440px;margin:0 auto;font-family:var(--disp);font-weight:700;font-size:clamp(60px,15.5vw,236px);line-height:.8;letter-spacing:-.065em;white-space:nowrap}
 .w3-fword span{color:var(--signal)}
-.w3-fbase{display:flex;justify-content:space-between;gap:16px;max-width:1440px;margin:28px auto 0;font:500 11px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
-.w3-fbase button{display:inline-flex;align-items:center;gap:6px;font:inherit;letter-spacing:inherit;text-transform:inherit}
+.w3-frow{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px 40px;max-width:1440px;margin:clamp(32px,4vw,52px) auto 0;padding-top:24px;border-top:1px solid var(--line)}
+.w3-frow>*{display:flex;flex-wrap:wrap;gap:8px 24px;font-size:15px}
+.w3-frow a,.w3-frow button{display:inline-flex;align-items:center;gap:6px;transition:color .3s}
+.w3-frow a:hover,.w3-frow button:hover{color:var(--signal)}
+.w3-fbase{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;max-width:1440px;margin:28px auto 0;font-size:13.5px;line-height:1.4;color:var(--mute)}
+.w3-fbase button{display:inline-flex;align-items:center;gap:6px;font:inherit}
 .w3-fbase button:hover{color:var(--text)}
 
 @media (max-width:820px){
@@ -1339,13 +1172,10 @@ box-shadow:0 0 0 1px rgba(255,255,255,.12);backface-visibility:hidden;-webkit-ba
 .w3-side{left:16px;right:16px;bottom:22px;align-items:stretch;text-align:left;max-width:none}
 .w3-side p{display:none}.w3-side div>*{flex:1;justify-content:center}
 .w3-idx button span{display:none}
-.w3-bd span{font-size:9.5px;padding:5px 8px}
-.w3-contact,.w3-careers{grid-template-columns:1fr}
-.w3-ct-l,.w3-cr-head{position:static}
-.w3-dl{grid-template-columns:1fr}
-.w3-svcpick,.w3-fields{grid-template-columns:1fr}
-.w3-fcols{grid-template-columns:1fr 1fr}
-.w3-fnote{grid-column:1/-1;justify-self:start;text-align:left}
+.w3-bd span{font-size:11.5px;padding:5px 8px}
+.w3-fields{grid-template-columns:1fr}
+.w3-send .w3-btn{flex:1}
+.w3-frow{flex-direction:column}
 }
 @container (max-width:760px){
 .w3-svc{grid-template-columns:1fr}
@@ -1355,7 +1185,6 @@ box-shadow:0 0 0 1px rgba(255,255,255,.12);backface-visibility:hidden;-webkit-ba
 .w3-svi{width:34px;height:34px}.w3-svi svg{width:16px;height:16px}.w3-svc li{gap:12px;padding:9px 0}
 .w3-reels{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -20px;padding:0 20px;scroll-padding:0 20px;scrollbar-width:none}
 .w3-reel{flex:0 0 46%;scroll-snap-align:start}
-.w3-aside{display:none}
 }
 .w3-flat{display:flex;flex-direction:column;gap:14px;padding:14px}
 .w3-flatpn{position:relative;border-radius:26px;overflow:hidden;background:var(--tone);min-height:min(780px,92vh)}
@@ -2096,7 +1925,7 @@ export default function W3Globe(props: Props) {
             </div>
             {rest ? (
                 <div className="w3-rest">
-                    <Contact email={email} phone={phone} endpoint={endpoint} side={side} setSide={setSide} />
+                    <Contact email={email} endpoint={endpoint} side={side} setSide={setSide} />
                     <Careers email={email} />
                     <Footer email={email} phone={phone} go={go} />
                 </div>

@@ -25,8 +25,8 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
   shrinks back onto the globe and the globe turns on to the next city.
 - The four pages: The why (Delhi), What we do (New York), The work (Tokyo), The brands (London).
 - After the last page the globe turns home to Delhi and asks "Your brand, next on the globe?".
-- Then the rest of the site: the enquiry form (brands and creators, as in the client's contact
-  brief), careers (the five open roles), and the footer.
+- Then the rest of the site, in one calm column: a short enquiry form (brands or creators), the
+  five open roles (each opens an email to apply), and the footer.
 - The menu steps aside while you scroll down, and comes back when you scroll up, when the pointer
   reaches the top of the screen, or when you tab to it.
 - On Framer's canvas, and for visitors who prefer reduced motion, the pages simply stack under the
