@@ -1,10 +1,11 @@
 // World Media, the globe showcase. One component for a whole page, in black and dark grey.
 // The landing is the World Media globe: a wireframe globe with dotted continents (India in
-// orange), routes flying out of Delhi, orbit rings, video tiles and the four pages in miniature,
-// all turning with it. Scrolling spins the globe from city to city; at each one a page comes round,
-// lifts off the globe and grows to full size, then sinks back as the globe turns on. After the
-// globe comes the rest of the site: the enquiry form, careers and the footer. Place it on its own
-// page, width 100%. Videos are placeholders until the real ones are added in the Globe media field.
+// orange), routes flying out of Delhi, orbit rings and video tiles, all turning with it.
+// Scrolling turns the globe from city to city, and at each one a chapter arrives in its own way:
+// the globe dives into India for the why, an orange strip runs sideways for what we do, reels fan
+// out of the globe for the work, and a light curtain rises for the brands. After the globe comes
+// the rest of the site: the enquiry form, careers and the footer. Place it on its own page, width
+// 100%. Videos are placeholders until the real ones are added in the Globe media field.
 
 import * as React from "react"
 import { createPortal } from "react-dom"
@@ -17,6 +18,9 @@ type Props = {
     email: string
     phone: string
     endpoint: string
+    views: string
+    campaigns: string
+    creators: string
     style?: React.CSSProperties
 }
 
@@ -524,8 +528,8 @@ function drawScene(ctx: CanvasRenderingContext2D, sc: Scene, kit: Kit) {
 type TileDef = { lon: number; lat: number; ar: number; tag: string; page?: number; clip?: number }
 
 /**
- * What sits on the globe, spread so nothing touches. The first four are the pages themselves, in
- * miniature, which grow out of the globe; the rest are video tiles, each with a sample clip.
+ * What sits on the globe, spread so nothing touches. The first four mark the chapters' cities and
+ * show nothing; the rest are video tiles, each with a sample clip.
  */
 const TILES: TileDef[] = [
     { lon: 77.2, lat: 28.6, ar: 1.5, tag: "", page: 0 },
@@ -586,15 +590,15 @@ function Media(p: { src: string; play: boolean; onShape?: (ar: number) => void; 
     )
 }
 
-/* ─────────────────────────────── The pages ─────────────────────────────── */
+/* ─────────────────────────────── The chapters ─────────────────────────────── */
 
-type PageDef = { id: string; nav: string; title: string; tone: "char" | "signal" | "ink" | "paper" }
+type PageDef = { id: string; nav: string; title: string }
 
 const PAGES: PageDef[] = [
-    { id: "why", nav: "About", title: "The why", tone: "char" },
-    { id: "services", nav: "Services", title: "What we do", tone: "signal" },
-    { id: "work", nav: "Work", title: "The work", tone: "ink" },
-    { id: "brands", nav: "Brands", title: "The brands", tone: "paper" },
+    { id: "why", nav: "About", title: "The why" },
+    { id: "services", nav: "Services", title: "What we do" },
+    { id: "work", nav: "Work", title: "The work" },
+    { id: "brands", nav: "Brands", title: "The brands" },
 ]
 
 const ORIGINALS = [
@@ -604,140 +608,176 @@ const ORIGINALS = [
     "https://www.instagram.com/reel/DYMk2X6Seet/",
     "https://www.instagram.com/reel/DaKzM9HSTlw/",
 ]
+const TENETS = [
+    ["Cast for trust", "Creators your buyers already believe."],
+    ["Stories that stick", "Made to be watched to the end."],
+    ["Measured to the rupee", "Reach, views and sales, reported."],
+]
+const OFFER = [
+    { name: "Influencer Marketing", line: "The right creators, briefed well, measured properly.", core: true, clip: 14084 },
+    { name: "Production", line: "Reels, shoots and ad films by our own crew.", core: false, clip: 52057 },
+    { name: "Studio", line: "A Delhi studio, lit and ready when you are.", core: false, clip: 2960 },
+    { name: "Talent Management", line: "We look after creators and grow their careers.", core: false, clip: 42319 },
+    { name: "Social Media", line: "Calendars, posting and community, every month.", core: false, clip: 46352 },
+]
+/** The client logos, kept in the repository and served from one fixed commit. */
+const LOGO_CDN = "https://cdn.jsdelivr.net/gh/tandonsaksham/tandonsaksham.github.io@9296b48515c2d949a15ac2613959c53792cce4f3/framer/world-media-v3/logos/"
+const LOGOS = [
+    { name: "Coca-Cola", file: "coca-cola.svg" },
+    { name: "Tinder", file: "tinder.svg" },
+    { name: "OPPO", file: "oppo.svg" },
+    { name: "Maaza", file: "maaza.png" },
+]
+const nn = (n: number) => String(n).padStart(2, "0")
+/** A figure that can count up ("120M+"), or null for a placeholder still in brackets ("[00]M+"). */
+const countable = (s: string) => (s.includes("[") ? null : s.match(/^(\D*)(\d+(?:\.\d+)?)(.*)$/))
 
-function Top(p: { n: number; title: string }) {
+/** A line of words, each in its own mask so it can rise into view on its own. */
+function Words(p: { text: string }) {
+    const list = p.text.split(" ")
     return (
-        <div className="w3-top">
-            <b>{String(p.n).padStart(2, "0")}</b>
+        <>
+            {list.map((w, i) => (
+                <React.Fragment key={i}>
+                    <span className="w3-wd">
+                        <span data-w="">{w}</span>
+                    </span>
+                    {i < list.length - 1 ? " " : null}
+                </React.Fragment>
+            ))}
+        </>
+    )
+}
+
+function Mark(p: { n: number; title: string }) {
+    return (
+        <div className="w3-mark">
+            <b>{nn(p.n)}</b>
             {p.title}
         </div>
     )
 }
 
-// The headlines show from the start, so a page is recognisable as a miniature on the globe; the
-// rest comes in once the page is up front.
-function PageWhy() {
+/** The why: the globe dives into India and the words build up out of the dark. */
+function ChapterWhy() {
     return (
         <>
-            <Top n={1} title="The why" />
-            <h2 className="w3-big">
-                People skip ads.
-                <br />
-                <em>They don’t skip people.</em>
+            <h2 className="w3-say">
+                <span className="w3-ln">
+                    <Words text="People skip ads." />
+                </span>
+                <span className="w3-ln w3-em">
+                    <Words text="They don’t skip people." />
+                </span>
             </h2>
-            <ul className="w3-beliefs">
-                {["Cast for trust", "Stories that stick", "Measured to the rupee"].map((h, i) => (
-                    <li key={h} className="w3-r" style={cssVars({ "--d": 0.1 + i * 0.07 + "s" })}>
-                        <i>{String(i + 1).padStart(2, "0")}</i>
+            <ol className="w3-tenets">
+                {TENETS.map(([h, d], i) => (
+                    <li key={h} data-b="">
+                        <i>{nn(i + 1)}</i>
                         <b>{h}</b>
+                        <span>{d}</span>
                     </li>
                 ))}
-            </ul>
+            </ol>
+            <Mark n={1} title="The why" />
         </>
     )
 }
 
-function PageServices() {
-    const list = [
-        ["megaphone", "Influencer Marketing", "Our core"],
-        ["film", "Production", ""],
-        ["camera", "Studio", ""],
-        ["star", "Talent Management", ""],
-        ["heart", "Social Media", ""],
-    ]
+/** What we do: the five services pass by sideways while you scroll down. */
+function ChapterServices(p: { samples: boolean }) {
     return (
         <>
-            <Top n={2} title="What we do" />
-            <div className="w3-svc">
-                <h2 className="w3-big">
-                    Five things.
-                    <br />
-                    Done properly.
-                </h2>
-                <ol>
-                    {list.map(([ic, h, tag], i) => (
-                        <li key={h} className="w3-r" style={cssVars({ "--d": 0.06 + i * 0.06 + "s" })}>
-                            <span className="w3-svi">
-                                <Icon name={ic} size={20} />
-                            </span>
-                            <b>{h}</b>
-                            {tag ? <i>{tag}</i> : null}
-                        </li>
-                    ))}
-                </ol>
+            <div className="w3-strip" data-strip="">
+                <div className="w3-sp w3-sp0">
+                    <h2 className="w3-say">
+                        Five things.
+                        <br />
+                        <em>Done properly.</em>
+                    </h2>
+                    <p className="w3-hint">
+                        Keep scrolling <Icon name="arrow" size={18} />
+                    </p>
+                </div>
+                {OFFER.map((s, i) => (
+                    <article key={s.name} className="w3-sp">
+                        <span className="w3-num" aria-hidden="true">
+                            {nn(i + 1)}
+                        </span>
+                        <div className="w3-spv">{p.samples ? <video src={CLIP(s.clip)} poster={POSTER(CLIP(s.clip))} muted loop playsInline preload="none" /> : null}</div>
+                        <h3>
+                            {s.name}
+                            {s.core ? <i>Our core</i> : null}
+                        </h3>
+                        <p>{s.line}</p>
+                    </article>
+                ))}
             </div>
+            <div className="w3-prog2" aria-hidden="true">
+                <span data-count="">01 / 05</span>
+                <b>
+                    <i data-bar="" />
+                </b>
+            </div>
+            <Mark n={2} title="What we do" />
         </>
     )
 }
 
-function PageWork(p: { samples: boolean }) {
+/** The work: the reels fan out of the globe like a hand of cards. */
+function ChapterWork(p: { samples: boolean }) {
     return (
         <>
-            <Top n={3} title="The work" />
-            <h2 className="w3-big">
-                Reels people
-                <br />
-                <em>actually stopped for.</em>
+            <h2 className="w3-say">
+                <Words text="Reels people" />{" "}
+                <em>
+                    <Words text="actually stopped for." />
+                </em>
             </h2>
-            <div className="w3-reels">
+            <div className="w3-fan">
                 {ORIGINALS.map((href, i) => (
-                    <a key={href} className="w3-reel w3-r" style={cssVars({ "--d": 0.08 + i * 0.06 + "s" })} href={href} target="_blank" rel="noreferrer" aria-label={"Watch World Media original " + (i + 1) + " on Instagram"}>
-                        <div className="w3-rv">
+                    <a key={href} className="w3-reel" data-r="" href={href} target="_blank" rel="noreferrer" aria-label={"Watch World Media original " + (i + 1) + " on Instagram"}>
+                        <span className="w3-rv">
                             {p.samples ? <video src={CLIP(REEL_CLIPS[i])} poster={POSTER(CLIP(REEL_CLIPS[i]))} muted loop playsInline preload="none" /> : null}
                             <span className="w3-views">
                                 <Icon name="eye" size={13} />
                                 [0.0]M
                             </span>
-                        </div>
+                            <span className="w3-go">
+                                <Icon name="out" size={16} />
+                            </span>
+                        </span>
                     </a>
                 ))}
             </div>
+            <Mark n={3} title="The work" />
         </>
     )
 }
 
-function PageBrands() {
-    const stats = [
-        ["[00]M+", "Views"],
-        ["[000]+", "Campaigns"],
-        ["[00]+", "Creators"],
-    ]
+/** The brands: a light curtain rises over the globe, the numbers count up and the logos roll by. */
+function ChapterBrands(p: { stats: [string, string][] }) {
     return (
-        <>
-            <Top n={4} title="The brands" />
-            <h2 className="w3-big">
-                Big names.
-                <br />
-                <em>One orbit.</em>
+        <div className="w3-cur" data-cur="">
+            <h2 className="w3-say">
+                Big names. <em>One orbit.</em>
             </h2>
-            <div className="w3-stats">
-                {stats.map(([n, l], i) => (
-                    <div key={l} className="w3-stat w3-r" style={cssVars({ "--d": i * 0.07 + "s" })}>
-                        <strong>{n}</strong>
+            <div className="w3-nums">
+                {p.stats.map(([n, l]) => (
+                    <div key={l} data-b="">
+                        <strong data-to={n}>{n}</strong>
                         <span>{l}</span>
                     </div>
                 ))}
             </div>
-            <div className="w3-logos">
-                {["Coca-Cola", "Tinder", "OPPO", "Maaza"].map((b, i) => (
-                    <span key={b} className="w3-logo w3-r" style={cssVars({ "--d": 0.22 + i * 0.05 + "s" })}>
-                        <i>logo</i>
-                        {b}
-                    </span>
-                ))}
-                <span className="w3-logo w3-more w3-r" style={cssVars({ "--d": ".42s" })}>
-                    + more
-                </span>
+            <div className="w3-belt" role="img" aria-label={LOGOS.map((l) => l.name).join(", ") + " and more"}>
+                <div className="w3-belt-in">
+                    {[0, 1, 2].map((r) => LOGOS.map((l) => <img key={r + l.file} src={LOGO_CDN + l.file} alt="" draggable={false} data-logo={l.name} />))}
+                </div>
             </div>
-        </>
+            <Mark n={4} title="The brands" />
+        </div>
     )
-}
-
-function PageBody(p: { id: string; samples: boolean }) {
-    if (p.id === "why") return <PageWhy />
-    if (p.id === "services") return <PageServices />
-    if (p.id === "work") return <PageWork samples={p.samples} />
-    return <PageBrands />
 }
 
 /* ─────────────────────────────── After the globe ─────────────────────────────── */
@@ -746,9 +786,9 @@ const SERVICES = ["Influencer marketing", "Production", "Social media", "UGC", "
 const BUDGETS = ["Under ₹2L", "₹2L – 5L", "₹5L – 15L", "₹15L – 50L", "₹50L+"]
 const FOLLOWERS = ["Under 10K", "10K – 100K", "100K – 1M", "1M+"]
 
-function Chips(p: { items: string[]; value: string[]; onChange: (v: string[]) => void; multi?: boolean; label: string }) {
+function Chips(p: { items: string[]; value: string[]; onChange: (v: string[]) => void; multi?: boolean; join?: boolean; label: string }) {
     return (
-        <div className="w3-chips" role="group" aria-label={p.label}>
+        <div className="w3-chips" data-join={p.join ? "" : undefined} role="group" aria-label={p.label}>
             {p.items.map((it) => {
                 const on = p.value.includes(it)
                 return (
@@ -758,7 +798,7 @@ function Chips(p: { items: string[]; value: string[]; onChange: (v: string[]) =>
                         aria-pressed={on}
                         onClick={() => p.onChange(p.multi ? (on ? p.value.filter((v) => v !== it) : [...p.value, it]) : on ? [] : [it])}
                     >
-                        {on ? <Icon name="check" size={14} width={2} /> : null}
+                        {on && !p.join ? <Icon name="check" size={14} width={2} /> : null}
                         {it}
                     </button>
                 )
@@ -783,7 +823,20 @@ function Field(p: { name: string; label: string; type?: string; need?: boolean; 
     )
 }
 
-/** The enquiry form: one short column, for brands or for creators. */
+/** A numbered step of the form. */
+function Step(p: { n: number; label: string; children: React.ReactNode }) {
+    return (
+        <div className="w3-q">
+            <span className="w3-lab">
+                <b>{p.n}</b>
+                {p.label}
+            </span>
+            {p.children}
+        </div>
+    )
+}
+
+/** The enquiry form: a few numbered steps on one panel, for brands or for creators. */
 function Contact(p: { email: string; endpoint: string; side: "brand" | "creator"; setSide: (s: "brand" | "creator") => void }) {
     const [services, setServices] = React.useState<string[]>([])
     const [budget, setBudget] = React.useState<string[]>([])
@@ -829,7 +882,7 @@ function Contact(p: { email: string; endpoint: string; side: "brand" | "creator"
                 Got a brand <em>worth talking about?</em>
             </h2>
             {sent === "done" || sent === "mail" ? (
-                <div className="w3-thanks" role="status">
+                <div className="w3-form w3-thanks" role="status">
                     <span className="w3-tick">
                         <Icon name="check" size={28} width={2} />
                     </span>
@@ -840,7 +893,7 @@ function Contact(p: { email: string; endpoint: string; side: "brand" | "creator"
                     </button>
                 </div>
             ) : (
-                <form className="w3-form" onSubmit={submit}>
+                <>
                     <div className="w3-seg" role="group" aria-label="Who’s saying hello?">
                         <button type="button" aria-pressed={brand} onClick={() => p.setSide("brand")}>
                             I’m a brand
@@ -849,44 +902,49 @@ function Contact(p: { email: string; endpoint: string; side: "brand" | "creator"
                             I’m a creator
                         </button>
                     </div>
-                    {brand ? (
-                        <>
-                            <div className="w3-q">
-                                <span className="w3-lab">What do you need?</span>
-                                <Chips items={SERVICES} value={services} onChange={setServices} multi label="What do you need?" />
-                            </div>
-                            <div className="w3-fields">
-                                <Field name="Brand name" label="Brand name" need auto="organization" />
-                                <Field name="Work email" label="Work email" type="email" need auto="email" />
-                            </div>
-                            <div className="w3-q">
-                                <span className="w3-lab">Monthly budget</span>
-                                <Chips items={BUDGETS} value={budget} onChange={setBudget} label="Monthly budget" />
-                            </div>
-                            <div className="w3-fields">
-                                <Field name="Brief" label="Anything else?" area hint="What are you launching, and who should hear about it?" />
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <div className="w3-fields">
-                                <Field name="Name" label="Your name" need auto="name" />
-                                <Field name="Email" label="Email" type="email" need auto="email" />
-                                <Field name="Handle" label="Instagram or YouTube handle" need wide hint="@" />
-                            </div>
-                            <div className="w3-q">
-                                <span className="w3-lab">Followers</span>
-                                <Chips items={FOLLOWERS} value={followers} onChange={setFollowers} label="Followers" />
-                            </div>
-                        </>
-                    )}
-                    <div className="w3-send">
-                        <button type="submit" className="w3-btn" data-tone="signal" disabled={sent === "sending"}>
-                            {sent === "sending" ? "Sending…" : brand ? "Send brief" : "Join the roster"} <Icon name="arrow" size={18} />
-                        </button>
-                        <span>A real person replies within a day.</span>
-                    </div>
-                </form>
+                    <form className="w3-form" onSubmit={submit}>
+                        {brand ? (
+                            <>
+                                <Step n={1} label="What do you need?">
+                                    <Chips items={SERVICES} value={services} onChange={setServices} multi label="What do you need?" />
+                                </Step>
+                                <Step n={2} label="About you">
+                                    <div className="w3-fields">
+                                        <Field name="Brand name" label="Brand name" need auto="organization" />
+                                        <Field name="Work email" label="Work email" type="email" need auto="email" />
+                                    </div>
+                                </Step>
+                                <Step n={3} label="Monthly budget">
+                                    <Chips items={BUDGETS} value={budget} onChange={setBudget} join label="Monthly budget" />
+                                </Step>
+                                <Step n={4} label="Anything else?">
+                                    <div className="w3-fields">
+                                        <Field name="Brief" label="Optional" area hint="What are you launching, and who should hear about it?" />
+                                    </div>
+                                </Step>
+                            </>
+                        ) : (
+                            <>
+                                <Step n={1} label="About you">
+                                    <div className="w3-fields">
+                                        <Field name="Name" label="Your name" need auto="name" />
+                                        <Field name="Email" label="Email" type="email" need auto="email" />
+                                        <Field name="Handle" label="Instagram or YouTube handle" need wide hint="@" />
+                                    </div>
+                                </Step>
+                                <Step n={2} label="Followers">
+                                    <Chips items={FOLLOWERS} value={followers} onChange={setFollowers} join label="Followers" />
+                                </Step>
+                            </>
+                        )}
+                        <div className="w3-send">
+                            <button type="submit" className="w3-btn" data-tone="signal" disabled={sent === "sending"}>
+                                {sent === "sending" ? "Sending…" : brand ? "Send brief" : "Join the roster"} <Icon name="arrow" size={18} />
+                            </button>
+                            <span>A real person replies within a day.</span>
+                        </div>
+                    </form>
+                </>
             )}
         </section>
     )
@@ -900,20 +958,27 @@ const ROLES = [
     { role: "Video Editor", team: "Production & Studio", years: "2–4 years" },
 ]
 
-/** The open roles: one line each, which opens an email to apply. */
+/** The open roles: one row each, which fills with orange on hover and opens an email to apply. */
 function Careers(p: { email: string }) {
     return (
         <section className="w3-sec w3-careers" id="w3-careers" aria-labelledby="w3-cr-h">
-            <h2 className="w3-h2" id="w3-cr-h">
-                Join the <em>crew.</em>
-            </h2>
+            <div className="w3-crh">
+                <h2 className="w3-h2" id="w3-cr-h">
+                    Join the <em>crew.</em>
+                </h2>
+                <p>
+                    <b>{ROLES.length}</b>open roles · New Friends Colony, New Delhi
+                </p>
+            </div>
             <ul className="w3-roles">
-                {ROLES.map((r) => (
+                {ROLES.map((r, i) => (
                     <li key={r.role}>
                         <a href={"mailto:" + p.email + "?subject=" + encodeURIComponent("Application: " + r.role) + "&body=" + encodeURIComponent("Hi World Media,\n\nI’d like to apply for the " + r.role + " role. My CV (and portfolio or showreel) is attached.\n\n")}>
+                            <span className="w3-rn">{nn(i + 1)}</span>
                             <b>{r.role}</b>
-                            <span>
-                                {r.team} · {r.years}
+                            <span className="w3-rm">
+                                <span className="w3-rt">{r.team}</span>
+                                <span className="w3-ry">{r.years}</span>
                             </span>
                             <i aria-hidden="true">
                                 <Icon name="arrow" size={18} />
@@ -1004,7 +1069,6 @@ box-shadow:0 0 0 1px rgba(255,255,255,.16)}
 .w3-tag{position:absolute;left:6px;right:6px;bottom:6px;display:flex;align-items:center;gap:4px;font:600 11.5px/1 var(--sans);color:#fff}
 .w3-tag i{display:grid;place-items:center;width:17px;height:17px;border-radius:50%;background:rgba(10,10,10,.72);flex:none}
 .w3-tag span{padding:4px 6px;border-radius:99px;background:rgba(10,10,10,.72);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.w3-tile[data-page] .w3-tag span{background:var(--signal);color:var(--ink)}
 .w3-badges{position:absolute;inset:0;pointer-events:none}
 .w3-bd{position:absolute;left:0;top:0;opacity:0;will-change:transform,opacity}
 .w3-bd::before{content:"";position:absolute;left:0;bottom:0;width:1px;height:16px;background:rgba(255,255,255,.45);transform-origin:50% 100%;rotate:40deg}
@@ -1015,50 +1079,66 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-bd[data-left]::before{rotate:-40deg}
 .w3-bd[data-left] span{left:auto;right:9px}
 @keyframes w3blink{50%{opacity:.35}}
-.w3-veil{position:absolute;inset:0;background:#080808;opacity:0;pointer-events:none}
-.w3-pages{z-index:1}
 
-/* the pages */
-.w3-pn{position:absolute;left:calc(var(--W) / -2);top:calc(var(--H) / -2);width:var(--W);height:var(--H);border-radius:26px;overflow:hidden;background:var(--tone);
-box-shadow:0 0 0 1px rgba(255,255,255,.12);backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:none;opacity:0}
-.w3-pn.live{pointer-events:auto;box-shadow:0 0 0 1px rgba(255,255,255,.1),0 60px 120px -50px rgba(0,0,0,.9)}
-.w3-pn[data-tone="char"],.w3-flatpn[data-tone="char"]{--tone:var(--char);color:var(--text);--hair:rgba(255,255,255,.14)}
-.w3-pn[data-tone="ink"],.w3-flatpn[data-tone="ink"]{--tone:#0D0D0D;color:var(--text);--hair:rgba(255,255,255,.14)}
-.w3-pn[data-tone="signal"],.w3-flatpn[data-tone="signal"]{--tone:var(--signal);color:var(--ink);--mute:rgba(10,10,10,.68);--hair:rgba(10,10,10,.2)}
-.w3-pn[data-tone="paper"],.w3-flatpn[data-tone="paper"]{--tone:var(--paper);color:var(--ink);--mute:rgba(10,10,10,.58);--hair:rgba(10,10,10,.14)}
-.w3-pg{position:absolute;inset:0;container-type:inline-size;padding:clamp(20px,3.2cqw,46px);display:flex;flex-direction:column;justify-content:space-between;gap:clamp(14px,2.4cqw,32px);overflow:auto;scrollbar-width:none}
-.w3-top{display:flex;align-items:baseline;gap:12px;font-family:var(--disp);font-weight:600;font-size:clamp(17px,1.8cqw,24px);line-height:1;letter-spacing:-.025em}
-.w3-top b{font-weight:700;color:var(--signal)}
-.w3-pn[data-tone="signal"] .w3-top b,.w3-flatpn[data-tone="signal"] .w3-top b{color:#fff}
-.w3-big{font-family:var(--disp);font-weight:700;font-size:clamp(42px,9.6cqw,150px);line-height:.86;letter-spacing:-.055em;text-wrap:balance}
-.w3-big em,.w3-h2 em{font-style:normal;color:var(--signal)}
-.w3-pn[data-tone="signal"] .w3-big em,.w3-flatpn[data-tone="signal"] .w3-big em{color:#fff}
-.w3-r{opacity:0;translate:0 26px;transition:opacity .9s var(--ease),translate 1s var(--ease);transition-delay:var(--d,0s)}
-.w3-pn.on .w3-r,.w3-still .w3-r{opacity:1;translate:0 0}
-.w3-beliefs{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,1.6cqw,22px)}
-.w3-beliefs li{display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--hair)}
-.w3-beliefs i{font-family:var(--disp);font-weight:700;font-size:clamp(18px,1.7cqw,24px);line-height:1;font-style:normal;color:var(--signal)}
-.w3-beliefs b{font-family:var(--disp);font-weight:600;font-size:clamp(22px,2.8cqw,40px);line-height:1;letter-spacing:-.035em}
-.w3-svc{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(20px,4cqw,64px);align-items:end;flex:1}
-.w3-svc ol{display:flex;flex-direction:column}
-.w3-svc li{display:flex;align-items:center;gap:16px;padding:clamp(10px,1.3cqw,18px) 0;border-top:1px solid var(--hair)}
-.w3-svi{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--ink);color:var(--signal);flex:none}
-.w3-svc b{font-family:var(--disp);font-weight:600;font-size:clamp(22px,2.7cqw,38px);letter-spacing:-.035em;line-height:1}
-.w3-svc li i{font:600 12px/1 var(--sans);font-style:normal;padding:6px 10px;border-radius:99px;background:var(--ink);color:#fff}
-.w3-reels{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(8px,1.2cqw,16px)}
-.w3-reel{display:flex;flex-direction:column;gap:10px;min-width:0}
-.w3-rv{position:relative;aspect-ratio:9/14;border-radius:16px;overflow:hidden;background:#1C1C1C;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
-.w3-rv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:scale .8s var(--ease)}
-.w3-reel:hover .w3-rv video{scale:1.05}
-.w3-views{position:absolute;left:8px;bottom:8px;display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:99px;background:rgba(10,10,10,.72);font:600 12px/1 var(--sans);color:#fff}
-.w3-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,2cqw,28px)}
-.w3-stat{display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px solid var(--hair)}
-.w3-stat strong{font-family:var(--disp);font-weight:700;font-size:clamp(40px,6.4cqw,96px);line-height:.9;letter-spacing:-.055em}
-.w3-stat span{font-size:14.5px;color:var(--mute)}
-.w3-logos{display:flex;flex-wrap:wrap;gap:8px}
-.w3-logo{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:132px;height:64px;padding:0 20px;border-radius:14px;background:rgba(10,10,10,.06);font-family:var(--disp);font-weight:600;font-size:19px;letter-spacing:-.02em}
-.w3-logo i{position:absolute;top:6px;right:9px;font:500 10.5px/1 var(--sans);font-style:normal;color:var(--mute)}
-.w3-more{background:none;box-shadow:inset 0 0 0 1px var(--hair);color:var(--mute);font-weight:500}
+/* the chapters: each one arrives in its own way */
+.w3-gl{position:absolute;inset:0;pointer-events:none;will-change:transform}
+.w3-veil{position:absolute;inset:0;background:#0A0A0A;opacity:0;pointer-events:none}
+.w3-c{position:absolute;inset:0;visibility:hidden;pointer-events:none;overflow:hidden}
+.w3-c.live a{pointer-events:auto}
+.w3-mark{position:absolute;left:clamp(16px,2.6vw,40px);bottom:clamp(18px,3.4vh,34px);display:flex;align-items:baseline;gap:10px;font-family:var(--disp);font-weight:600;font-size:18px;letter-spacing:-.02em}
+.w3-mark b{font-weight:700;color:var(--signal)}
+.w3-say{font-family:var(--disp);font-weight:700;font-size:clamp(48px,7.4vw,140px);line-height:.9;letter-spacing:-.058em;text-wrap:balance}
+.w3-say em,.w3-em{font-style:normal;color:var(--signal)}
+.w3-ln{display:block}
+.w3-wd{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.1em;margin-bottom:-.1em}
+.w3-wd>span{display:inline-block;will-change:transform}
+.w3-c1 .w3-say{position:absolute;left:clamp(16px,4vw,64px);right:clamp(16px,4vw,64px);top:22vh}
+.w3-tenets{position:absolute;left:clamp(16px,4vw,64px);right:clamp(16px,4vw,64px);bottom:clamp(76px,12vh,124px);display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2.4vw,40px)}
+.w3-tenets li{display:grid;grid-template-columns:auto 1fr;column-gap:16px;row-gap:6px;padding-top:18px;border-top:1px solid rgba(255,255,255,.2)}
+.w3-tenets i{grid-row:1/span 2;font-family:var(--disp);font-style:normal;font-weight:700;font-size:clamp(28px,3vw,46px);line-height:.85;letter-spacing:-.04em;color:var(--signal)}
+.w3-tenets b{font-family:var(--disp);font-weight:600;font-size:clamp(21px,2.1vw,32px);letter-spacing:-.03em;line-height:1.05}
+.w3-tenets span{font-size:15px;line-height:1.4;color:var(--mute)}
+.w3-c2{color:var(--ink)}
+.w3-strip{position:absolute;left:0;top:0;bottom:0;display:flex;background:var(--signal);will-change:transform}
+.w3-sp{position:relative;flex:none;width:var(--spw);height:100%;padding:clamp(84px,12vh,120px) clamp(20px,2.4vw,36px) clamp(70px,11vh,104px);display:flex;flex-direction:column;justify-content:flex-end;gap:14px;border-left:1px solid rgba(10,10,10,.18)}
+.w3-sp0{width:var(--sp0w);border-left:0;justify-content:center;padding-left:clamp(16px,4vw,64px)}
+.w3-sp0 .w3-say em{color:#fff}
+.w3-hint{display:inline-flex;align-items:center;gap:8px;margin-top:28px;font-size:16px;font-weight:600}
+.w3-num{position:absolute;top:clamp(76px,11vh,110px);left:clamp(20px,2.4vw,36px);font-family:var(--disp);font-weight:700;font-size:clamp(88px,17vh,180px);line-height:.8;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:1.5px var(--ink)}
+.w3-spv{position:relative;width:100%;height:min(38vh,calc(var(--spw) * .75));border-radius:18px;overflow:hidden;background:rgba(10,10,10,.14)}
+.w3-spv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.w3-sp h3{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--disp);font-weight:700;font-size:clamp(28px,3vw,44px);letter-spacing:-.04em;line-height:1}
+.w3-sp h3 i{font:600 12px/1 var(--sans);font-style:normal;letter-spacing:0;padding:6px 10px;border-radius:99px;background:var(--ink);color:#fff}
+.w3-sp p{font-size:16px;line-height:1.45;max-width:30ch;color:rgba(10,10,10,.76)}
+.w3-prog2{position:absolute;right:clamp(16px,2.6vw,40px);bottom:clamp(18px,3.4vh,34px);display:flex;align-items:center;gap:14px;font-family:var(--disp);font-weight:600;font-size:16px;font-variant-numeric:tabular-nums}
+.w3-prog2 b{display:block;width:clamp(120px,16vw,240px);height:2px;background:rgba(10,10,10,.22);overflow:hidden}
+.w3-prog2 i{display:block;height:100%;background:var(--ink);transform-origin:0 50%;transform:scaleX(0)}
+.w3-c2 .w3-mark b{color:#fff}
+.w3-c3 .w3-say{position:absolute;left:16px;right:16px;top:clamp(76px,11vh,110px);text-align:center;font-size:clamp(44px,6.4vw,112px)}
+.w3-fan{position:absolute;left:50%;top:var(--gy);width:0;height:0}
+.w3-reel{position:absolute;width:var(--rw);height:calc(var(--rw) * 16 / 9);left:calc(var(--rw) / -2);top:calc(var(--rw) * -8 / 9);opacity:0;will-change:transform,opacity}
+.w3-rv{position:absolute;inset:0;border-radius:calc(var(--rw) * .1);overflow:hidden;background:#1C1C1C;box-shadow:0 0 0 1px rgba(255,255,255,.16),0 30px 60px -24px rgba(0,0,0,.85);transition:translate .5s var(--ease),box-shadow .4s}
+.w3-reel:hover .w3-rv,.w3-reel:focus-visible .w3-rv{translate:0 -16px;box-shadow:0 0 0 2px var(--signal),0 40px 70px -24px rgba(0,0,0,.9)}
+.w3-rv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.w3-views{position:absolute;left:10px;bottom:10px;display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border-radius:99px;background:rgba(10,10,10,.72);font:600 12px/1 var(--sans);color:#fff}
+.w3-go{position:absolute;right:10px;top:10px;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:rgba(10,10,10,.72);color:#fff;transition:background-color .3s,color .3s}
+.w3-reel:hover .w3-go{background:var(--signal);color:var(--ink)}
+.w3-cur{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:clamp(26px,5vh,56px);padding:clamp(76px,11vh,120px) 0 clamp(70px,11vh,104px);background:var(--paper);color:var(--ink);transform:translate3d(0,100%,0);will-change:transform;overflow:hidden}
+.w3-cur .w3-say,.w3-nums{padding:0 clamp(16px,4vw,64px)}
+.w3-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2.4vw,40px)}
+.w3-nums div{display:flex;flex-direction:column;gap:6px;padding-top:16px;border-top:1px solid rgba(10,10,10,.16)}
+.w3-nums strong{font-family:var(--disp);font-weight:700;font-size:clamp(48px,7vw,120px);line-height:.9;letter-spacing:-.06em;font-variant-numeric:tabular-nums}
+.w3-nums span{font-size:16px;color:rgba(10,10,10,.6)}
+.w3-belt{overflow:hidden;padding:clamp(18px,3vh,32px) 0;border-top:1px solid rgba(10,10,10,.12);border-bottom:1px solid rgba(10,10,10,.12);-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.w3-belt-in{display:flex;align-items:center;width:max-content;animation:w3belt 26s linear infinite;animation-play-state:paused}
+.w3-c4.on .w3-belt-in{animation-play-state:running}
+.w3-belt img{display:block;width:auto;margin-right:clamp(56px,8vw,128px);flex:none}
+.w3-belt img[data-logo="Coca-Cola"]{height:clamp(40px,4.6vw,64px)}
+.w3-belt img[data-logo="Tinder"]{height:clamp(30px,3.4vw,46px)}
+.w3-belt img[data-logo="OPPO"]{height:clamp(20px,2.3vw,32px)}
+.w3-belt img[data-logo="Maaza"]{height:clamp(46px,5.2vw,74px)}
+@keyframes w3belt{to{transform:translateX(-33.3333%)}}
+.w3-c4 .w3-mark b{color:var(--signal)}
 
 /* the landing and the way out */
 .w3-land,.w3-outro{position:absolute;inset:0;pointer-events:none;will-change:opacity,transform}
@@ -1109,29 +1189,36 @@ box-shadow:0 0 0 1px rgba(255,255,255,.12);backface-visibility:hidden;-webkit-ba
 .w3-sheet button{display:flex;justify-content:space-between;align-items:center;height:54px;padding:0 16px;border-radius:14px;font-family:var(--disp);font-weight:500;font-size:22px;letter-spacing:-.03em}
 .w3-sheet button:hover{background:rgba(255,255,255,.06)}
 
-/* after the globe: one calm column */
+/* after the globe */
 .w3-rest{position:relative;background:var(--bg);border-top:1px solid rgba(255,255,255,.06)}
 .w3-sec{padding:clamp(80px,11vw,160px) clamp(16px,4vw,64px) 0;max-width:880px;margin:0 auto;scroll-margin-top:24px}
 .w3-sec:last-of-type{padding-bottom:clamp(80px,11vw,160px)}
-.w3-h2{font-family:var(--disp);font-weight:700;font-size:clamp(44px,6.4vw,96px);line-height:.9;letter-spacing:-.055em;text-wrap:balance;text-align:center;margin-bottom:clamp(36px,5vw,60px)}
-.w3-form{display:flex;flex-direction:column;gap:32px}
-.w3-seg{align-self:center;display:inline-flex;padding:4px;border-radius:99px;background:rgba(255,255,255,.06)}
-.w3-seg button{height:44px;padding:0 22px;border-radius:99px;font-weight:500;font-size:15px;color:var(--mute);transition:background-color .3s,color .3s}
+.w3-h2{font-family:var(--disp);font-weight:700;font-size:clamp(44px,6.4vw,96px);line-height:.9;letter-spacing:-.055em;text-wrap:balance;text-align:center;margin-bottom:clamp(32px,4.4vw,52px)}
+.w3-h2 em{font-style:normal;color:var(--signal)}
+.w3-contact{display:flex;flex-direction:column;align-items:stretch}
+.w3-seg{align-self:center;display:inline-flex;padding:4px;margin-bottom:24px;border-radius:99px;background:rgba(255,255,255,.06)}
+.w3-seg button{height:46px;padding:0 24px;border-radius:99px;font-weight:600;font-size:15px;color:var(--mute);transition:background-color .3s,color .3s}
 .w3-seg button[aria-pressed="true"]{background:#fff;color:var(--ink)}
-.w3-q{display:flex;flex-direction:column;gap:12px}
-.w3-q .w3-lab{color:var(--mute)}
+.w3-form{display:flex;flex-direction:column;gap:34px;padding:clamp(22px,3.6vw,48px);border-radius:28px;background:#111;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.w3-q{display:flex;flex-direction:column;gap:14px}
+.w3-lab{display:flex;align-items:center;gap:10px;color:var(--text)}
+.w3-lab b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--signal);color:var(--ink);font:700 13px/1 var(--sans)}
 .w3-chips{display:flex;flex-wrap:wrap;gap:6px}
-.w3-chips button{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;border-radius:99px;font-size:14.5px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);transition:background-color .3s,color .3s,box-shadow .3s}
+.w3-chips button{display:inline-flex;align-items:center;gap:6px;height:42px;padding:0 17px;border-radius:99px;font-size:14.5px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);transition:background-color .3s,color .3s,box-shadow .3s}
 .w3-chips button:hover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.45)}
 .w3-chips button[aria-pressed="true"]{background:var(--signal);color:var(--ink);box-shadow:none}
-.w3-fields{display:grid;grid-template-columns:1fr 1fr;gap:24px 24px}
+.w3-chips[data-join]{display:flex;flex-wrap:wrap;gap:1px;border-radius:16px;overflow:hidden;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.w3-chips[data-join] button{flex:1 1 104px;justify-content:center;height:54px;border-radius:0;background:#111;box-shadow:none}
+.w3-chips[data-join] button:hover{background:#1A1A1A;box-shadow:none}
+.w3-chips[data-join] button[aria-pressed="true"]{background:var(--signal);color:var(--ink)}
+.w3-fields{display:grid;grid-template-columns:1fr 1fr;gap:22px 24px}
 .w3-field{display:flex;flex-direction:column;gap:8px}
 .w3-field.w3-wide{grid-column:1/-1}
-.w3-field span{font-size:15px;font-weight:500;line-height:1.3;color:var(--mute)}
+.w3-field span{font-size:14px;font-weight:500;line-height:1.3;color:var(--mute)}
 .w3-field input,.w3-field textarea{width:100%;font:inherit;font-size:17px;color:var(--text);background:transparent;border:0;border-bottom:1px solid rgba(255,255,255,.18);border-radius:0;padding:8px 0 10px;outline:none;transition:border-color .3s;resize:vertical}
 .w3-field input:focus,.w3-field textarea:focus{border-color:var(--signal)}
 .w3-field ::placeholder{color:rgba(243,241,236,.3)}
-.w3-send{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding-top:4px}
+.w3-send{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding-top:22px;border-top:1px solid rgba(255,255,255,.08)}
 .w3-send span{font-size:13.5px;color:var(--mute)}
 .w3-btn{display:inline-flex;align-items:center;justify-content:space-between;gap:24px;height:58px;padding:0 22px 0 26px;border-radius:99px;font-family:var(--disp);font-weight:600;font-size:18px;letter-spacing:-.02em;transition:background-color .3s,color .3s}
 .w3-btn[data-tone="signal"]{background:var(--signal);color:var(--ink)}
@@ -1139,20 +1226,31 @@ box-shadow:0 0 0 1px rgba(255,255,255,.12);backface-visibility:hidden;-webkit-ba
 .w3-btn[data-tone="signal"]:disabled{opacity:.6;cursor:progress}
 .w3-btn svg{transition:translate .4s var(--ease)}
 .w3-btn:hover svg{translate:4px 0}
-.w3-thanks{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.w3-thanks{align-items:center;gap:14px;text-align:center}
 .w3-thanks h3{font-family:var(--disp);font-weight:600;font-size:clamp(28px,3vw,40px);letter-spacing:-.04em;line-height:1}
 .w3-thanks p{color:var(--mute);max-width:44ch;line-height:1.5}
 .w3-tick{display:grid;place-items:center;width:58px;height:58px;border-radius:50%;background:var(--signal);color:var(--ink)}
 .w3-link{text-decoration:underline;text-underline-offset:4px;color:var(--mute)}
+.w3-careers{max-width:1240px}
+.w3-crh{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px 40px;margin-bottom:clamp(28px,4vw,48px)}
+.w3-crh .w3-h2{margin:0;text-align:left}
+.w3-crh p{display:flex;align-items:center;gap:10px;padding-bottom:8px;font-size:16px;color:var(--mute)}
+.w3-crh p b{display:grid;place-items:center;min-width:32px;height:32px;padding:0 9px;border-radius:99px;background:var(--signal);color:var(--ink);font-weight:700}
 .w3-roles li{border-top:1px solid var(--line)}
 .w3-roles li:last-child{border-bottom:1px solid var(--line)}
-.w3-roles a{display:grid;grid-template-columns:1fr auto;column-gap:16px;row-gap:4px;align-items:center;padding:22px 0}
-.w3-roles b{font-family:var(--disp);font-weight:600;font-size:clamp(21px,2.3vw,30px);letter-spacing:-.03em;line-height:1.1;transition:color .3s}
-.w3-roles span{grid-row:2;font-size:14px;color:var(--mute)}
-.w3-roles i{grid-row:1/span 2;grid-column:2;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);transition:background-color .3s,color .3s,box-shadow .3s,rotate .4s var(--ease)}
-.w3-roles a:hover b{color:var(--signal)}
-.w3-roles a:hover i{background:var(--signal);color:var(--ink);box-shadow:none;rotate:-45deg}
-.w3-note{margin-top:24px;text-align:center;font-size:14.5px;line-height:1.5;color:var(--mute)}
+.w3-roles a{position:relative;isolation:isolate;display:grid;grid-template-columns:clamp(40px,5vw,72px) 1fr auto 48px;align-items:center;gap:12px 20px;padding:clamp(20px,2.6vw,30px) clamp(10px,1.4vw,22px);transition:color .35s}
+.w3-roles a::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--signal);transform:scaleY(0);transform-origin:50% 100%;transition:transform .5s var(--ease)}
+.w3-roles a:hover,.w3-roles a:focus-visible{color:var(--ink)}
+.w3-roles a:hover::before,.w3-roles a:focus-visible::before{transform:scaleY(1)}
+.w3-rn{font-family:var(--disp);font-weight:700;font-size:clamp(18px,1.6vw,22px);color:var(--signal);transition:color .35s}
+.w3-roles a:hover .w3-rn{color:var(--ink)}
+.w3-roles b{font-family:var(--disp);font-weight:600;font-size:clamp(22px,2.6vw,40px);letter-spacing:-.035em;line-height:1.05}
+.w3-rm{display:flex;align-items:center;gap:16px;white-space:nowrap}
+.w3-rt{padding:7px 12px;border-radius:99px;box-shadow:inset 0 0 0 1px currentColor;font-size:13.5px;opacity:.8}
+.w3-ry{min-width:76px;font-size:14.5px;opacity:.7;text-align:right}
+.w3-roles i{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);transition:background-color .35s,color .35s,box-shadow .35s,rotate .45s var(--ease)}
+.w3-roles a:hover i{background:var(--ink);color:var(--signal);box-shadow:none;rotate:-45deg}
+.w3-note{margin-top:24px;font-size:14.5px;line-height:1.5;color:var(--mute)}
 .w3-note a{color:var(--text);text-decoration:underline;text-underline-offset:4px;text-decoration-color:rgba(255,255,255,.3)}
 .w3-note a:hover{text-decoration-color:currentColor}
 .w3-foot{position:relative;overflow:hidden;padding:clamp(48px,6vw,80px) clamp(16px,4vw,64px) 28px;background:#060606;border-top:1px solid rgba(255,255,255,.06)}
@@ -1173,22 +1271,34 @@ box-shadow:0 0 0 1px rgba(255,255,255,.12);backface-visibility:hidden;-webkit-ba
 .w3-side p{display:none}.w3-side div>*{flex:1;justify-content:center}
 .w3-idx button span{display:none}
 .w3-bd span{font-size:11.5px;padding:5px 8px}
+.w3-c1 .w3-say{top:17vh}
+.w3-tenets{grid-template-columns:1fr;gap:12px;bottom:72px}
+.w3-tenets li{padding-top:12px}.w3-tenets span{font-size:14px}
+.w3-num{font-size:clamp(80px,13vh,120px)}
+.w3-prog2 b{width:72px}
+.w3-nums{grid-template-columns:1fr;gap:4px}
+.w3-nums div{flex-direction:row;align-items:baseline;gap:14px;padding-top:10px}
+.w3-nums strong{font-size:46px}
 .w3-fields{grid-template-columns:1fr}
 .w3-send .w3-btn{flex:1}
+.w3-crh .w3-h2{text-align:left}
+.w3-roles a{grid-template-columns:34px 1fr 44px;row-gap:10px}
+.w3-rm{grid-column:2;grid-row:2;gap:12px}
+.w3-roles i{grid-column:3;grid-row:1/span 2;width:44px;height:44px}
 .w3-frow{flex-direction:column}
 }
-@container (max-width:760px){
-.w3-svc{grid-template-columns:1fr}
-.w3-beliefs{grid-template-columns:1fr;gap:10px}.w3-beliefs li{padding-top:10px;flex-direction:row;align-items:baseline;gap:12px}
-.w3-stats{grid-template-columns:1fr;gap:6px}.w3-stat{flex-direction:row;align-items:baseline;gap:14px;padding-top:10px}.w3-stat strong{font-size:44px}
-.w3-logo{min-width:0;height:48px;padding:0 14px;font-size:15px}
-.w3-svi{width:34px;height:34px}.w3-svi svg{width:16px;height:16px}.w3-svc li{gap:12px;padding:9px 0}
-.w3-reels{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -20px;padding:0 20px;scroll-padding:0 20px;scrollbar-width:none}
-.w3-reel{flex:0 0 46%;scroll-snap-align:start}
-}
-.w3-flat{display:flex;flex-direction:column;gap:14px;padding:14px}
-.w3-flatpn{position:relative;border-radius:26px;overflow:hidden;background:var(--tone);min-height:min(780px,92vh)}
-.w3-flatpn .w3-pg{position:relative;left:auto;top:auto;translate:none;width:auto;height:auto;min-height:inherit;overflow:visible}
+.w3-flat{display:flex;flex-direction:column}
+.w3-still .w3-c{position:relative;inset:auto;visibility:visible;pointer-events:auto;overflow:visible}
+.w3-still .w3-c1,.w3-still .w3-c3{padding:96px clamp(16px,4vw,64px)}
+.w3-still .w3-c1 .w3-say,.w3-still .w3-c3 .w3-say,.w3-still .w3-tenets,.w3-still .w3-mark,.w3-still .w3-prog2{position:static}
+.w3-still .w3-tenets{margin-top:56px}
+.w3-still .w3-mark{margin-top:40px}
+.w3-still .w3-prog2{display:none}
+.w3-still .w3-strip{position:relative;height:680px;overflow-x:auto}
+.w3-still .w3-fan{position:static;display:flex;gap:14px;width:auto;height:auto;margin-top:48px;overflow-x:auto}
+.w3-still .w3-reel{position:relative;left:auto;top:auto;flex:none;opacity:1}
+.w3-still .w3-cur{position:relative;transform:none}
+.w3-still .w3-c2 .w3-mark{color:var(--text);padding:0 clamp(16px,4vw,64px)}
 @media (prefers-reduced-motion:reduce){.w3 *{transition:none!important;animation:none!important}}
 `
 
@@ -1198,44 +1308,52 @@ box-shadow:0 0 0 1px rgba(255,255,255,.12);backface-visibility:hidden;-webkit-ba
 // a hold with the page up front, then a last turn back to the globe before the rest of the site.
 const N = PAGES.length
 const REST = 0.12 // the landing at rest
-const TURN = 1.4 // a turn of the globe from one city to the next
-const HOLD = 1.4 // a page held up front
+const TURN = 1.5 // a turn of the globe from one city to the next
+/** How long each chapter stays, in screens: What we do is longer, as it scrolls sideways. */
+const HOLDS = [1.6, 3.4, 1.8, 1.8]
 const OUT = 0.9 // the globe again, spinning on its own, before the rest of the site
 const TILT = -16 // the globe leans towards you, so you see a little of the north
-const holdStart = (k: number) => REST + TURN + k * (HOLD + TURN)
-const holdEnd = (k: number) => holdStart(k) + HOLD
+const ENTER = 0.9 // how long a chapter takes to come in, or to go
+const holdStart = (k: number) => REST + TURN + HOLDS.slice(0, k).reduce((a, b) => a + b, 0) + k * TURN
+const holdEnd = (k: number) => holdStart(k) + HOLDS[k]
 const TOTAL = holdEnd(N - 1) + TURN + OUT
 const PAGE_TILES = PAGES.map((_, k) => TILES.findIndex((t) => t.page === k))
 const VIDEO_TILES = TILES.map((t, i) => (t.page === undefined ? i : -1)).filter((i) => i >= 0)
 const PAGE_LON = PAGE_TILES.map((i) => TILES[i].lon)
-/** How far the globe turns between two pages: from one page's city to the next one's, and from the last back home to Delhi. */
+const HOME_LAT = TILES[PAGE_TILES[0]].lat
+/** How far the globe turns between two chapters: from one city to the next one's, and from the last back home to Delhi. */
 const GAP = PAGE_LON.map((lon, k) => mod(lon - PAGE_LON[(k + 1) % N], 360))
 
-type Frame = { rot: number; free: 0 | 1 | 2; lifts: number[] }
+type Frame = { rot: number; free: 0 | 1 | 2 }
 
-/** Where the globe is turned to, and how far each page is lifted off it, at scroll u. */
+/** Where the globe is turned to at scroll u. */
 function motion(u: number, spin: number, spin2: number): Frame {
-    const lifts = PAGES.map((_, k) => {
-        const up = smooth((u - (holdStart(k) - 0.45)) / 0.85)
-        const down = 1 - smooth((u - (holdEnd(k) - 0.4)) / 0.85)
-        return Math.max(0, Math.min(up, down))
-    })
     if (u < holdStart(0)) {
-        // From the landing into the first page: whatever way the globe faces, it turns at least a
-        // third of a turn forward to India.
+        // From the landing into the first chapter: whatever way the globe faces, it turns at least
+        // a third of a turn forward to India.
         const e = glide((u - REST) / TURN)
         const w0 = mod(spin + PAGE_LON[0] + 120, 360) - 480
-        return { rot: -PAGE_LON[0] + w0 * (1 - e), free: e <= 0 ? 1 : 0, lifts }
+        return { rot: -PAGE_LON[0] + w0 * (1 - e), free: e <= 0 ? 1 : 0 }
     }
     const last = holdEnd(N - 1)
     if (u >= last) {
         const e = glide((u - last) / TURN)
-        return { rot: -PAGE_LON[N - 1] + GAP[N - 1] * e + wrap(spin2) * e, free: e >= 1 ? 2 : 0, lifts }
+        return { rot: -PAGE_LON[N - 1] + GAP[N - 1] * e + wrap(spin2) * e, free: e >= 1 ? 2 : 0 }
     }
-    const k = Math.min(N - 1, Math.floor((u - holdStart(0)) / (HOLD + TURN)))
+    let k = 0
+    while (k < N - 1 && u >= holdStart(k + 1)) k++
     const into = u - holdStart(k)
-    if (into <= HOLD) return { rot: -PAGE_LON[k], free: 0, lifts }
-    return { rot: -PAGE_LON[k] + GAP[k] * glide((into - HOLD) / TURN), free: 0, lifts }
+    if (into <= HOLDS[k]) return { rot: -PAGE_LON[k], free: 0 }
+    return { rot: -PAGE_LON[k] + GAP[k] * glide((into - HOLDS[k]) / TURN), free: 0 }
+}
+
+/** How far into chapter k we are at scroll u: a coming in, b going out, t through its stay. */
+function phase(u: number, k: number) {
+    return {
+        a: smooth((u - (holdStart(k) - ENTER * 0.6)) / ENTER),
+        b: smooth((u - (holdEnd(k) - ENTER * 0.4)) / ENTER),
+        t: clamp((u - holdStart(k)) / HOLDS[k]),
+    }
 }
 
 /** The element whose scrolling moves this page: a scrolling box around it, or the window. */
@@ -1254,7 +1372,7 @@ function scrollBox(el: HTMLElement | null): HTMLElement | null {
  * @framerSupportedLayoutHeight auto
  */
 export default function W3Globe(props: Props) {
-    const { media = NO_MEDIA, samples = true, rest = true, email = "social@worldmedia.co.in", phone = "+91 88000 40301", endpoint = "", style } = props
+    const { media = NO_MEDIA, samples = true, rest = true, email = "social@worldmedia.co.in", phone = "+91 88000 40301", endpoint = "", views = "[00]M+", campaigns = "[000]+", creators = "[00]+", style } = props
     const isStatic = useIsStaticRenderer()
     const [reduce, setReduce] = React.useState(false)
     const [mounted, setMounted] = React.useState(false)
@@ -1271,6 +1389,8 @@ export default function W3Globe(props: Props) {
     const ballRef = React.useRef<HTMLDivElement>(null)
     const crossX = React.useRef<HTMLDivElement>(null)
     const crossY = React.useRef<HTMLDivElement>(null)
+    const bodyRef = React.useRef<HTMLDivElement>(null)
+    const tilesRef = React.useRef<HTMLDivElement>(null)
     const worldRef = React.useRef<HTMLDivElement>(null)
     const spinRef = React.useRef<HTMLDivElement>(null)
     const veilRef = React.useRef<HTMLDivElement>(null)
@@ -1283,8 +1403,7 @@ export default function W3Globe(props: Props) {
     const tileEls = React.useRef<(HTMLDivElement | null)[]>([])
     const tileVids = React.useRef<(HTMLVideoElement | null)[]>([])
     const badgeEls = React.useRef<(HTMLDivElement | null)[]>([])
-    const panels = React.useRef<(HTMLDivElement | null)[]>([])
-    const bodies = React.useRef<(HTMLDivElement | null)[]>([])
+    const chEls = React.useRef<(HTMLElement | null)[]>([])
     const navBtns = React.useRef<(HTMLButtonElement | null)[]>([])
     const idxBtns = React.useRef<(HTMLButtonElement | null)[]>([])
     const openRef = React.useRef(false)
@@ -1302,7 +1421,7 @@ export default function W3Globe(props: Props) {
         mq.addEventListener("change", onMq)
         return () => mq.removeEventListener("change", onMq)
     }, [isStatic])
-    // The stage's size: the globe, the pages and the scroll are all measured from it.
+    // The stage's size: the globe, the chapters and the scroll are all measured from it.
     React.useEffect(() => {
         const st = stageRef.current
         if (!st || typeof ResizeObserver === "undefined") return
@@ -1321,11 +1440,10 @@ export default function W3Globe(props: Props) {
     const R = Math.round(phoneW ? Math.min(size.w * 0.4, size.h * 0.27) : Math.min(size.h * 0.33, size.w * 0.26))
     const P = phoneW ? 1100 : 1700
     const gyF = phoneW ? 0.4 : 0.47
-    const W = phoneW ? size.w - 16 : Math.min(1240, size.w - 2 * Math.max(56, size.w * 0.04))
-    const navH = phoneW ? 68 : 84
-    const H = phoneW ? Math.min(size.h - navH - 8, 760) : Math.min(820, size.h - navH - 16)
-    // How far a page drops from the globe's centre to sit just under the menu.
-    const dy = Math.round(navH + (size.h - navH - H) / 2 + H / 2 - size.h * gyF)
+    // The sizes of the chapters' parts: a service column, the opening column, a reel.
+    const spw = phoneW ? Math.round(size.w * 0.82) : Math.round(clamp(size.w * 0.3, 340, 480))
+    const sp0w = phoneW ? size.w : Math.round(size.w * 0.52)
+    const rw = Math.round(phoneW ? Math.min(size.w * 0.34, 150) : Math.min(size.h * 0.28, 250))
 
     const key = (media || NO_MEDIA).filter(Boolean).join("\n")
     const items = React.useMemo(() => (key ? key.split("\n") : NO_MEDIA), [key])
@@ -1344,7 +1462,7 @@ export default function W3Globe(props: Props) {
         React.startTransition(() => setShapes((o) => (o.every((v, i) => v === TILES[i].ar) ? o : TILES.map((t) => t.ar))))
     }, [items])
 
-    // The motion: one loop reads the scroll and moves the globe, the tiles, the pages and the menu.
+    // The motion: one loop reads the scroll and moves the globe, the tiles, the chapters and the menu.
     const state = React.useRef({ cur: 0, spin: -110, spin2: 0, vel: 0, drag: 0 as 0 | 1 | 2, px: 0, last: 0, t0: 0, onIdx: -2, py: 0, tilt: 0, fix: 0 as 0 | 1 | 2, free: 1 as 0 | 1 | 2 })
     React.useEffect(() => {
         const cv = canvasRef.current
@@ -1369,8 +1487,6 @@ export default function W3Globe(props: Props) {
         const cx = size.w / 2
         const cy = size.h * gyF
         const s = state.current
-        // How small a page is while it rides the globe: the size of a tile.
-        const mini = tileSize(R, W / H).w / W
         const badgeAt = BADGES.map((b) => onGlobe(CITY[b.at][0], CITY[b.at][1]))
         const tileAt = TILES.map((t) => onGlobe(t.lon, t.lat))
 
@@ -1379,9 +1495,39 @@ export default function W3Globe(props: Props) {
             return
         }
 
+        // The parts of the chapters that the scroll moves.
+        const ch = chEls.current
+        const all = (k: number, sel: string) => {
+            const el = ch[k]
+            return el ? Array.from(el.querySelectorAll<HTMLElement>(sel)) : []
+        }
+        const words1 = all(0, "[data-w]")
+        const tenets = all(0, "[data-b]")
+        const strip = all(1, "[data-strip]")[0] || null
+        const cols = strip ? (Array.from(strip.children) as HTMLElement[]) : []
+        const bar = all(1, "[data-bar]")[0] || null
+        const count = all(1, "[data-count]")[0] || null
+        const extras2 = all(1, ".w3-prog2,.w3-mark")
+        const words3 = all(2, "[data-w]")
+        const reels = all(2, "[data-r]")
+        const curtain = all(3, "[data-cur]")[0] || null
+        const nums = all(3, "[data-b]")
+        const counters = all(3, "[data-to]").map((el) => ({ el, m: countable(el.dataset.to || "") }))
+        let stripW = size.w
+        let mids: number[] = []
+        const measure = () => {
+            if (!strip) return
+            stripW = strip.scrollWidth
+            mids = cols.map((c) => c.offsetLeft + c.offsetWidth / 2)
+        }
+        measure()
+        const ro = strip && typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null
+        if (ro && strip) ro.observe(strip)
+        const playing = PAGES.map(() => false)
+
         let raf = 0
         let visible = true
-        let lastLift = -1
+        let blank = false
         const frame = (now: number) => {
             raf = 0
             const dt = s.last ? Math.min(64, now - s.last) : 16.7
@@ -1426,28 +1572,44 @@ export default function W3Globe(props: Props) {
                 }
                 s[key] += dt * 0.006
             } else s.vel = 0
-            const m = motion(u, s.spin, s.spin2)
-            const rot = m.rot
-            const lift = Math.max(...m.lifts)
-            const wz = -900 * lift
-            s.tilt += (s.py * 5 * (1 - lift) - s.tilt) * (1 - Math.pow(0.9, dt / 16.7))
-            const tilt = TILT + s.tilt
-            const intro = smooth((now - s.t0) / 1900)
+            const rot = motion(u, s.spin, s.spin2).rot
 
-            if (lift < 0.995 || lastLift < 0.995) drawScene(ctx, { w: size.w, h: size.h, cx, cy, R, P, rot, tilt, wz, lift, intro, time: now }, kit)
-            lastLift = lift
+            // Each chapter moves the globe its own way: the why dives into India, what we do pushes
+            // it off to the left (it comes back from the right), the work sinks it back, and the
+            // brands draw a curtain over it.
+            const ph = PAGES.map((_, k) => phase(u, k))
+            const on = ph.map((p) => p.a * (1 - p.b))
+            const gxMax = size.w / 2 + R * 1.7
+            const gx = ph[1].b > 0 ? gxMax * (1 - ph[1].b) : -gxMax * ph[1].a
+            const wz = on[0] * (P - 2.2 * R) - 520 * on[2]
+            const busy = Math.max(on[0], on[2], on[3], Math.min(1, Math.abs(gx) / gxMax))
+            s.tilt += (s.py * 5 * (1 - busy) - s.tilt) * (1 - Math.pow(0.9, dt / 16.7))
+            const tilt = TILT + s.tilt + (-HOME_LAT - TILT) * on[0]
+            const intro = smooth((now - s.t0) / 1900)
+            const gcx = cx + gx
+
+            if (on[3] > 0.999 || Math.abs(gx) > gxMax - 1) {
+                if (!blank) ctx.clearRect(0, 0, size.w, size.h)
+                blank = true
+            } else {
+                drawScene(ctx, { w: size.w, h: size.h, cx: gcx, cy, R, P, rot, tilt, wz, lift: busy, intro, time: now }, kit)
+                blank = false
+            }
+            const shift = `translate3d(${gx.toFixed(1)}px,0,0)`
+            put(bodyRef.current, "transform", shift)
+            put(tilesRef.current, "transform", shift)
             put(worldRef.current, "transform", `translateZ(${wz.toFixed(1)}px)`)
-            // The glass body and its halo shrink with the globe as it sinks back.
+            // The glass body and its halo grow and shrink with the globe as it comes near or sinks back.
             const D = P - wz
             const ballScale = (P / Math.sqrt(Math.max(1, D * D - R * R))).toFixed(4)
             put(ballRef.current, "transform", `scale(${ballScale})`)
             put(haloRef.current, "transform", `scale(${ballScale})`)
-            put(haloRef.current, "opacity", intro.toFixed(3))
-            const near = ((1 - 0.65 * lift) * intro).toFixed(3)
+            put(haloRef.current, "opacity", (intro * (1 - on[0])).toFixed(3))
+            const near = ((1 - busy) * intro).toFixed(3)
             put(crossX.current, "opacity", near)
             put(crossY.current, "opacity", near)
             put(spinRef.current, "transform", `rotateX(${tilt.toFixed(2)}deg) rotateY(${rot.toFixed(2)}deg)`)
-            put(veilRef.current, "opacity", (0.74 * lift).toFixed(3))
+            put(veilRef.current, "opacity", Math.max(0.84 * smooth((on[0] - 0.45) / 0.55), 0.6 * on[2]).toFixed(3))
 
             // How squarely a point of the globe faces you: 1 at the front, 0 at the edge.
             const cr = Math.cos(rot * D2R)
@@ -1457,14 +1619,16 @@ export default function W3Globe(props: Props) {
             const facing = (p: [number, number, number]) => p[1] * st + (p[2] * cr - p[0] * sr) * ct
 
             // The tiles fade as they near the globe's edge, and their videos rest while out of sight.
+            const tileShow = 1 - smooth(on[0] * 1.8)
             tileEls.current.forEach((el, i) => {
                 if (!el) return
                 const f = facing(tileAt[i])
-                put(el, "opacity", (smooth((f + 0.05) / 0.4) * smooth(intro * 1.6 - 0.5 - i * 0.06)).toFixed(3))
+                put(el, "opacity", (smooth((f + 0.05) / 0.4) * smooth(intro * 1.6 - 0.5 - i * 0.06) * tileShow).toFixed(3))
                 const v = tileVids.current[i]
                 if (v) {
-                    if (f < -0.2 && !v.paused) v.pause()
-                    else if (f > -0.1 && v.paused) v.play().catch(() => {})
+                    const want = f > -0.1 && tileShow > 0.01 && on[3] < 0.99
+                    if (!want && !v.paused) v.pause()
+                    else if (want && v.paused) v.play().catch(() => {})
                 }
             })
 
@@ -1477,9 +1641,9 @@ export default function W3Globe(props: Props) {
                 const y1 = p[1] * R * ct - z0 * st
                 const z1 = p[1] * R * st + z0 * ct
                 const sc = P / (P - (z1 + wz))
-                const a = smooth((z1 / R - 0.15) / 0.3) * (1 - lift) * smooth((intro - 0.6) / 0.4)
+                const a = smooth((z1 / R - 0.15) / 0.3) * (1 - busy) * smooth((intro - 0.6) / 0.4)
                 put(el, "opacity", a.toFixed(3))
-                put(el, "transform", `translate3d(${(cx + x0 * sc).toFixed(1)}px,${(cy + y1 * sc).toFixed(1)}px,0)`)
+                put(el, "transform", `translate3d(${(gcx + x0 * sc).toFixed(1)}px,${(cy + y1 * sc).toFixed(1)}px,0)`)
             })
 
             // The landing steps back as the globe starts to turn; the way out comes in at the end.
@@ -1495,46 +1659,102 @@ export default function W3Globe(props: Props) {
                 put(outroRef.current, "transform", `translateY(${((1 - out) * 30).toFixed(1)}px)`)
                 put(outroRef.current, "visibility", out < 0.01 ? "hidden" : "visible")
             }
-            put(wordRef.current, "opacity", (1 - lift).toFixed(3))
+            put(wordRef.current, "opacity", (1 - busy).toFixed(3))
 
-            // The pages: each rides the globe as a miniature of itself, comes round to the front,
-            // then lifts straight towards you and grows to full size while the globe sinks back.
-            // Only its transform and opacity change, so the browser never lays it out again.
-            PAGES.forEach((_, k) => {
-                const el = panels.current[k]
+            // The chapters. Only transforms and opacity change, so nothing is laid out again.
+            ch.forEach((el, k) => {
                 if (!el) return
-                const ti = PAGE_TILES[k]
-                const t = TILES[ti]
-                const lk = m.lifts[k]
-                const l = lk > 0.999 ? 1 : lk
-                const theta = wrap(rot + t.lon)
-                const f = facing(tileAt[ti])
-                const seen = lk > 0 ? 1 : smooth((f + 0.05) / 0.4) * smooth(intro * 1.6 - 0.5 - ti * 0.06)
-                put(el, "opacity", seen.toFixed(3))
-                put(el, "visibility", seen > 0.001 ? "visible" : "hidden")
-                const sc = mini + (1 - mini) * l
-                put(
-                    el,
-                    "transform",
-                    l === 1 && Math.abs(theta) < 0.01
-                        ? `translateY(${dy}px)`
-                        : `translateY(${(dy * l).toFixed(1)}px) translateZ(${(lk > 0 ? 0 : wz).toFixed(1)}px) rotateX(${(tilt * (1 - l)).toFixed(2)}deg) rotateY(${theta.toFixed(2)}deg) rotateX(${(t.lat * (1 - l)).toFixed(2)}deg) translateZ(${(R * 1.02 * (1 - l)).toFixed(1)}px) scale(${sc.toFixed(4)})`
-                )
-                const on = l > 0.85
-                if (on !== el.classList.contains("on")) {
-                    el.classList.toggle("on", on)
-                    // The page's own videos play only while it is open.
+                put(el, "visibility", on[k] > 0.0005 ? "visible" : "hidden")
+                el.classList.toggle("live", on[k] > 0.9)
+                // Each chapter's own videos play only while it is in view.
+                const want = on[k] > 0.05
+                if (want !== playing[k]) {
+                    playing[k] = want
                     el.querySelectorAll("video").forEach((v) => {
-                        if (on) v.play().catch(() => {})
+                        if (want) v.play().catch(() => {})
                         else v.pause()
                     })
                 }
-                el.classList.toggle("live", l > 0.95)
             })
 
-            // The menu and the dots follow the page in front.
+            // 1. The why: the words rise one by one out of the dark, then the three beliefs.
+            if (ch[0]) {
+                put(ch[0], "opacity", (1 - ph[0].b).toFixed(3))
+                put(ch[0], "transform", `translate3d(0,${(-ph[0].b * 60).toFixed(1)}px,0)`)
+                const q = clamp((u - (holdStart(0) - 0.35)) / (HOLDS[0] * 0.8))
+                words1.forEach((el, i) => {
+                    const v = smooth((q - (0.5 * i) / words1.length) / 0.16)
+                    put(el, "transform", `translate3d(0,${((1 - v) * 105).toFixed(1)}%,0)`)
+                })
+                tenets.forEach((el, j) => {
+                    const v = smooth((q - 0.55 - j * 0.08) / 0.2)
+                    put(el, "opacity", v.toFixed(3))
+                    put(el, "transform", `translate3d(0,${((1 - v) * 40).toFixed(1)}px,0)`)
+                })
+            }
+
+            // 2. What we do: the orange strip slides in from the right and runs sideways.
+            if (ch[1]) {
+                const p = ph[1]
+                const tt = clamp((p.t - 0.06) / 0.88)
+                const x = size.w * (1 - p.a) - tt * Math.max(0, stripW - size.w) - p.b * size.w
+                put(strip, "transform", `translate3d(${x.toFixed(1)}px,0,0)`)
+                const show = smooth((on[1] - 0.7) / 0.3).toFixed(3)
+                extras2.forEach((el) => put(el, "opacity", show))
+                put(bar, "transform", `scaleX(${tt.toFixed(4)})`)
+                if (count && mids.length > 1) {
+                    const at = size.w / 2 - x
+                    let best = 1
+                    for (let i = 2; i < mids.length; i++) if (Math.abs(mids[i] - at) < Math.abs(mids[best] - at)) best = i
+                    const label = nn(best) + " / " + nn(mids.length - 1)
+                    if (count.textContent !== label) count.textContent = label
+                }
+            }
+
+            // 3. The work: the reels grow out of the globe's centre and fan out.
+            if (ch[2]) {
+                const p = ph[2]
+                const e = on[2]
+                const q = clamp((u - (holdStart(2) - 0.4)) / 0.9)
+                words3.forEach((el, i) => {
+                    const v = smooth((q - (0.5 * i) / words3.length) / 0.2) * (1 - p.b)
+                    put(el, "transform", `translate3d(0,${((1 - v) * 105).toFixed(1)}%,0)`)
+                })
+                const spread = phoneW ? size.w * 0.19 : Math.min(rw * 0.86, size.w * 0.17)
+                const drop = size.h * ((phoneW ? 0.63 : 0.6) - gyF)
+                reels.forEach((el, i) => {
+                    const d = i - (reels.length - 1) / 2
+                    const x = d * spread * e
+                    const y = (d * d * rw * 0.07 + drop) * e
+                    const r = (d * 7 + (p.t - 0.5) * 4) * e
+                    put(el, "transform", `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) rotate(${r.toFixed(2)}deg) scale(${(0.12 + 0.88 * e).toFixed(4)})`)
+                    put(el, "opacity", smooth(e * 5).toFixed(3))
+                    put(el, "zIndex", String(10 - Math.round(Math.abs(d) * 2)))
+                })
+            }
+
+            // 4. The brands: the curtain rises, the numbers count up, the logos roll by.
+            if (ch[3]) {
+                const p = ph[3]
+                put(curtain, "transform", `translate3d(0,${((1 - p.a - p.b) * 100).toFixed(3)}%,0)`)
+                const q = clamp((u - (holdStart(3) - 0.45)) / 1.0)
+                nums.forEach((el, j) => {
+                    const v = smooth((q - j * 0.12) / 0.5)
+                    put(el, "opacity", v.toFixed(3))
+                    put(el, "transform", `translate3d(0,${((1 - v) * 50).toFixed(1)}px,0)`)
+                })
+                counters.forEach(({ el, m }) => {
+                    if (!m) return
+                    const dec = (m[2].split(".")[1] || "").length
+                    const text = m[1] + (parseFloat(m[2]) * smooth(q * 1.1)).toFixed(dec) + m[3]
+                    if (el.textContent !== text) el.textContent = text
+                })
+                ch[3].classList.toggle("on", on[3] > 0.01)
+            }
+
+            // The menu and the dots follow the chapter in view.
             let cur = -1
-            m.lifts.forEach((v, k) => {
+            on.forEach((v, k) => {
                 if (v > 0.5) cur = k
             })
             if (cur !== s.onIdx) {
@@ -1561,15 +1781,16 @@ export default function W3Globe(props: Props) {
         kick()
         return () => {
             io.disconnect()
+            if (ro) ro.disconnect()
             if (raf) cancelAnimationFrame(raf)
         }
-    }, [still, mounted, size, R, P, gyF, W, H, dy, shapes])
+    }, [still, mounted, size, R, P, gyF, rw, phoneW, shapes, views, campaigns, creators])
 
     // Drag the globe sideways to spin it (up and down still scrolls the page), and lean it a
     // little towards the pointer.
     const onDown = (e: React.PointerEvent) => {
         const s = state.current
-        if (still || !s.free || (e.target as HTMLElement).closest(".w3-pn,a,button")) return
+        if (still || !s.free || (e.target as HTMLElement).closest(".w3-c,a,button")) return
         s.drag = s.free
         s.px = e.clientX
         s.vel = 0
@@ -1641,7 +1862,7 @@ export default function W3Globe(props: Props) {
         }
     }, [still, mounted, open])
 
-    // The menu sends the globe round to a page (the middle of its hold), or scrolls to a section.
+    // The menu sends the globe round to a chapter, or scrolls to a section.
     const go = React.useCallback(
         (to: number | string) => {
             React.startTransition(() => setOpen(false))
@@ -1658,7 +1879,8 @@ export default function W3Globe(props: Props) {
                 if (el) el.scrollIntoView({ behavior: "smooth" })
                 return
             }
-            const u = to < 0 ? 0 : holdStart(to) + HOLD / 2
+            // What we do opens at its start, so the strip can still run sideways; the rest open in the middle.
+            const u = to < 0 ? 0 : holdStart(to) + HOLDS[to] * (to === 1 ? 0.05 : 0.5)
             const box = scrollBox(root)
             const rect = track.getBoundingClientRect()
             const off = u * (stageRef.current ? stageRef.current.clientHeight : window.innerHeight)
@@ -1733,91 +1955,80 @@ export default function W3Globe(props: Props) {
     ) : null
 
     const tiles = (
-        <div className="w3-3d">
-            <div className="w3-o">
-                <div className="w3-world" ref={worldRef}>
-                    <div className="w3-spin" ref={spinRef} style={{ transform: `rotateX(${TILT}deg) rotateY(${-PAGE_LON[0] + 18}deg)` }}>
-                        {TILES.map((t, i) => {
-                            if (t.page !== undefined) return null
-                            const sz = tileSize(R, shapes[i])
-                            const src = srcOf(i)
-                            return (
-                                <div
-                                    key={i}
-                                    className="w3-tile"
-                                    ref={(el) => {
-                                        tileEls.current[i] = el
-                                    }}
-                                    style={{
-                                        width: sz.w,
-                                        height: sz.h,
-                                        left: -sz.w / 2,
-                                        top: -sz.h / 2,
-                                        opacity: still ? 1 : 0,
-                                        transform: `rotateY(${t.lon}deg) rotateX(${t.lat}deg) translateZ(${(R * 1.02).toFixed(1)}px)`,
-                                    }}
-                                >
-                                    <Media
-                                        src={src}
-                                        play={!still}
-                                        onShape={(ar) => setShape(i, ar)}
-                                        vref={(el) => {
-                                            tileVids.current[i] = el
+        <div className="w3-gl" ref={tilesRef}>
+            <div className="w3-3d">
+                <div className="w3-o">
+                    <div className="w3-world" ref={worldRef}>
+                        <div className="w3-spin" ref={spinRef} style={{ transform: `rotateX(${TILT}deg) rotateY(${-PAGE_LON[0] + 18}deg)` }}>
+                            {TILES.map((t, i) => {
+                                if (t.page !== undefined) return null
+                                const sz = tileSize(R, shapes[i])
+                                const src = srcOf(i)
+                                return (
+                                    <div
+                                        key={i}
+                                        className="w3-tile"
+                                        ref={(el) => {
+                                            tileEls.current[i] = el
                                         }}
-                                    />
-                                    {sz.h > 46 ? (
-                                        <span className="w3-tag">
-                                            {isVideo(src) ? (
-                                                <i>
-                                                    <Icon name="play" size={8} width={2.4} />
-                                                </i>
-                                            ) : null}
-                                            <span>{t.tag}</span>
-                                        </span>
-                                    ) : null}
-                                </div>
-                            )
-                        })}
+                                        style={{
+                                            width: sz.w,
+                                            height: sz.h,
+                                            left: -sz.w / 2,
+                                            top: -sz.h / 2,
+                                            opacity: still ? 1 : 0,
+                                            transform: `rotateY(${t.lon}deg) rotateX(${t.lat}deg) translateZ(${(R * 1.02).toFixed(1)}px)`,
+                                        }}
+                                    >
+                                        <Media
+                                            src={src}
+                                            play={!still}
+                                            onShape={(ar) => setShape(i, ar)}
+                                            vref={(el) => {
+                                                tileVids.current[i] = el
+                                            }}
+                                        />
+                                        {sz.h > 46 ? (
+                                            <span className="w3-tag">
+                                                {isVideo(src) ? (
+                                                    <i>
+                                                        <Icon name="play" size={8} width={2.4} />
+                                                    </i>
+                                                ) : null}
+                                                <span>{t.tag}</span>
+                                            </span>
+                                        ) : null}
+                                    </div>
+                                )
+                            })}
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     )
 
-    // The pages sit in a 3D layer of their own above the globe, with the same perspective, so a
-    // page that has left the globe can never be cut by it.
-    const pageLayer = still ? null : (
-        <>
-            <div className="w3-veil" ref={veilRef} />
-            <div className="w3-3d w3-pages">
-                <div className="w3-o">
-                    {PAGES.map((pg, k) => (
-                        <div
-                            key={pg.id}
-                            className="w3-pn"
-                            data-tone={pg.tone}
-                            ref={(el) => {
-                                panels.current[k] = el
-                            }}
-                            aria-label={pg.title}
-                            role="region"
-                        >
-                            <div
-                                className="w3-pg"
-                                ref={(el) => {
-                                    bodies.current[k] = el
-                                }}
-                            >
-                                <PageBody id={pg.id} samples={samples} />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </>
-    )
+    const stats: [string, string][] = [
+        [views, "Views"],
+        [campaigns, "Campaigns"],
+        [creators, "Creators"],
+    ]
+    const bodies = [<ChapterWhy key="why" />, <ChapterServices key="services" samples={samples} />, <ChapterWork key="work" samples={samples} />, <ChapterBrands key="brands" stats={stats} />]
+    const chapters = PAGES.map((pg, k) => (
+        <section
+            key={pg.id}
+            id={"w3-" + pg.id}
+            className={"w3-c w3-c" + (k + 1)}
+            aria-label={pg.title}
+            ref={(el) => {
+                chEls.current[k] = el
+            }}
+        >
+            {bodies[k]}
+        </section>
+    ))
 
-    const vars = cssVars({ "--R": R + "px", "--P": P + "px", "--gy": gyF * 100 + "%", "--W": W + "px", "--H": H + "px" })
+    const vars = cssVars({ "--R": R + "px", "--P": P + "px", "--gy": gyF * 100 + "%", "--spw": spw + "px", "--sp0w": sp0w + "px", "--rw": rw + "px" })
 
     return (
         <div ref={rootRef} className={"w3" + (still ? " w3-still" : "")} style={{ ...style, ...vars }}>
@@ -1832,8 +2043,10 @@ export default function W3Globe(props: Props) {
                     </div>
                     <div className="w3-cross x" ref={crossX} aria-hidden="true" />
                     <div className="w3-cross y" ref={crossY} aria-hidden="true" />
-                    <div className="w3-halo" ref={haloRef} aria-hidden="true" />
-                    <div className="w3-ball" ref={ballRef} aria-hidden="true" />
+                    <div className="w3-gl" ref={bodyRef} aria-hidden="true">
+                        <div className="w3-halo" ref={haloRef} />
+                        <div className="w3-ball" ref={ballRef} />
+                    </div>
                     <canvas className="w3-cv" ref={canvasRef} aria-hidden="true" />
                     {tiles}
                     <div className="w3-badges" aria-hidden="true">
@@ -1854,7 +2067,12 @@ export default function W3Globe(props: Props) {
                             </div>
                         ))}
                     </div>
-                    {pageLayer}
+                    {still ? null : (
+                        <>
+                            <div className="w3-veil" ref={veilRef} />
+                            {chapters}
+                        </>
+                    )}
                     <div className="w3-land" ref={landRef}>
                         <h1 className="w3-head">
                             Culture moves
@@ -1903,7 +2121,7 @@ export default function W3Globe(props: Props) {
                                 aria-label={"Go to " + pg.title}
                             >
                                 <span>
-                                    {String(i + 1).padStart(2, "0")} {pg.title}
+                                    {nn(i + 1)} {pg.title}
                                 </span>
                                 <i />
                             </button>
@@ -1911,17 +2129,7 @@ export default function W3Globe(props: Props) {
                     </div>
                     {still ? nav : null}
                 </div>
-                {still ? (
-                    <div className="w3-flat">
-                        {PAGES.map((pg) => (
-                            <section key={pg.id} id={"w3-" + pg.id} className="w3-flatpn" data-tone={pg.tone} aria-label={pg.title}>
-                                <div className="w3-pg">
-                                    <PageBody id={pg.id} samples={samples} />
-                                </div>
-                            </section>
-                        ))}
-                    </div>
-                ) : null}
+                {still ? <div className="w3-flat">{chapters}</div> : null}
             </div>
             {rest ? (
                 <div className="w3-rest">
@@ -1943,6 +2151,9 @@ addPropertyControls(W3Globe, {
         description: "Videos and photos for the globe’s eleven video tiles, in order. Any shape works: each tile takes the shape of its video.",
     },
     samples: { type: ControlType.Boolean, title: "Sample videos", defaultValue: true, enabledTitle: "Show", disabledTitle: "Hide" },
+    views: { type: ControlType.String, title: "Views", defaultValue: "[00]M+", description: "For The brands. Type the real figure, like 120M+, and it counts up." },
+    campaigns: { type: ControlType.String, title: "Campaigns", defaultValue: "[000]+" },
+    creators: { type: ControlType.String, title: "Creators", defaultValue: "[00]+" },
     rest: { type: ControlType.Boolean, title: "Rest of site", defaultValue: true, enabledTitle: "Show", disabledTitle: "Hide", description: "Hide for a globe-only demo: no form, careers or footer." },
     email: { type: ControlType.String, title: "Email", defaultValue: "social@worldmedia.co.in" },
     phone: { type: ControlType.String, title: "Phone", defaultValue: "+91 88000 40301" },
