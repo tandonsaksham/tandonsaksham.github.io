@@ -1,22 +1,22 @@
-// World Media, the globe showcase. One component for a whole page: the landing and the five pages
-// after it. The World Media globe is the site's main interaction: it is made of tiles (reels,
-// photos and small icons of what World Media does), it turns on its own, you can drag it, and
-// scrolling spins it. Each page peels off the left edge of the globe, rides the rotation to the
-// front while the globe sinks back, then rolls back into its right edge as the next one comes round.
-// Place it on its own page, width 100%. Videos and photos are placeholders until the real ones
-// are added in the Globe media field.
+// World Media, the globe showcase. One component for a whole page, in black and dark grey.
+// The landing is the World Media globe: a wireframe globe with dotted continents (India in
+// orange), routes flying out of Delhi, two orbit rings and video tiles that turn with it. Scrolling
+// spins the globe from city to city; at each one a video tile peels off the globe, grows into a
+// page, then sinks back as the globe turns on. After the globe comes the rest of the site: the
+// enquiry form, careers and the footer. Place it on its own page, width 100%. Videos and photos
+// are placeholders until the real ones are added in the Globe media field.
 
 import * as React from "react"
 import { createPortal } from "react-dom"
 import { addPropertyControls, ControlType, useIsStaticRenderer } from "framer"
 
-type Media = { src?: string; type?: "video" | "image" }
-
 type Props = {
     media: string[]
     samples: boolean
+    rest: boolean
     email: string
     phone: string
+    endpoint: string
     style?: React.CSSProperties
 }
 
@@ -24,47 +24,47 @@ const FONT_HREF = "https://fonts.googleapis.com/css2?family=Funnel+Display:wght@
 
 /** Sample photos, kept in the site's GitHub repo and served by jsDelivr, pinned to one commit. */
 const SAMPLE = "https://cdn.jsdelivr.net/gh/tandonsaksham/tandonsaksham.github.io@16cfefc4bae4bbd2c69898b7d689135c895bf250/framer/world-media-v2/placeholders/"
-const PHOTOS = ["project-2", "hello-1", "about-1", "project-4", "hello-3", "project-1", "about-2", "hello-2", "project-3"]
+const NO_MEDIA: string[] = []
+const PHOTOS = ["hello-1", "project-2", "project-4", "about-1", "project-1", "hello-3", "about-2", "hello-2", "project-3"]
 
+const D2R = Math.PI / 180
 const cssVars = (o: Record<string, string | number>): React.CSSProperties => o as React.CSSProperties
 const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v))
 const smooth = (v: number) => {
     const x = clamp(v)
     return x * x * (3 - 2 * x)
 }
-const easeOut = (v: number) => 1 - Math.pow(1 - clamp(v), 3)
-const easeIn = (v: number) => Math.pow(clamp(v), 3)
 const easeInOut = (v: number) => {
     const x = clamp(v)
     return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2
 }
+const mod = (a: number, n: number) => ((a % n) + n) % n
+/** An angle brought into -180…180. */
+const wrap = (a: number) => mod(a + 180, 360) - 180
+const isVideo = (src: string) => /\.(mp4|webm|mov)(\?|$)/i.test(src)
 
 /* ─────────────────────────────── Icons ─────────────────────────────── */
 
 const ICONS: Record<string, string> = {
     play: "M8.5 5.8v12.4L18.6 12z",
     camera: "M3.5 8.5h3.2l1.8-2.8h7l1.8 2.8h3.2v10.5h-17z M12 16.6a3.6 3.6 0 1 0 0-7.2 3.6 3.6 0 0 0 0 7.2z",
-    mic: "M12 3.5a3 3 0 0 0-3 3v5.5a3 3 0 0 0 6 0V6.5a3 3 0 0 0-3-3z M5.5 11.5a6.5 6.5 0 0 0 13 0 M12 18v2.5",
     heart: "M12 19.5s-7-4.3-7-9.6A3.9 3.9 0 0 1 12 7.6a3.9 3.9 0 0 1 7 2.3c0 5.3-7 9.6-7 9.6z",
-    chat: "M4.5 5.5h15v10.5h-9.5l-5.5 4z",
     megaphone: "M3.5 10v4h3l7.5 4.5v-13L6.5 10z M17 9.2a4 4 0 0 1 0 5.6 M19.4 6.8a7.4 7.4 0 0 1 0 10.4",
     star: "M12 3.8l2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.8l-5.1 2.7 1-5.7-4.1-4 5.7-.8z",
-    chart: "M4.5 19.5h15 M7 16.5v-5 M12 16.5V7 M17 16.5v-8",
     film: "M4 5.5h16v13H4z M8 5.5v13 M16 5.5v13 M4 9.5h4 M4 14.5h4 M16 9.5h4 M16 14.5h4",
-    hash: "M9.5 4L8 20 M16 4l-1.5 16 M4.5 9h15.5 M4 15h15.5",
-    at: "M15.5 12a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z M15.5 12v1.3a2.3 2.3 0 0 0 4.6 0V12a8.1 8.1 0 1 0-3.2 6.5",
-    pin: "M12 20.5s6.5-5.7 6.5-10.6A6.5 6.5 0 0 0 5.5 9.9c0 4.9 6.5 10.6 6.5 10.6z M12 12.3a2.4 2.4 0 1 0 0-4.8 2.4 2.4 0 0 0 0 4.8z",
-    spark: "M12 3.5v4.5 M12 16v4.5 M3.5 12H8 M16 12h4.5 M6 6l3 3 M15 15l3 3 M6 18l3-3 M15 9l3-3",
-    ring: "M12 20.5a8.5 8.5 0 1 0 0-17 8.5 8.5 0 0 0 0 17z M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z",
     eye: "M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z M12 14.8a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6z",
-    phone: "M7.5 3.5h9v17h-9z M10.5 17.5h3",
     arrow: "M5 12h14 M13 6l6 6-6 6",
+    out: "M7 17L17 7 M9 7h8v8",
+    down: "M12 5v14 M6 13l6 6 6-6",
+    up: "M12 19V5 M6 11l6-6 6 6",
+    plus: "M12 5v14 M5 12h14",
+    check: "M5 12.5l4.5 4.5L19 7.5",
 }
 
-function Icon(p: { name: string; size?: number; width?: number; className?: string }) {
+function Icon(p: { name: string; size?: number; width?: number }) {
     return (
-        <svg className={p.className} width={p.size || 24} height={p.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={p.width || 1.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d={ICONS[p.name] || ICONS.spark} />
+        <svg width={p.size || 24} height={p.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={p.width || 1.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d={ICONS[p.name] || ICONS.arrow} />
         </svg>
     )
 }
@@ -82,91 +82,506 @@ function MiniGlobe(p: { size?: number }) {
     )
 }
 
-/* ─────────────────────────────── The globe ─────────────────────────────── */
+/* ─────────────────────────────── The world ─────────────────────────────── */
 
-type Tile = { lat: number; lon: number; w: number; h: number; kind: "photo" | "icon"; photo?: string; video?: boolean; icon?: string; tone?: string; label?: string; media?: Media }
+// Land on a one-degree grid (Natural Earth, via world-atlas), row by row from the north pole:
+// run lengths of sea, land, sea… written one character each. India is kept apart, on its own
+// small grid, so it can glow in the signal colour.
+const RUNS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_"
+const LAND =
+    ",,,,,,_0_0fc,_0v21lfp,_0qp4D29,_0l76d3Pz213m4F6,_0ml8Lu824_057,_0435513341d2Rw7_0i5,Z341g16a9Ox441_0h2,W48273252a9N_0n4wb,_71353221615mD_0e6ron8,_032m611pB_0d3ro,U8924415232213mz_0c3ow1544d3,T6191335124931mx_0b4d48Ma6,1dG41e53133g11hx_0b4c4121R31221d,jaBb743ket21L7A61_0n,ho4f3e3414545ad21rGfr4361_0v28,1_0_0_0iae23a251,4_0_0_0hb322p2,513_0_0_0c3263s1,017_0_0_0d55,61813_0a244318ebj7qa3b2_0_0f,829_07522197eaOb2_0_0v,f_0a824173h7Nc3_0_0u11,e_09g6n6Mc4_0_0a2329,fh2Qg8o3Md4_0_0779,i822aJh932_06d721_0W2453,n3gJfa14W293267_0Si3,m213iFgfU4c115511_0Rh6,k2qIbfU3b3145_0Si7,h2tK8iS4a2137_0Qj7,f1xN2nM323a1631_0Sj5,L13L3nL3337_0_0811d4,QK3nL2362_0_0b11d2,QM1m11P53_0_0b11e1,Q11_0331P24_0_0e12,R21V324211Q_0_0g22,VS1366M_0_0j21,U11V9111O_0_0g31,UX1121Wx133c3_0m42,U_Ye1g322b5_0l,UU22_d3e993_0n61,US-339342cc83_0l64,UR-c834ae65_0f94,UR-ba43945485_0d,UO_02a725315212l3_0517b2,UO_0298261333n4_033123c2,VM_039l33m5_0173c1,VL_048e2624n4_02124393,WK_0716ab162122_0m5375,XJ_0713dp_0l7248,YH_07hq_0l614312,-D_08jo_0n94,_B_08o62c_0n92,_21x_08q47314_0o81,_0112w_08t1_0C,_0212h4262_08G1f2_09,_0311gd2_07J1d3_08,_0231ee3_04K3d4_05,_0413cf211_01M2e7_,_0512cg1_02O2d117Y,_0513a_0kO2e33aQ21,_0a9_0jQ3k9N31,_0b8e113_Q3lal1n51,_0c8i2YS2kbh5g12,_0b973a2XR3jee6e,o1O954e3SR4hfc9c32,_0d925e611OS3ggbac31,_0gd_09T3diabdd2,_0ib_08U4ak9cec2,_0o9_04V39m6ibb2,_0p9_03W26p6ibb2,_0r6_04X14s5ibd2,_0u4_03Yw5i227f1,_0v2b1UX62p4j136d121,_0v3741523KX16p4i153c1,_0x221341aL_02p311h161c161,_0x42iL_r121h2n111,_0A12jK_u2h1m113,_0EjLYv2i2e261,_0DpHa5IP3d3,_0EpI1dGM232b5,_0EqZBO222a4,_0CsZAQ22277,_0CtXAS31159a1,_0BuXyU4692441,_0BvWxW459e1,_0AASxX3672393,_0AA11RvY54723b124,_0BFOt-482311141312a,_0AHNs_013g1d9,_0AKLr_022g1b1382112,_0AKLr_043p13a71,_0BJMq_056p9b1,_0CIMq_0c122111131d332,_0CHNr_0g141m2b2,_0DGNr_0L1,_0EEPq_0t191,_0EDPs81_0i651,_0FBQs81_0h662,_0FBPt72_0d21763,_0GAPs73_0bc63,0_0_0_0_0_0I,_0KwPq65_0ai15w1,_0LuQo85_0ao,_0LuRm95_09q,_0LuRm95_06vf1,_0LtTl85_04yg1,_0LsUm75_03A,_0LpXl94_03B,_0Ko-k93_03D,_0Kn_ic1_05D,_0Km_01i_0hE,_0Km_01i_0iD,_0Km_02g_0kD,_0Kl_04e_0lC,_0Jm_04e_0lC,_0Jl_06c_0nB,_0Kj_07b_0oa8i,_0Jj_089_0p9b21d,_0Je13_0a2_0w3g11e,_0Ig_0_0_06cn1,_0Ig_0_0_08ao1,_0Hh_0_0_08ap1,_0Ie_0_0_0d112s3,_0Ib_0_0_0L3,_0Hc_0_0_0M2,_0H9_0_0_0l3o211,_0Hb_0_0_0j3n3,_0I8_0_0_0m1n3,_0H9_0_0_0I3,_0G8_0_0_0J4,_0G8_0_0_0K2,_0G9,_0F9,_0F8_0_0b1,_0G6,_0G683,_0H4,_0H6,_0J6,_0M1,,,,,,,,_0W2,_0T1,_0R1_0_0_091,_0O3_0Q6I464f6,_0N3_0Ocm_01,_0N3_0Jqa_08,_0J225_0w62u7_0i,_0J316_0542a2I5_0p,_0G716O22_0c4_0A,_0O6M_0_0W,R222i53a435cJ_0_0X,Ia132711aCL_0_0U,y_0iK_0_0V,y_0dG_0_0_03,m_0kH_0_0_07,g34_0gt58_0_0_0e,i3a_09q8d_0_0_02,x_0b7668g_0_0_01,p_0ro_0_0_0d,r_0v4_0_0_0u,q_0_0_0_0_08,0517k_0_0_0_0_0a,v1,,,,"
+const INDIA = "65,65,73,65,66,57,49c3,2d5135,2h17,3i15,3h42,0l22,2j,2h,5e,5c,5b,5a,59,66,66,75,75,84,84,83,91"
+const INDIA_ROW = 55
+const INDIA_COL = 248
+const INDIA_COLS = 29
 
-/** Seven rings of tiles, 23° apart, so the globe reads round rather than faceted. */
-const BANDS: [number, number][] = [
-    [-69, 6],
-    [-46, 11],
-    [-23, 15],
-    [0, 16],
-    [23, 15],
-    [46, 11],
-    [69, 6],
-]
-const ICON_SET = ["play", "camera", "mic", "heart", "chat", "megaphone", "star", "chart", "film", "hash", "at", "pin", "ring", "eye", "spark", "phone"]
-const LABELS: Record<string, string> = { play: "Reels", mic: "Podcast", heart: "1.2K", chat: "#collab", at: "@creator", hash: "Trending", ring: "Live ●", eye: "Views", film: "Shorts", megaphone: "Launch" }
-const TONES = ["fog", "ink", "fog", "signal", "paper", "ink"]
-
-function buildTiles(R: number, media: Media[]): Tile[] {
-    const out: Tile[] = []
-    let n = 0
-    let ic = 0
-    let ph = 0
-    let md = 0
-    BANDS.forEach(([lat, count], b) => {
-        const ring = 2 * Math.PI * R * Math.cos((lat * Math.PI) / 180)
-        const w = (ring / count) * 0.86
-        const h = R * ((23 * Math.PI) / 180) * 0.86
-        for (let i = 0; i < count; i++) {
-            const lon = (360 / count) * i + (b % 2 ? 180 / count : 0)
-            const isPhoto = n % 3 !== 1
-            const t: Tile = { lat, lon, w, h, kind: isPhoto ? "photo" : "icon" }
-            if (isPhoto) {
-                if (md < media.length) t.media = media[md++]
-                else t.photo = PHOTOS[ph++ % PHOTOS.length]
-                t.video = n % 7 === 0
-            } else {
-                t.icon = ICON_SET[ic % ICON_SET.length]
-                t.tone = TONES[ic % TONES.length]
-                t.label = LABELS[t.icon]
-                ic++
-            }
-            out.push(t)
-            n++
+function grid(s: string, cols: number): Uint8Array[] {
+    return s.split(",").map((row) => {
+        const out = new Uint8Array(cols)
+        let x = 0
+        let land = false
+        for (const ch of row) {
+            const n = RUNS.indexOf(ch)
+            if (land) out.fill(1, x, Math.min(cols, x + n))
+            x += n
+            land = !land
         }
+        return out
     })
-    return out
 }
 
-function TileFace(p: { t: Tile; samples: boolean; still: boolean }) {
-    const t = p.t
-    if (t.kind === "icon") {
-        return (
-            <div className={"w3-f w3-ic"} data-tone={t.tone}>
-                <Icon name={t.icon || "spark"} size={Math.max(14, Math.round(Math.min(t.w, t.h) * 0.3))} width={1.5} />
-                {t.label && Math.min(t.w, t.h) > 70 ? <span>{t.label}</span> : null}
-            </div>
-        )
+type Dots = { n: number; cl: Float32Array; sl: Float32Array; lon: Float32Array; hi: Uint8Array }
+let DOTS: Dots | null = null
+/** The dots of the land, spread evenly over the globe. Built once, on first use. */
+function landDots(): Dots {
+    if (DOTS) return DOTS
+    const land = grid(LAND, 360)
+    const india = grid(INDIA, INDIA_COLS)
+    const cl: number[] = []
+    const sl: number[] = []
+    const lon: number[] = []
+    const hi: number[] = []
+    const step = 1.45
+    for (let lat = 82; lat > -57; lat -= step) {
+        const r = Math.min(179, Math.floor(90 - lat))
+        const c = Math.cos(lat * D2R)
+        const n = Math.max(1, Math.round((360 * c) / step))
+        for (let i = 0; i < n; i++) {
+            const lo = -180 + ((i + 0.5) * 360) / n
+            const col = Math.min(359, Math.floor(lo + 180))
+            if (!land[r] || !land[r][col]) continue
+            const ir = r - INDIA_ROW
+            const ic = col - INDIA_COL
+            cl.push(c)
+            sl.push(Math.sin(lat * D2R))
+            lon.push(lo * D2R)
+            hi.push(ir >= 0 && ir < india.length && ic >= 0 && ic < INDIA_COLS && india[ir][ic] ? 1 : 0)
+        }
     }
-    const m = t.media
-    const src = m && m.src ? m.src : p.samples && t.photo ? SAMPLE + t.photo + ".jpg" : ""
-    const isVideo = m && m.src ? m.type === "video" : false
+    DOTS = { n: cl.length, cl: Float32Array.from(cl), sl: Float32Array.from(sl), lon: Float32Array.from(lon), hi: Uint8Array.from(hi) }
+    return DOTS
+}
+
+const CITY: Record<string, [number, number]> = {
+    Delhi: [77.2, 28.6],
+    Mumbai: [72.9, 19.1],
+    Dubai: [55.3, 25.2],
+    London: [-0.1, 51.5],
+    "New York": [-74, 40.7],
+    "São Paulo": [-46.6, -23.5],
+    Singapore: [103.8, 1.35],
+    Tokyo: [139.7, 35.7],
+    Sydney: [151.2, -33.9],
+    Lagos: [3.4, 6.5],
+    "Los Angeles": [-118.2, 34],
+    Moscow: [37.6, 55.8],
+    Nairobi: [36.8, -1.3],
+    "Mexico City": [-99.1, 19.4],
+}
+const ROUTES: [string, string][] = [
+    ["Delhi", "London"],
+    ["Delhi", "New York"],
+    ["Delhi", "Dubai"],
+    ["Delhi", "Singapore"],
+    ["Delhi", "Tokyo"],
+    ["Delhi", "Sydney"],
+    ["Delhi", "Lagos"],
+    ["Delhi", "São Paulo"],
+    ["London", "New York"],
+    ["Tokyo", "Los Angeles"],
+    ["Mumbai", "Nairobi"],
+]
+/** Small tags that float over the globe, each pinned to a city. */
+const BADGES: { at: string; text: string; live?: boolean; left?: boolean }[] = [
+    { at: "Dubai", text: "Live · 1,248 watching", live: true, left: true },
+    { at: "Singapore", text: "#collab" },
+    { at: "Mexico City", text: "@creator" },
+    { at: "Moscow", text: "Podcast" },
+    { at: "Nairobi", text: "UGC" },
+]
+
+/** A point on the globe as x, y, z on a sphere of radius 1 (before the globe turns). */
+const onGlobe = (lon: number, lat: number): [number, number, number] => {
+    const c = Math.cos(lat * D2R)
+    return [c * Math.sin(lon * D2R), -Math.sin(lat * D2R), c * Math.cos(lon * D2R)]
+}
+
+/** The grid of the globe: meridians every 20°, parallels every 20°. */
+function graticule(): Float32Array[] {
+    const lines: Float32Array[] = []
+    for (let lon = -180; lon < 180; lon += 20) {
+        const pts: number[] = []
+        for (let lat = -84; lat <= 84; lat += 4) pts.push(...onGlobe(lon, lat))
+        lines.push(Float32Array.from(pts))
+    }
+    for (let lat = -60; lat <= 60; lat += 20) {
+        const pts: number[] = []
+        for (let lon = -180; lon <= 180; lon += 4) pts.push(...onGlobe(lon, lat))
+        lines.push(Float32Array.from(pts))
+    }
+    return lines
+}
+
+/** The routes: great circles that lift off the globe in the middle, higher the further they go. */
+function routes(): Float32Array[] {
+    return ROUTES.map(([a, b]) => {
+        const p = onGlobe(CITY[a][0], CITY[a][1])
+        const q = onGlobe(CITY[b][0], CITY[b][1])
+        const om = Math.acos(clamp(p[0] * q[0] + p[1] * q[1] + p[2] * q[2], -1, 1))
+        const lift = 0.06 + 0.22 * (om / Math.PI)
+        const pts: number[] = []
+        const n = 44
+        for (let i = 0; i <= n; i++) {
+            const t = i / n
+            const ka = Math.sin((1 - t) * om) / Math.sin(om)
+            const kb = Math.sin(t * om) / Math.sin(om)
+            const h = 1 + lift * Math.sin(Math.PI * t)
+            pts.push((ka * p[0] + kb * q[0]) * h, (ka * p[1] + kb * q[1]) * h, (ka * p[2] + kb * q[2]) * h)
+        }
+        return Float32Array.from(pts)
+    })
+}
+
+type Scene = {
+    w: number
+    h: number
+    cx: number
+    cy: number
+    R: number
+    P: number
+    rot: number
+    tilt: number
+    wz: number
+    lift: number
+    intro: number
+    time: number
+}
+
+type Kit = { dots: Dots; grid: Float32Array[]; routes: Float32Array[]; cities: [number, number, number][]; hot: number[] }
+
+/** The orbit rings: radius (in globe radii), tilt, lean, how fast their moon goes round, brightness. */
+const RINGS = [
+    { r: 1.24, ax: 76, az: -14, sp: 0.00016, ph: 0.4, a: 0.3 },
+    { r: 1.42, ax: 62, az: 26, sp: -0.00011, ph: 2.6, a: 0.2 },
+    { r: 1.33, ax: 88, az: 52, sp: 0.00008, ph: 4.4, a: 0.1 },
+]
+
+/**
+ * Draws the globe on the canvas: the grid, the dotted land, the routes, the cities and the orbit
+ * rings. It uses the same perspective as the CSS layers above it, so the video tiles and the pages
+ * sit exactly on its surface.
+ */
+function drawScene(ctx: CanvasRenderingContext2D, sc: Scene, kit: Kit) {
+    const { w, h, cx, cy, R, P, wz, time } = sc
+    ctx.clearRect(0, 0, w, h)
+    const rr = sc.rot * D2R
+    const cr = Math.cos(rr)
+    const sr = Math.sin(rr)
+    const tt = sc.tilt * D2R
+    const ct = Math.cos(tt)
+    const st = Math.sin(tt)
+    const D = P - wz
+    const zc = (R * R) / D // a point on the globe is in view when it is nearer than this
+    const rs = (R * P) / Math.sqrt(Math.max(1, D * D - R * R)) // the globe's outline on screen
+    const near = 1 - 0.65 * sc.lift
+    const intro = sc.intro
+    const o = { x: 0, y: 0, z: 0, s: 1 }
+    // A point of the globe (x, y, z on the unit sphere, times k) onto the screen.
+    const pr = (x: number, y: number, z: number, k: number) => {
+        const x1 = (x * cr + z * sr) * k
+        const z0 = (z * cr - x * sr) * k
+        const y1 = y * k * ct - z0 * st
+        const z1 = y * k * st + z0 * ct
+        const s = P / (P - (z1 + wz))
+        o.x = cx + x1 * s
+        o.y = cy + y1 * s
+        o.z = z1
+        o.s = s
+    }
+
+    // Lines across the whole screen, through the globe's centre.
+    if (near > 0.05) {
+        const a = 0.13 * near * intro
+        const gx = ctx.createLinearGradient(0, 0, w, 0)
+        gx.addColorStop(0, "rgba(255,255,255,0)")
+        gx.addColorStop(0.5, `rgba(255,255,255,${a})`)
+        gx.addColorStop(1, "rgba(255,255,255,0)")
+        ctx.strokeStyle = gx
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        ctx.moveTo(0, Math.round(cy) + 0.5)
+        ctx.lineTo(w, Math.round(cy) + 0.5)
+        ctx.stroke()
+        const gy = ctx.createLinearGradient(0, 0, 0, h)
+        gy.addColorStop(0, "rgba(255,255,255,0)")
+        gy.addColorStop(0.5, `rgba(255,255,255,${a})`)
+        gy.addColorStop(1, "rgba(255,255,255,0)")
+        ctx.strokeStyle = gy
+        ctx.beginPath()
+        ctx.moveTo(Math.round(cx) + 0.5, 0)
+        ctx.lineTo(Math.round(cx) + 0.5, h)
+        ctx.stroke()
+    }
+
+    // A soft halo round the globe.
+    const halo = ctx.createRadialGradient(cx, cy, rs * 0.92, cx, cy, rs * 1.5)
+    halo.addColorStop(0, `rgba(255,255,255,${0.07 * intro})`)
+    halo.addColorStop(1, "rgba(255,255,255,0)")
+    ctx.fillStyle = halo
+    ctx.fillRect(cx - rs * 1.6, cy - rs * 1.6, rs * 3.2, rs * 3.2)
+
+    // The orbit rings. Their far halves go behind the globe, their near halves in front.
+    const rings = RINGS.map((g) => {
+        const ax = g.ax * D2R
+        const az = g.az * D2R
+        const yd = time * 0.00002 + g.ph
+        // (1,0,0) and (0,0,1) tipped by ax round x, az round z, then turned yd round y
+        const base = (vx: number, vy: number, vz: number): [number, number, number] => {
+            const y1 = vy * Math.cos(ax) - vz * Math.sin(ax)
+            const z1 = vy * Math.sin(ax) + vz * Math.cos(ax)
+            const x2 = vx * Math.cos(az) - y1 * Math.sin(az)
+            const y2 = vx * Math.sin(az) + y1 * Math.cos(az)
+            return [x2 * Math.cos(yd) + z1 * Math.sin(yd), y2, -x2 * Math.sin(yd) + z1 * Math.cos(yd)]
+        }
+        return { g, u: base(1, 0, 0), v: base(0, 0, 1), m: g.ph + time * g.sp }
+    })
+    const ringPass = (front: boolean) => {
+        for (const { g, u, v, m } of rings) {
+            const rad = g.r * R
+            ctx.beginPath()
+            let pen = false
+            for (let i = 0; i <= 128; i++) {
+                const a = (i / 128) * Math.PI * 2
+                const x = rad * (u[0] * Math.cos(a) + v[0] * Math.sin(a))
+                const y = rad * (u[1] * Math.cos(a) + v[1] * Math.sin(a))
+                const z = rad * (u[2] * Math.cos(a) + v[2] * Math.sin(a))
+                if (z >= 0 !== front) {
+                    pen = false
+                    continue
+                }
+                const s = P / (P - (z + wz))
+                if (pen) ctx.lineTo(cx + x * s, cy + y * s)
+                else ctx.moveTo(cx + x * s, cy + y * s)
+                pen = true
+            }
+            ctx.strokeStyle = `rgba(255,255,255,${g.a * (front ? 1 : 0.45) * near * intro})`
+            ctx.lineWidth = 1
+            ctx.stroke()
+            // the ring's moon: a small polished ball
+            const x = rad * (u[0] * Math.cos(m) + v[0] * Math.sin(m))
+            const y = rad * (u[1] * Math.cos(m) + v[1] * Math.sin(m))
+            const z = rad * (u[2] * Math.cos(m) + v[2] * Math.sin(m))
+            if (z >= 0 === front) {
+                const s = P / (P - (z + wz))
+                const bx = cx + x * s
+                const by = cy + y * s
+                const br = Math.max(2.5, R * 0.018) * s
+                const ball = ctx.createRadialGradient(bx - br * 0.35, by - br * 0.4, br * 0.1, bx, by, br)
+                ball.addColorStop(0, `rgba(255,255,255,${near * intro})`)
+                ball.addColorStop(0.55, `rgba(170,170,170,${near * intro})`)
+                ball.addColorStop(1, `rgba(40,40,40,${near * intro})`)
+                ctx.fillStyle = ball
+                ctx.beginPath()
+                ctx.arc(bx, by, br, 0, Math.PI * 2)
+                ctx.fill()
+            }
+        }
+    }
+    ringPass(false)
+
+    // The grid: the far side faintly, through the glassy globe, then the near side.
+    const back = new Path2D()
+    const front = new Path2D()
+    for (const line of kit.grid) {
+        let last = -1
+        let px = 0
+        let py = 0
+        let pz = 0
+        for (let i = 0; i < line.length; i += 3) {
+            pr(line[i], line[i + 1], line[i + 2], R)
+            if (i > 0) {
+                const side = (pz + o.z) / 2 > zc ? 1 : 0
+                const path = side ? front : back
+                if (side !== last) path.moveTo(px, py)
+                path.lineTo(o.x, o.y)
+                last = side
+            }
+            px = o.x
+            py = o.y
+            pz = o.z
+        }
+    }
+    ctx.lineWidth = 1
+    ctx.strokeStyle = `rgba(255,255,255,${0.07 * intro})`
+    ctx.stroke(back)
+
+    // The body of the globe: dark glass, lit from the top left, with a bright rim.
+    const body = ctx.createRadialGradient(cx - rs * 0.35, cy - rs * 0.45, rs * 0.05, cx, cy, rs)
+    body.addColorStop(0, "rgba(38,38,38,0.94)")
+    body.addColorStop(0.55, "rgba(18,18,18,0.92)")
+    body.addColorStop(1, "rgba(8,8,8,0.9)")
+    ctx.fillStyle = body
+    ctx.beginPath()
+    ctx.arc(cx, cy, rs, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.strokeStyle = `rgba(255,255,255,${0.3 * intro})`
+    ctx.stroke()
+    ctx.strokeStyle = `rgba(255,255,255,${0.17 * intro})`
+    ctx.stroke(front)
+
+    // The land, as dots: brighter where they face you, India in the signal colour.
+    const dots = kit.dots
+    const size = clamp(R / 185, 1.3, 2.8)
+    const shades = [new Path2D(), new Path2D(), new Path2D(), new Path2D()]
+    const hot = new Path2D()
+    const show = intro * 1.25
+    for (let i = 0; i < dots.n; i++) {
+        const a = dots.lon[i] + rr
+        const x0 = R * dots.cl[i] * Math.sin(a)
+        const z0 = R * dots.cl[i] * Math.cos(a)
+        const y0 = -R * dots.sl[i]
+        const z1 = y0 * st + z0 * ct
+        if (z1 < zc) continue
+        const f = (z1 - zc) / (R - zc)
+        if (f < 1 - show) continue
+        const y1 = y0 * ct - z0 * st
+        const s = P / (P - (z1 + wz))
+        const d = size * s
+        const x = cx + x0 * s - d / 2
+        const y = cy + y1 * s - d / 2
+        if (dots.hi[i]) hot.rect(x, y, d * 1.15, d * 1.15)
+        else shades[Math.min(3, Math.floor(f * 4))].rect(x, y, d, d)
+    }
+    const alphas = [0.24, 0.44, 0.68, 0.92]
+    shades.forEach((p, i) => {
+        ctx.fillStyle = `rgba(243,241,236,${alphas[i] * intro})`
+        ctx.fill(p)
+    })
+    ctx.fillStyle = `rgba(234,86,40,${intro})`
+    ctx.fill(hot)
+
+    // The routes: a faint line each, and a bright streak that travels along it.
+    if (intro > 0.4) {
+        const ra = clamp((intro - 0.4) / 0.5)
+        kit.routes.forEach((line, ri) => {
+            const n = line.length / 3
+            const xs: number[] = []
+            const ys: number[] = []
+            const vis: boolean[] = []
+            for (let i = 0; i < n; i++) {
+                pr(line[i * 3], line[i * 3 + 1], line[i * 3 + 2], R)
+                xs.push(o.x)
+                ys.push(o.y)
+                const dx = o.x - cx
+                const dy = o.y - cy
+                vis.push(o.z > 0 || dx * dx + dy * dy > rs * rs)
+            }
+            const fromHome = ROUTES[ri][0] === "Delhi"
+            const seg = (from: number, to: number, style: string, width: number) => {
+                ctx.beginPath()
+                let pen = false
+                for (let i = Math.max(0, Math.floor(from)); i <= Math.min(n - 1, Math.ceil(to)); i++) {
+                    if (!vis[i]) {
+                        pen = false
+                        continue
+                    }
+                    if (pen) ctx.lineTo(xs[i], ys[i])
+                    else ctx.moveTo(xs[i], ys[i])
+                    pen = true
+                }
+                ctx.strokeStyle = style
+                ctx.lineWidth = width
+                ctx.stroke()
+            }
+            seg(0, n - 1, `rgba(255,255,255,${0.13 * ra})`, 1)
+            const cyc = mod(time / 3400 + ri * 0.37, 1.7)
+            const head = cyc * (n - 1)
+            if (head - n * 0.35 < n - 1) {
+                seg(head - n * 0.35, head, fromHome ? `rgba(234,86,40,${0.85 * ra})` : `rgba(255,255,255,${0.6 * ra})`, 1.4)
+                const hi = Math.min(n - 1, Math.round(head))
+                if (head <= n - 1 && vis[hi]) {
+                    ctx.fillStyle = `rgba(255,255,255,${ra})`
+                    ctx.beginPath()
+                    ctx.arc(xs[hi], ys[hi], 1.8, 0, Math.PI * 2)
+                    ctx.fill()
+                }
+            }
+        })
+    }
+
+    // The cities: a dot each, and a slow pulse where something is happening.
+    kit.cities.forEach(([x, y, z], i) => {
+        pr(x, y, z, R)
+        if (o.z < zc) return
+        const home = i === 0
+        ctx.fillStyle = home ? `rgba(234,86,40,${intro})` : `rgba(255,255,255,${0.9 * intro})`
+        ctx.beginPath()
+        ctx.arc(o.x, o.y, (home ? 3.2 : 2) * o.s, 0, Math.PI * 2)
+        ctx.fill()
+        if (kit.hot.includes(i)) {
+            const pp = mod(time / 2200 + i * 0.29, 1)
+            ctx.strokeStyle = home ? `rgba(234,86,40,${0.6 * (1 - pp) * intro})` : `rgba(255,255,255,${0.45 * (1 - pp) * intro})`
+            ctx.lineWidth = 1
+            ctx.beginPath()
+            ctx.arc(o.x, o.y, (3 + 13 * pp) * o.s, 0, Math.PI * 2)
+            ctx.stroke()
+        }
+    })
+
+    ringPass(true)
+}
+
+/* ─────────────────────────────── Video tiles ─────────────────────────────── */
+
+type TileDef = { lon: number; lat: number; ar: number; tag: string; page?: number }
+
+/** The video tiles on the globe. The first four open into the pages; the rest are reels in orbit. */
+const TILES: TileDef[] = [
+    { lon: 77.2, lat: 28.6, ar: 9 / 16, tag: "01 Why", page: 0 },
+    { lon: -74, lat: 40.7, ar: 4 / 5, tag: "02 Services", page: 1 },
+    { lon: 139.7, lat: 35.7, ar: 16 / 9, tag: "03 Work", page: 2 },
+    { lon: -0.1, lat: 51.5, ar: 1, tag: "04 Brands", page: 3 },
+    { lon: 6, lat: 2, ar: 16 / 9, tag: "Reel 0:15" },
+    { lon: 150, lat: -28, ar: 9 / 16, tag: "Live" },
+    { lon: -52, lat: -16, ar: 4 / 5, tag: "UGC 0:30" },
+    { lon: -116, lat: 28, ar: 1, tag: "Shorts" },
+]
+
+/** A tile's width and height for its shape, all tiles having about the same area. */
+const tileSize = (R: number, ar: number) => {
+    const a = R * 0.42
+    return { w: a * Math.sqrt(ar), h: a / Math.sqrt(ar) }
+}
+
+function Media(p: { src: string; play: boolean; onShape?: (ar: number) => void; vref?: (el: HTMLVideoElement | null) => void }) {
+    if (!p.src) return <b className="w3-blank" />
+    if (isVideo(p.src))
+        return (
+            <video
+                ref={p.vref}
+                src={p.src}
+                autoPlay={p.play}
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                onLoadedMetadata={(e) => {
+                    const v = e.currentTarget
+                    if (p.onShape && v.videoWidth && v.videoHeight) p.onShape(v.videoWidth / v.videoHeight)
+                }}
+            />
+        )
     return (
-        <div className="w3-f w3-ph">
-            {src ? isVideo ? <video src={src} autoPlay={!p.still} muted loop playsInline preload="metadata" /> : <img src={src} alt="" decoding="async" draggable={false} /> : <b />}
-            {t.video || isVideo ? (
-                <i className="w3-badge">
-                    <Icon name="play" size={10} width={2} />
-                    0:15
-                </i>
-            ) : null}
-        </div>
+        <img
+            src={p.src}
+            alt=""
+            decoding="async"
+            draggable={false}
+            onLoad={(e) => {
+                const im = e.currentTarget
+                if (p.onShape && im.naturalWidth && im.naturalHeight) p.onShape(im.naturalWidth / im.naturalHeight)
+            }}
+        />
     )
 }
 
 /* ─────────────────────────────── The pages ─────────────────────────────── */
 
-type PageDef = { id: string; nav: string; title: string; tone: "ink" | "paper" | "signal"; icon: string }
+type PageDef = { id: string; nav: string; title: string; tone: "char" | "signal" | "ink" | "paper" }
 
 const PAGES: PageDef[] = [
-    { id: "why", nav: "About", title: "The why", tone: "ink", icon: "chat" },
-    { id: "receipts", nav: "Numbers", title: "The receipts", tone: "paper", icon: "chart" },
-    { id: "services", nav: "Services", title: "What we do", tone: "signal", icon: "spark" },
-    { id: "work", nav: "Projects", title: "The work", tone: "ink", icon: "play" },
-    { id: "talk", nav: "Contact", title: "Let’s talk", tone: "paper", icon: "at" },
+    { id: "why", nav: "About", title: "The why", tone: "char" },
+    { id: "services", nav: "Services", title: "What we do", tone: "signal" },
+    { id: "work", nav: "Work", title: "The work", tone: "ink" },
+    { id: "brands", nav: "Brands", title: "The brands", tone: "paper" },
+]
+
+const ORIGINALS = [
+    "https://www.instagram.com/reel/DX3_tzGSK98/",
+    "https://www.instagram.com/reel/DZqB10SyBlc/",
+    "https://www.instagram.com/reel/DZKX-sKyx_N/",
+    "https://www.instagram.com/reel/DYMk2X6Seet/",
+    "https://www.instagram.com/reel/DaKzM9HSTlw/",
 ]
 
 function Top(p: { n: number; title: string; aside: string }) {
@@ -184,14 +599,14 @@ function PageWhy() {
     return (
         <>
             <Top n={1} title="The why" aside="(psst… this site is our portfolio too)" />
-            <h2 className="w3-big w3-r" style={cssVars({ "--d": "0s" })}>
-                We didn’t start an agency.
+            <h2 className="w3-big w3-r">
+                People skip ads.
                 <br />
-                <em>We started a conversation.</em>
+                <em>They don’t skip people.</em>
             </h2>
             <div className="w3-why">
                 <p className="w3-lead w3-r" style={cssVars({ "--d": ".08s" })}>
-                    The feed is where India finds what to buy, watch and believe, and the people in it are creators. We built World Media to bring brands into those conversations as guests worth inviting back.
+                    The feed is where India decides what to buy, watch and believe, and the people in it are creators. We built World Media to put brands inside the feeds people actually trust, from Delhi to everywhere.
                 </p>
                 <ul className="w3-beliefs">
                     {[
@@ -210,53 +625,9 @@ function PageWhy() {
     )
 }
 
-function PageReceipts() {
-    const stats = [
-        ["[00]M+", "Views on the reels we’ve made"],
-        ["[000]+", "Campaigns delivered"],
-        ["[00]+", "Creators in our network"],
-    ]
-    return (
-        <>
-            <Top n={2} title="The receipts" aside="(numbers don’t lie. we checked twice.)" />
-            <h2 className="w3-big w3-r">
-                Proof,
-                <br />
-                <em>not promises.</em>
-            </h2>
-            <div className="w3-stats">
-                {stats.map(([n, l], i) => (
-                    <div key={l} className="w3-stat w3-r" style={cssVars({ "--d": i * 0.07 + "s" })}>
-                        <strong>{n}</strong>
-                        <span>{l}</span>
-                    </div>
-                ))}
-            </div>
-            <div className="w3-brands">
-                <p className="w3-mid w3-r" style={cssVars({ "--d": ".2s" })}>
-                    Some of India’s favourite brands,
-                    <br />
-                    already in our orbit.
-                </p>
-                <div className="w3-logos">
-                    {["Coca-Cola", "Tinder", "OPPO", "Maaza"].map((b, i) => (
-                        <span key={b} className="w3-logo w3-r" style={cssVars({ "--d": 0.24 + i * 0.05 + "s" })}>
-                            <i>logo</i>
-                            {b}
-                        </span>
-                    ))}
-                    <span className="w3-logo w3-more w3-r" style={cssVars({ "--d": ".44s" })}>
-                        + more
-                    </span>
-                </div>
-            </div>
-        </>
-    )
-}
-
 function PageServices() {
     const list = [
-        ["megaphone", "Influencer Marketing", "The right creator for the right brief, cast for trust.", "Our core"],
+        ["megaphone", "Influencer Marketing", "Creators your audience already trusts, matched to one clear goal and vetted for fit and fraud.", "Our core"],
         ["film", "Production", "Reels, shoots and ad films made by our in-house crew.", ""],
         ["camera", "Studio", "A space to shoot, record and create, on call.", ""],
         ["star", "Talent Management", "Brand deals, a team and room to grow for creators.", ""],
@@ -264,7 +635,7 @@ function PageServices() {
     ]
     return (
         <>
-            <Top n={3} title="What we do" aside="(six, if you count replying fast)" />
+            <Top n={2} title="What we do" aside="(six, if you count replying fast)" />
             <div className="w3-svc">
                 <h2 className="w3-big w3-r">
                     Five things.
@@ -291,26 +662,19 @@ function PageServices() {
 }
 
 function PageWork(p: { samples: boolean }) {
-    const reels = [
-        ["project-1", "[Campaign name]", "[Brand]"],
-        ["project-2", "[Campaign name]", "[Brand]"],
-        ["hello-1", "[Original IP]", "World Media"],
-        ["project-4", "[Campaign name]", "[Brand]"],
-        ["hello-2", "[Original IP]", "World Media"],
-    ]
     return (
         <>
-            <Top n={4} title="The work" aside="(sound on. trust us.)" />
+            <Top n={3} title="The work" aside="(sound on. trust us.)" />
             <h2 className="w3-big w3-r">
                 Reels people
                 <br />
                 <em>actually stopped for.</em>
             </h2>
             <div className="w3-reels">
-                {reels.map(([ph, name, brand], i) => (
-                    <figure key={i} className="w3-reel w3-r" style={cssVars({ "--d": 0.08 + i * 0.06 + "s" })}>
+                {ORIGINALS.map((href, i) => (
+                    <a key={href} className="w3-reel w3-r" style={cssVars({ "--d": 0.08 + i * 0.06 + "s" })} href={href} target="_blank" rel="noreferrer">
                         <div className="w3-rv">
-                            {p.samples ? <img src={SAMPLE + ph + ".jpg"} alt="" loading="lazy" decoding="async" /> : null}
+                            {p.samples ? <img src={SAMPLE + PHOTOS[(i + 3) % PHOTOS.length] + ".jpg"} alt="" loading="lazy" decoding="async" /> : null}
                             <span className="w3-play">
                                 <Icon name="play" size={16} width={2} />
                             </span>
@@ -319,39 +683,176 @@ function PageWork(p: { samples: boolean }) {
                                 [0.0]M views
                             </span>
                         </div>
-                        <figcaption>
-                            <b>{name}</b>
-                            <span>{brand}</span>
-                        </figcaption>
-                    </figure>
+                        <span className="w3-cap">
+                            <b>[Original IP name]</b>
+                            <span>
+                                World Media original <Icon name="out" size={12} />
+                            </span>
+                        </span>
+                    </a>
                 ))}
             </div>
         </>
     )
 }
 
-function PageTalk(p: { email: string; phone: string }) {
-    const roles = ["Video Editor", "Influencer Marketing Executive", "Talent Manager", "Influencer Marketing Manager", "Social Media Executive"]
+function PageBrands() {
+    const stats = [
+        ["[00]M+", "Views on the reels we’ve made"],
+        ["[000]+", "Campaigns delivered"],
+        ["[00]+", "Creators in our network"],
+    ]
     return (
         <>
-            <Top n={5} title="Let’s talk" aside="(a real person replies within a day)" />
-            <div className="w3-talk">
-                <h2 className="w3-big w3-r">
+            <Top n={4} title="The brands" aside="(numbers don’t lie. we checked twice.)" />
+            <h2 className="w3-big w3-r">
+                Big names.
+                <br />
+                <em>One orbit.</em>
+            </h2>
+            <div className="w3-stats">
+                {stats.map(([n, l], i) => (
+                    <div key={l} className="w3-stat w3-r" style={cssVars({ "--d": i * 0.07 + "s" })}>
+                        <strong>{n}</strong>
+                        <span>{l}</span>
+                    </div>
+                ))}
+            </div>
+            <div className="w3-logos">
+                {["Coca-Cola", "Tinder", "OPPO", "Maaza"].map((b, i) => (
+                    <span key={b} className="w3-logo w3-r" style={cssVars({ "--d": 0.22 + i * 0.05 + "s" })}>
+                        <i>logo</i>
+                        {b}
+                    </span>
+                ))}
+                <span className="w3-logo w3-more w3-r" style={cssVars({ "--d": ".42s" })}>
+                    + more
+                </span>
+            </div>
+        </>
+    )
+}
+
+function PageBody(p: { id: string; samples: boolean }) {
+    if (p.id === "why") return <PageWhy />
+    if (p.id === "services") return <PageServices />
+    if (p.id === "work") return <PageWork samples={p.samples} />
+    return <PageBrands />
+}
+
+/* ─────────────────────────────── After the globe ─────────────────────────────── */
+
+const SERVICES = [
+    ["Influencer Marketing", "Creator discovery, campaigns, negotiation and reporting, end to end.", "Our core"],
+    ["Social Media Production", "Reels, shoots and ad films made by our in-house crew.", ""],
+    ["Social Media Management", "Strategy, calendars, posting and community, handled monthly.", ""],
+    ["UGC Content", "Creator-made videos for ads, product pages and ecommerce.", ""],
+    ["Paid Amplification", "Boost the best creator content with targeted ads.", ""],
+    ["Celebrity & Talent Tie-ups", "Bigger names for launches, events and brand faces.", ""],
+]
+const BUDGETS = ["Under ₹2L", "₹2L – 5L", "₹5L – 15L", "₹15L – 50L", "₹50L+"]
+const PLATFORMS = ["Instagram", "YouTube", "Snapchat", "X", "LinkedIn", "Other"]
+const FOLLOWERS = ["Under 10K", "10K – 100K", "100K – 1M", "1M+"]
+
+function Chips(p: { items: string[]; value: string[]; onChange: (v: string[]) => void; multi?: boolean; label: string }) {
+    return (
+        <div className="w3-chips" role="group" aria-label={p.label}>
+            {p.items.map((it) => {
+                const on = p.value.includes(it)
+                return (
+                    <button
+                        key={it}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => p.onChange(p.multi ? (on ? p.value.filter((v) => v !== it) : [...p.value, it]) : on ? [] : [it])}
+                    >
+                        {on ? <Icon name="check" size={14} width={2} /> : null}
+                        {it}
+                    </button>
+                )
+            })}
+        </div>
+    )
+}
+
+function Field(p: { name: string; label: string; type?: string; need?: boolean; area?: boolean; auto?: string; hint?: string }) {
+    return (
+        <label className={"w3-field" + (p.area ? " w3-wide" : "")}>
+            <span>
+                {p.label}
+                {p.need ? " *" : ""}
+            </span>
+            {p.area ? (
+                <textarea name={p.name} required={p.need} rows={4} placeholder={p.hint} />
+            ) : (
+                <input name={p.name} type={p.type || "text"} required={p.need} autoComplete={p.auto} placeholder={p.hint} />
+            )}
+        </label>
+    )
+}
+
+function Contact(p: { email: string; phone: string; endpoint: string; side: "brand" | "creator"; setSide: (s: "brand" | "creator") => void }) {
+    const [services, setServices] = React.useState<string[]>([])
+    const [budget, setBudget] = React.useState<string[]>([])
+    const [platforms, setPlatforms] = React.useState<string[]>([])
+    const [followers, setFollowers] = React.useState<string[]>([])
+    const [sent, setSent] = React.useState<"" | "sending" | "done" | "mail">("")
+    const brand = p.side === "brand"
+
+    const submit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        const data = new FormData(e.currentTarget)
+        const fields: [string, string][] = []
+        data.forEach((v, k) => fields.push([k, String(v)]))
+        if (brand) {
+            fields.push(["What we can help with", services.join(", ")])
+            fields.push(["Monthly budget", budget.join(", ")])
+        } else {
+            fields.push(["Platforms", platforms.join(", ")])
+            fields.push(["Followers", followers.join(", ")])
+        }
+        const filled = fields.filter(([, v]) => v.trim())
+        const subject = brand ? "New brief from the website" : "Creator application from the website"
+        if (p.endpoint) {
+            React.startTransition(() => setSent("sending"))
+            try {
+                const res = await fetch(p.endpoint, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ type: p.side, subject, ...Object.fromEntries(filled) }),
+                })
+                if (res.ok) {
+                    React.startTransition(() => setSent("done"))
+                    return
+                }
+            } catch {
+                // fall through to email
+            }
+        }
+        const body = filled.map(([k, v]) => k + ": " + v).join("\n")
+        window.location.href = "mailto:" + p.email + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body)
+        React.startTransition(() => setSent("mail"))
+    }
+
+    return (
+        <section className="w3-sec w3-contact" id="w3-contact" aria-label="Let’s talk">
+            <div className="w3-ct-l">
+                <span className="w3-lab w3-eyebrow">Let’s talk</span>
+                <h2 className="w3-h2">
                     Got a brand
                     <br />
                     <em>worth talking about?</em>
                 </h2>
-                <div className="w3-cta w3-r" style={cssVars({ "--d": ".1s" })}>
-                    <a className="w3-btn" data-tone="ink" href={"mailto:" + p.email + "?subject=New%20brief"}>
-                        I’m a brand <Icon name="arrow" size={18} />
-                    </a>
-                    <a className="w3-btn" data-tone="line" href={"mailto:" + p.email + "?subject=Creator%20application"}>
-                        I’m a creator <Icon name="arrow" size={18} />
-                    </a>
-                </div>
-            </div>
-            <div className="w3-info">
-                <dl className="w3-r" style={cssVars({ "--d": ".16s" })}>
+                <p className="w3-lead">Creator campaigns at the core, backed by an in-house team that shoots, edits and runs your social, so the story stays the same from the first reel to the last.</p>
+                <ol className="w3-next">
+                    {["We read every note and reply within a day.", "A quick call to understand your goals.", "A plan made for you. Then we get to work."].map((t, i) => (
+                        <li key={t}>
+                            <b>{String(i + 1).padStart(2, "0")}</b>
+                            <span>{t}</span>
+                        </li>
+                    ))}
+                </ol>
+                <dl className="w3-dl">
                     <div>
                         <dt>Write to us</dt>
                         <dd>
@@ -368,99 +869,297 @@ function PageTalk(p: { email: string; phone: string }) {
                         <dt>Find us</dt>
                         <dd>New Friends Colony, New Delhi</dd>
                     </div>
-                    <div>
-                        <dt>Instagram</dt>
-                        <dd>
-                            <a href="https://www.instagram.com/worldmedia.co.in" target="_blank" rel="noreferrer">
-                                @worldmedia.co.in
-                            </a>
-                        </dd>
-                    </div>
                 </dl>
-                <div className="w3-hire w3-r" style={cssVars({ "--d": ".22s" })}>
-                    <span className="w3-lab">We’re hiring</span>
-                    <div>
-                        {roles.map((r) => (
-                            <a key={r} href={"mailto:" + p.email + "?subject=" + encodeURIComponent("Application: " + r)}>
-                                {r}
-                            </a>
-                        ))}
-                    </div>
-                </div>
             </div>
-        </>
+            <div className="w3-form">
+                {sent === "done" || sent === "mail" ? (
+                    <div className="w3-thanks" role="status">
+                        <span className="w3-tick">
+                            <Icon name="check" size={28} width={2} />
+                        </span>
+                        <h3>{brand ? "Got it. Your brief is with the team." : "Welcome aboard (almost)."}</h3>
+                        <p>{sent === "mail" ? "Your email app should have opened with everything filled in. Hit send and a real person replies within a day." : brand ? "A real person replies within a day." : "We’ll look through your work and get back to you within a week."}</p>
+                        <button type="button" className="w3-link" onClick={() => setSent("")}>
+                            Send another
+                        </button>
+                    </div>
+                ) : (
+                    <form onSubmit={submit}>
+                        <div className="w3-who">
+                            <span className="w3-lab">Who’s saying hello?</span>
+                            <div className="w3-seg" role="group" aria-label="Who’s saying hello?">
+                                <button type="button" aria-pressed={brand} onClick={() => p.setSide("brand")}>
+                                    I’m a brand
+                                </button>
+                                <button type="button" aria-pressed={!brand} onClick={() => p.setSide("creator")}>
+                                    I’m a creator
+                                </button>
+                            </div>
+                        </div>
+                        {brand ? (
+                            <>
+                                <div className="w3-q">
+                                    <span className="w3-lab">What can we help you with?</span>
+                                    <div className="w3-svcpick">
+                                        {SERVICES.map(([h, t, tag]) => {
+                                            const on = services.includes(h)
+                                            return (
+                                                <button key={h} type="button" aria-pressed={on} onClick={() => setServices(on ? services.filter((v) => v !== h) : [...services, h])}>
+                                                    <b>
+                                                        {h}
+                                                        {tag ? <i>{tag}</i> : null}
+                                                    </b>
+                                                    <span>{t}</span>
+                                                    <em aria-hidden="true">{on ? <Icon name="check" size={14} width={2.2} /> : null}</em>
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                                <div className="w3-fields">
+                                    <Field name="Brand name" label="Brand name" need auto="organization" />
+                                    <Field name="Work email" label="Work email" type="email" need auto="email" />
+                                    <Field name="Website or Instagram" label="Website or Instagram" />
+                                    <Field name="Phone / WhatsApp" label="Phone / WhatsApp" type="tel" auto="tel" />
+                                </div>
+                                <div className="w3-q">
+                                    <span className="w3-lab">Monthly budget</span>
+                                    <Chips items={BUDGETS} value={budget} onChange={setBudget} label="Monthly budget" />
+                                </div>
+                                <div className="w3-fields">
+                                    <Field name="Brief" label="Your brief" area need hint="What are you launching, and who should hear about it?" />
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="w3-fields">
+                                    <Field name="Name" label="Your name" need auto="name" />
+                                    <Field name="Email" label="Email" type="email" need auto="email" />
+                                    <Field name="Handle" label="Instagram or YouTube handle" need hint="@" />
+                                    <Field name="Phone / WhatsApp" label="Phone / WhatsApp" type="tel" auto="tel" />
+                                </div>
+                                <div className="w3-q">
+                                    <span className="w3-lab">Where you post</span>
+                                    <Chips items={PLATFORMS} value={platforms} onChange={setPlatforms} multi label="Where you post" />
+                                </div>
+                                <div className="w3-q">
+                                    <span className="w3-lab">Followers</span>
+                                    <Chips items={FOLLOWERS} value={followers} onChange={setFollowers} label="Followers" />
+                                </div>
+                                <div className="w3-fields">
+                                    <Field name="About your content" label="Tell us about your content" area hint="What you make, who watches, brands you’ve loved working with." />
+                                </div>
+                            </>
+                        )}
+                        <div className="w3-send">
+                            <button type="submit" className="w3-btn" data-tone="signal" disabled={sent === "sending"}>
+                                {sent === "sending" ? "Sending…" : brand ? "Let’s plan your campaign" : "Join the roster"} <Icon name="arrow" size={18} />
+                            </button>
+                            <span>* needed · no spam, no sales scripts, a real person replies</span>
+                        </div>
+                    </form>
+                )}
+            </div>
+        </section>
     )
 }
 
-function PageBody(p: { id: string; samples: boolean; email: string; phone: string }) {
-    if (p.id === "why") return <PageWhy />
-    if (p.id === "receipts") return <PageReceipts />
-    if (p.id === "services") return <PageServices />
-    if (p.id === "work") return <PageWork samples={p.samples} />
-    return <PageTalk email={p.email} phone={p.phone} />
+const ROLES = [
+    {
+        role: "Influencer Marketing Manager",
+        team: "Brand Partnerships",
+        years: "4–7 years",
+        sum: "You own brand campaigns end to end, from the first pitch to the final report, and lead a small team of executives.",
+        do: ["Turn briefs into campaign strategies: creator mix, formats, timelines and KPIs.", "Pitch, negotiate and keep clients happy.", "Lead and mentor our Influencer Marketing Executives.", "Report on reach, engagement, CPV and sales with clear learnings."],
+    },
+    {
+        role: "Influencer Marketing Executive",
+        team: "Brand Partnerships",
+        years: "1–3 years",
+        sum: "You’re the engine of our campaigns: you find the right creators, bring them on board and make sure every post goes live on time and on brief.",
+        do: ["Shortlist creators by niche, audience and brand fit.", "Check profiles for fake followers before recommending them.", "Write clear creator briefs and chase approvals.", "Track every deliverable so nothing is missed."],
+    },
+    {
+        role: "Talent Manager",
+        team: "Creator Management",
+        years: "2–5 years",
+        sum: "You manage a roster of World Media creators and help them turn their content into a career.",
+        do: ["Bring in brand deals and negotiate fees and usage rights.", "Plan growth with each creator using their analytics.", "Book our studio and crew for creator shoots.", "Find and sign promising new creators."],
+    },
+    {
+        role: "Social Media Executive",
+        team: "Social & Content",
+        years: "1–3 years",
+        sum: "You run the day-to-day social presence for our brand clients and for World Media itself.",
+        do: ["Plan monthly calendars across Instagram, YouTube and LinkedIn.", "Write captions, hooks and scripts in each brand’s voice.", "Brief editors and attend shoots.", "Report on reach, engagement and growth every month."],
+    },
+    {
+        role: "Video Editor",
+        team: "Production & Studio",
+        years: "2–4 years",
+        sum: "You turn raw footage into content people watch to the end: Reels, Shorts, YouTube videos and ad films.",
+        do: ["Build strong hooks in the first three seconds.", "Add motion graphics, captions, sound and colour.", "Adapt one shoot into 9:16, 1:1 and 16:9.", "Turn revisions around fast."],
+    },
+]
+
+function Careers(p: { email: string }) {
+    const [open, setOpen] = React.useState(0)
+    return (
+        <section className="w3-sec w3-careers" id="w3-careers" aria-label="Careers">
+            <div className="w3-cr-head">
+                <span className="w3-lab w3-eyebrow">Careers</span>
+                <h2 className="w3-h2">
+                    Join the crew.
+                    <br />
+                    <em>Real briefs from day one.</em>
+                </h2>
+                <p className="w3-lead">We move fast and care about content people actually stop scrolling for. Everyone works with us in New Friends Colony, New Delhi.</p>
+            </div>
+            <div className="w3-roles">
+                {ROLES.map((r, i) => {
+                    const on = open === i
+                    return (
+                        <div key={r.role} className={"w3-role" + (on ? " on" : "")}>
+                            <button type="button" aria-expanded={on} onClick={() => setOpen(on ? -1 : i)}>
+                                <b>{r.role}</b>
+                                <span>
+                                    {r.team} · {r.years}
+                                </span>
+                                <i aria-hidden="true">
+                                    <Icon name="plus" size={18} />
+                                </i>
+                            </button>
+                            <div className="w3-rbody" hidden={!on}>
+                                <p>{r.sum}</p>
+                                <ul>
+                                    {r.do.map((d) => (
+                                        <li key={d}>{d}</li>
+                                    ))}
+                                </ul>
+                                <a
+                                    className="w3-btn"
+                                    data-tone="line"
+                                    href={"mailto:" + p.email + "?subject=" + encodeURIComponent("Application: " + r.role) + "&body=" + encodeURIComponent("Hi World Media,\n\nI’d like to apply for the " + r.role + " role. My CV (and portfolio or showreel) is attached.\n\n")}
+                                >
+                                    Apply for this role <Icon name="arrow" size={18} />
+                                </a>
+                            </div>
+                        </div>
+                    )
+                })}
+                <p className="w3-note">
+                    Send your CV to <a href={"mailto:" + p.email}>{p.email}</a> with the role in the subject line. For creative roles, add a portfolio or showreel.
+                </p>
+            </div>
+        </section>
+    )
+}
+
+function Footer(p: { email: string; phone: string; go: (to: number | string) => void }) {
+    return (
+        <footer className="w3-foot">
+            <div className="w3-fcols">
+                <div>
+                    <span className="w3-lab">Explore</span>
+                    {PAGES.map((pg, i) => (
+                        <button key={pg.id} type="button" onClick={() => p.go(i)}>
+                            {pg.nav}
+                        </button>
+                    ))}
+                    <button type="button" onClick={() => p.go("careers")}>
+                        Careers
+                    </button>
+                </div>
+                <div>
+                    <span className="w3-lab">Say hello</span>
+                    <a href={"mailto:" + p.email}>{p.email}</a>
+                    <a href={"tel:" + p.phone.replace(/[^+\d]/g, "")}>{p.phone}</a>
+                    <span>New Friends Colony, New Delhi</span>
+                </div>
+                <div>
+                    <span className="w3-lab">Follow</span>
+                    <a href="https://www.instagram.com/worldmedia.co.in" target="_blank" rel="noreferrer">
+                        Instagram <Icon name="out" size={14} />
+                    </a>
+                </div>
+                <p className="w3-fnote">Thanks for making it all the way down here. (psst… this site is our portfolio too)</p>
+            </div>
+            <div className="w3-fword" aria-hidden="true">
+                world media<span>.</span>
+            </div>
+            <div className="w3-fbase">
+                <span>© 2026 World Media · Delhi, India</span>
+                <button type="button" onClick={() => p.go(-1)}>
+                    Back to the globe <Icon name="up" size={14} />
+                </button>
+            </div>
+        </footer>
+    )
 }
 
 /* ─────────────────────────────── Styles ─────────────────────────────── */
 
 const CSS = `
-.w3{--paper:#FFFFFF;--fog:#F3F2EF;--fog2:#E7E5E0;--ink:#0B0B0B;--ink2:#191919;--signal:#EA5628;--mute:rgba(11,11,11,.56);
+.w3{--bg:#0A0A0A;--char:#161616;--line:rgba(255,255,255,.12);--text:#F3F1EC;--mute:rgba(243,241,236,.6);--signal:#EA5628;--paper:#F3F1EC;--ink:#0A0A0A;
 --ease:cubic-bezier(.16,1,.3,1);--disp:"Funnel Display","Helvetica Neue",Arial,sans-serif;--sans:"Funnel Sans","Helvetica Neue",Arial,sans-serif;--mono:"Geist Mono",ui-monospace,Menlo,monospace;
-position:relative;width:100%;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+position:relative;width:100%;background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;color-scheme:dark}
 .w3 *,.w3 *::before,.w3 *::after{box-sizing:border-box}
-.w3 :where(h1,h2,p,ul,ol,li,dl,dd,figure){margin:0;padding:0;list-style:none}
+.w3 :where(h1,h2,h3,p,ul,ol,li,dl,dd,figure){margin:0;padding:0;list-style:none}
 .w3 :where(a){color:inherit;text-decoration:none}
 .w3 :where(button){font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 .w3 :focus-visible{outline:2px solid var(--signal);outline-offset:3px;border-radius:8px}
 .w3 ::selection{background:var(--signal);color:var(--ink)}
 .w3-lab{font-family:var(--mono);font-size:11.5px;line-height:1.3;letter-spacing:.06em;text-transform:uppercase}
 
-/* the stage: sticky while the track scrolls past */
-.w3-stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;touch-action:pan-y;user-select:none;-webkit-user-select:none}
-.w3-still .w3-stage{position:relative}
-.w3-word{position:absolute;left:0;right:0;top:var(--gy);translate:0 -52%;text-align:center;font-family:var(--disp);font-weight:600;font-size:min(19vw,30vh);line-height:.8;letter-spacing:-.06em;color:var(--fog);white-space:nowrap;pointer-events:none}
-.w3-word span{color:var(--fog2)}
+/* the stage: held in place while the track scrolls past */
+.w3-track{position:relative}
+.w3-stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;touch-action:pan-y;user-select:none;-webkit-user-select:none;
+background:radial-gradient(ellipse 70% 60% at 50% var(--gy),#181818 0%,#0E0E0E 48%,#080808 100%)}
+.w3-stage.fix{position:absolute;top:0;left:0;right:0}
+.w3-still .w3-stage{position:relative;height:820px}
+.w3-word{position:absolute;left:0;right:0;top:var(--gy);translate:0 -52%;text-align:center;font-family:var(--disp);font-weight:600;font-size:min(19vw,30vh);line-height:.8;letter-spacing:-.06em;color:rgba(255,255,255,.035);white-space:nowrap;pointer-events:none}
+.w3-cv{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab}
+.w3-cv:active{cursor:grabbing}
 .w3-3d{position:absolute;inset:0;perspective:var(--P);perspective-origin:50% var(--gy);transform-style:preserve-3d;pointer-events:none}
 .w3-o{position:absolute;left:50%;top:var(--gy);width:0;height:0;transform-style:preserve-3d}
 .w3-world,.w3-spin{position:absolute;left:0;top:0;transform-style:preserve-3d;will-change:transform}
-.w3-world{cursor:grab}
-.w3-core{position:absolute;left:calc(var(--R) * -.97);top:calc(var(--R) * -.97);width:calc(var(--R) * 1.94);height:calc(var(--R) * 1.94);border-radius:50%;
-background:radial-gradient(circle at 38% 30%,#FFFFFF,#F1EFEB 46%,#DCD9D3 100%);box-shadow:0 70px 140px -70px rgba(11,11,11,.38)}
-.w3-tile{position:absolute;transform-style:preserve-3d;pointer-events:auto}
-.w3-f,.w3-bk{position:absolute;inset:0;border-radius:10px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}
-.w3-f{transition:translate .5s var(--ease)}
-.w3-tile:hover .w3-f{translate:0 0 18px}
-.w3-bk{transform:rotateY(180deg);background:rgba(11,11,11,.07)}
-.w3-ph{background:var(--fog2)}
-.w3-ph img,.w3-ph video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
-.w3-ph b{position:absolute;inset:0;background:linear-gradient(120deg,var(--fog2),var(--fog))}
-.w3-badge{position:absolute;left:6px;bottom:6px;display:inline-flex;align-items:center;gap:3px;padding:3px 6px 3px 4px;border-radius:99px;background:rgba(11,11,11,.62);color:#fff;font:500 9px/1 var(--mono);font-style:normal;letter-spacing:.04em;backdrop-filter:blur(4px)}
-.w3-ic{display:grid;place-items:center;align-content:center;gap:6px}
-.w3-ic span{font:500 8.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;opacity:.8}
-.w3-ic[data-tone="fog"]{background:var(--fog);color:var(--ink)}
-.w3-ic[data-tone="paper"]{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1px rgba(11,11,11,.1)}
-.w3-ic[data-tone="ink"]{background:var(--ink);color:#fff}
-.w3-ic[data-tone="signal"]{background:var(--signal);color:var(--ink)}
-.w3-orbit{position:absolute;left:calc(var(--R) * -1.3);top:calc(var(--R) * -1.3);width:calc(var(--R) * 2.6);height:calc(var(--R) * 2.6);border-radius:50%;border:1px solid rgba(11,11,11,.14);transform-style:preserve-3d}
-.w3-orbit i{position:absolute;left:50%;top:-5px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:var(--signal);box-shadow:0 0 0 5px rgba(234,86,40,.18)}
-.w3-veil{position:absolute;inset:0;background:var(--paper);opacity:0;pointer-events:none}
+.w3-tile{position:absolute;border-radius:10px;overflow:hidden;background:#1C1C1C;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+box-shadow:0 0 0 1px rgba(255,255,255,.16),0 18px 40px -18px rgba(0,0,0,.9)}
+.w3-tile img,.w3-tile video,.w3-cover img,.w3-cover video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.w3-blank{position:absolute;inset:0;background:linear-gradient(135deg,#222,#141414)}
+.w3-tag{position:absolute;left:6px;right:6px;bottom:6px;display:flex;align-items:center;gap:4px;font:500 9.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:#fff}
+.w3-tag i{display:grid;place-items:center;width:17px;height:17px;border-radius:50%;background:rgba(10,10,10,.6);backdrop-filter:blur(4px);flex:none}
+.w3-tag span{padding:4px 6px;border-radius:99px;background:rgba(10,10,10,.6);backdrop-filter:blur(4px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.w3-tile[data-page] .w3-tag span{background:var(--signal);color:var(--ink)}
+.w3-badges{position:absolute;inset:0;pointer-events:none}
+.w3-bd{position:absolute;left:0;top:0;opacity:0;will-change:transform,opacity}
+.w3-bd::before{content:"";position:absolute;left:0;bottom:0;width:1px;height:16px;background:rgba(255,255,255,.45);transform-origin:50% 100%;rotate:40deg}
+.w3-bd span{position:absolute;left:9px;bottom:12px;display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:7px;white-space:nowrap;
+background:rgba(16,16,16,.82);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font:500 10.5px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--text)}
+.w3-bd span i{width:6px;height:6px;border-radius:50%;background:#fff}
+.w3-bd[data-live] span i{background:var(--signal);box-shadow:0 0 0 3px rgba(234,86,40,.25);animation:w3blink 1.6s ease-in-out infinite}
+.w3-bd[data-left]::before{rotate:-40deg}
+.w3-bd[data-left] span{left:auto;right:9px}
+@keyframes w3blink{50%{opacity:.35}}
+.w3-veil{position:absolute;inset:0;background:#080808;opacity:0;pointer-events:none}
 .w3-pages{z-index:1}
 
 /* the pages */
-.w3-pn{position:absolute;left:calc(var(--W) / -2);top:calc(var(--H) / -2);width:var(--W);height:var(--H);border-radius:28px;display:none;transform-origin:50% 50%;
-backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:none;overflow:hidden;box-shadow:0 50px 100px -50px rgba(11,11,11,.45)}
+.w3-pn{position:absolute;left:calc(var(--W) / -2);top:calc(var(--H) / -2);width:var(--W);height:var(--H);display:none;place-items:center;
+backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:none}
 .w3-pn.live{pointer-events:auto}
-.w3-pn[data-tone="ink"]{background:var(--ink);color:#fff;--mute:rgba(255,255,255,.6);--hair:rgba(255,255,255,.16)}
-.w3-pn[data-tone="paper"]{background:#fff;color:var(--ink);--hair:rgba(11,11,11,.12);box-shadow:inset 0 0 0 1px rgba(11,11,11,.08),0 50px 100px -50px rgba(11,11,11,.4)}
-.w3-pn[data-tone="signal"]{background:var(--signal);color:var(--ink);--mute:rgba(11,11,11,.66);--hair:rgba(11,11,11,.2)}
-.w3-cover{position:absolute;inset:0;display:grid;place-items:center}
-.w3-pg{position:absolute;inset:0;container-type:inline-size;padding:clamp(20px,3.2cqw,46px);display:flex;flex-direction:column;justify-content:space-between;gap:clamp(14px,2.4cqw,32px)}
+.w3-cover{position:relative;width:100%;height:100%;border-radius:26px;overflow:hidden;background:var(--tone);box-shadow:0 0 0 1px rgba(255,255,255,.1),0 60px 120px -50px rgba(0,0,0,.9)}
+.w3-cover .w3-cm{position:absolute;inset:0}
+.w3-pn[data-tone="char"],.w3-flatpn[data-tone="char"]{--tone:var(--char);color:var(--text);--hair:rgba(255,255,255,.14)}
+.w3-pn[data-tone="ink"],.w3-flatpn[data-tone="ink"]{--tone:#0D0D0D;color:var(--text);--hair:rgba(255,255,255,.14)}
+.w3-pn[data-tone="signal"],.w3-flatpn[data-tone="signal"]{--tone:var(--signal);color:var(--ink);--mute:rgba(10,10,10,.68);--hair:rgba(10,10,10,.2)}
+.w3-pn[data-tone="paper"],.w3-flatpn[data-tone="paper"]{--tone:var(--paper);color:var(--ink);--mute:rgba(10,10,10,.58);--hair:rgba(10,10,10,.14)}
+.w3-pg{position:absolute;left:50%;top:50%;width:var(--W);height:var(--H);translate:-50% -50%;container-type:inline-size;padding:clamp(20px,3.2cqw,46px);display:flex;flex-direction:column;justify-content:space-between;gap:clamp(14px,2.4cqw,32px);overflow:auto;scrollbar-width:none}
 .w3-top{display:flex;justify-content:space-between;gap:16px;color:var(--mute)}
-.w3-pn[data-tone="signal"] .w3-top{color:var(--ink)}
 .w3-big{font-family:var(--disp);font-weight:500;font-size:clamp(34px,7.2cqw,108px);line-height:.92;letter-spacing:-.05em;text-wrap:balance}
-.w3-big em{font-style:normal;color:var(--signal)}
-.w3-pn[data-tone="signal"] .w3-big em{color:#fff}
-.w3-mid{font-family:var(--disp);font-weight:500;font-size:clamp(20px,2.4cqw,34px);line-height:1.04;letter-spacing:-.035em}
-.w3-lead{font-size:clamp(15px,1.45cqw,19px);line-height:1.45;color:var(--mute);max-width:46ch}
+.w3-big em,.w3-h2 em{font-style:normal;color:var(--signal)}
+.w3-pn[data-tone="signal"] .w3-big em,.w3-flatpn[data-tone="signal"] .w3-big em{color:#fff}
+.w3-lead{font-size:clamp(15px,1.45cqw,19px);line-height:1.5;color:var(--mute);max-width:46ch}
 .w3-r{opacity:0;translate:0 26px;transition:opacity .9s var(--ease),translate 1s var(--ease);transition-delay:var(--d,0s)}
 .w3-pn.on .w3-r,.w3-still .w3-r{opacity:1;translate:0 0}
 .w3-why{display:grid;grid-template-columns:1fr 1.25fr;gap:clamp(20px,4cqw,64px);align-items:end}
@@ -468,15 +1167,6 @@ backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:non
 .w3-beliefs li{display:flex;flex-direction:column;gap:8px;padding-top:14px;border-top:1px solid var(--hair)}
 .w3-beliefs b{font-family:var(--disp);font-weight:500;font-size:clamp(17px,1.7cqw,23px);letter-spacing:-.02em}
 .w3-beliefs span{font-size:14px;line-height:1.4;color:var(--mute)}
-.w3-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,2cqw,28px)}
-.w3-stat{display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--hair)}
-.w3-stat strong{font-family:var(--disp);font-weight:500;font-size:clamp(40px,6cqw,88px);line-height:.9;letter-spacing:-.055em}
-.w3-stat span{font-size:14.5px;color:var(--mute)}
-.w3-brands{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
-.w3-logos{display:flex;flex-wrap:wrap;gap:8px}
-.w3-logo{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:128px;height:64px;padding:0 20px;border-radius:14px;background:var(--fog);font-family:var(--disp);font-weight:600;font-size:19px;letter-spacing:-.02em}
-.w3-logo i{position:absolute;top:6px;right:8px;font:500 8.5px/1 var(--mono);font-style:normal;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
-.w3-more{background:none;box-shadow:inset 0 0 0 1px var(--hair);color:var(--mute);font-weight:500}
 .w3-svc{display:grid;grid-template-columns:1fr 1.2fr;gap:clamp(20px,4cqw,64px);align-items:end;flex:1}
 .w3-svc ol{display:flex;flex-direction:column}
 .w3-svc li{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:16px;row-gap:2px;padding:clamp(10px,1.2cqw,16px) 0;border-top:1px solid var(--hair)}
@@ -486,277 +1176,522 @@ backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:non
 .w3-svc li>span:last-child{font-size:14.5px;color:var(--mute)}
 .w3-reels{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(8px,1.2cqw,16px)}
 .w3-reel{display:flex;flex-direction:column;gap:10px;min-width:0}
-.w3-rv{position:relative;aspect-ratio:9/13;border-radius:16px;overflow:hidden;background:var(--ink2)}
+.w3-rv{position:relative;aspect-ratio:9/14;border-radius:16px;overflow:hidden;background:#1C1C1C;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
 .w3-rv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:scale .8s var(--ease)}
 .w3-reel:hover .w3-rv img{scale:1.06}
-.w3-play{position:absolute;left:50%;top:50%;translate:-50% -50%;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.92);color:var(--ink)}
-.w3-views{position:absolute;left:8px;bottom:8px;display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:99px;background:rgba(11,11,11,.6);font:500 10.5px/1 var(--mono);letter-spacing:.03em;color:#fff;backdrop-filter:blur(6px)}
-.w3-reel figcaption{display:flex;flex-direction:column;gap:2px;font-size:13.5px}
-.w3-reel figcaption span{color:var(--mute)}
-.w3-talk{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
-.w3-cta{display:flex;flex-direction:column;gap:8px;min-width:240px}
-.w3-btn{display:flex;align-items:center;justify-content:space-between;gap:24px;height:58px;padding:0 22px 0 26px;border-radius:99px;font-family:var(--disp);font-weight:500;font-size:18px;letter-spacing:-.02em;transition:background-color .3s,color .3s}
-.w3-btn[data-tone="ink"]{background:var(--ink);color:#fff}
-.w3-btn[data-tone="ink"]:hover{background:var(--signal);color:var(--ink)}
-.w3-btn[data-tone="line"]{box-shadow:inset 0 0 0 1.5px var(--ink)}
-.w3-btn[data-tone="line"]:hover{background:var(--ink);color:#fff}
-.w3-btn svg{transition:translate .4s var(--ease)}
-.w3-btn:hover svg{translate:4px 0}
-.w3-info{display:grid;grid-template-columns:1.4fr 1fr;gap:clamp(16px,3cqw,48px);align-items:end}
-.w3-info dl{display:grid;grid-template-columns:repeat(4,auto);gap:16px 28px;justify-content:start}
-.w3-info dt{font:500 11px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin-bottom:6px}
-.w3-info dd{margin:0;font-size:15px}
-.w3-info dd a{background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;transition:background-size .4s var(--ease)}
-.w3-info dd a:hover{background-size:100% 1px}
-.w3-hire{display:flex;flex-direction:column;gap:10px;padding:16px 18px;border-radius:18px;background:var(--fog)}
-.w3-hire .w3-lab{display:flex;align-items:center;gap:8px;color:var(--ink)}
-.w3-hire .w3-lab::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--signal);box-shadow:0 0 0 4px rgba(234,86,40,.2)}
-.w3-hire div{display:flex;flex-wrap:wrap;gap:6px}
-.w3-hire a{padding:7px 11px;border-radius:99px;background:#fff;font-size:13px;box-shadow:inset 0 0 0 1px rgba(11,11,11,.1);transition:background-color .3s,color .3s}
-.w3-hire a:hover{background:var(--ink);color:#fff}
+.w3-play{position:absolute;left:50%;top:50%;translate:-50% -50%;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.92);color:var(--ink);transition:scale .4s var(--ease)}
+.w3-reel:hover .w3-play{scale:1.12}
+.w3-views{position:absolute;left:8px;bottom:8px;display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:99px;background:rgba(10,10,10,.6);font:500 10.5px/1 var(--mono);letter-spacing:.03em;color:#fff;backdrop-filter:blur(6px)}
+.w3-cap{display:flex;flex-direction:column;gap:2px;font-size:13.5px}
+.w3-cap span{display:inline-flex;align-items:center;gap:4px;color:var(--mute)}
+.w3-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,2cqw,28px)}
+.w3-stat{display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--hair)}
+.w3-stat strong{font-family:var(--disp);font-weight:500;font-size:clamp(40px,6cqw,88px);line-height:.9;letter-spacing:-.055em}
+.w3-stat span{font-size:14.5px;color:var(--mute)}
+.w3-logos{display:flex;flex-wrap:wrap;gap:8px}
+.w3-logo{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:132px;height:64px;padding:0 20px;border-radius:14px;background:rgba(10,10,10,.06);font-family:var(--disp);font-weight:600;font-size:19px;letter-spacing:-.02em}
+.w3-logo i{position:absolute;top:6px;right:8px;font:500 8.5px/1 var(--mono);font-style:normal;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.w3-more{background:none;box-shadow:inset 0 0 0 1px var(--hair);color:var(--mute);font-weight:500}
 
-/* the landing */
-.w3-land{position:absolute;inset:0;pointer-events:none}
-.w3-head{position:absolute;left:clamp(16px,2.6vw,40px);bottom:clamp(28px,5vh,56px);font-family:var(--disp);font-weight:500;font-size:clamp(40px,5.6vw,92px);line-height:.92;letter-spacing:-.05em}
+/* the landing and the way out */
+.w3-land,.w3-outro{position:absolute;inset:0;pointer-events:none}
+.w3-head{position:absolute;left:clamp(16px,2.6vw,40px);bottom:clamp(28px,5vh,56px);font-family:var(--disp);font-weight:500;font-size:clamp(40px,5.4vw,90px);line-height:.92;letter-spacing:-.05em}
 .w3-head em{font-style:normal;color:var(--signal)}
-.w3-side{position:absolute;right:clamp(16px,2.6vw,40px);bottom:clamp(28px,5vh,56px);display:flex;flex-direction:column;align-items:flex-end;gap:16px;max-width:300px;text-align:right;pointer-events:auto}
+.w3-side{position:absolute;right:clamp(16px,2.6vw,40px);bottom:clamp(28px,5vh,56px);display:flex;flex-direction:column;align-items:flex-end;gap:16px;max-width:320px;text-align:right;pointer-events:auto}
 .w3-side p{font-size:15px;line-height:1.45;color:var(--mute)}
 .w3-side div{display:flex;gap:6px}
-.w3-pill{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 18px;border-radius:99px;font-weight:500;font-size:14.5px;transition:background-color .3s,color .3s}
-.w3-pill[data-tone="ink"]{background:var(--ink);color:#fff}
-.w3-pill[data-tone="ink"]:hover{background:var(--signal);color:var(--ink)}
-.w3-pill[data-tone="line"]{box-shadow:inset 0 0 0 1px rgba(11,11,11,.25)}
-.w3-pill[data-tone="line"]:hover{background:var(--ink);color:#fff}
+.w3-outro{opacity:0;visibility:hidden}
+.w3-pill{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 18px;border-radius:99px;font-weight:500;font-size:14.5px;transition:background-color .3s,color .3s,box-shadow .3s}
+.w3-pill[data-tone="signal"]{background:var(--signal);color:var(--ink)}
+.w3-pill[data-tone="signal"]:hover{background:#fff}
+.w3-pill[data-tone="line"]{box-shadow:inset 0 0 0 1px rgba(255,255,255,.28)}
+.w3-pill[data-tone="line"]:hover{background:#fff;color:var(--ink)}
+.w3-pill[data-tone="paper"]{background:#fff;color:var(--ink)}
 
-/* the orbit index */
-.w3-idx{position:absolute;right:clamp(12px,1.6vw,24px);top:50%;translate:0 -50%;display:flex;flex-direction:column;gap:4px;opacity:0;transition:opacity .5s}
+/* the dots on the right */
+.w3-idx{position:absolute;right:clamp(12px,1.6vw,24px);top:50%;translate:0 -50%;display:flex;flex-direction:column;gap:4px;opacity:0;transition:opacity .5s;pointer-events:none}
 .w3-idx.on{opacity:1}
-.w3-idx button{display:flex;align-items:center;justify-content:flex-end;gap:10px;height:28px;color:var(--mute);pointer-events:auto}
+.w3-idx.on button{pointer-events:auto}
+.w3-idx button{display:flex;align-items:center;justify-content:flex-end;gap:10px;height:28px;color:rgba(255,255,255,.45)}
 .w3-idx button span{font:500 10.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;opacity:0;translate:6px 0;transition:opacity .3s,translate .3s var(--ease)}
 .w3-idx button i{width:8px;height:8px;border-radius:50%;box-shadow:inset 0 0 0 1.5px currentColor;transition:background-color .3s,scale .3s}
 .w3-idx button:hover span{opacity:1;translate:0 0}
-.w3-idx button[aria-current]{color:var(--ink)}
+.w3-idx button[aria-current]{color:#fff}
 .w3-idx button[aria-current] i{background:var(--signal);box-shadow:none;scale:1.3}
 
-/* the menu */
-.w3-nav{position:fixed;top:0;left:0;right:0;z-index:2147482000;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:clamp(12px,1.4vw,20px) clamp(16px,2.6vw,40px);pointer-events:none;font-family:var(--sans);color:var(--ink)}
+/* the menu: it steps aside while you scroll down, and comes back when you scroll up or reach for it */
+.w3-nav{position:fixed;top:0;left:0;right:0;z-index:2147482000;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:clamp(12px,1.4vw,20px) clamp(16px,2.6vw,40px);pointer-events:none;font-family:var(--sans);color:var(--text);transition:transform .55s var(--ease),opacity .4s}
+.w3-nav.hide{transform:translateY(-130%);opacity:0}
+.w3-nav:focus-within{transform:none;opacity:1}
 .w3-still .w3-nav{position:absolute}
-.w3-brand{display:inline-flex;align-items:center;gap:10px;padding:4px 16px 4px 4px;border-radius:99px;background:rgba(255,255,255,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:inset 0 0 0 1px rgba(11,11,11,.08);pointer-events:auto;font-family:var(--disp);font-weight:600;font-size:21px;letter-spacing:-.04em}
-.w3-brand .ic{position:relative;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--ink);color:var(--signal)}
+.w3-brand{display:inline-flex;align-items:center;gap:10px;padding:4px 16px 4px 4px;border-radius:99px;background:rgba(18,18,18,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);pointer-events:auto;font-family:var(--disp);font-weight:600;font-size:21px;letter-spacing:-.04em}
+.w3-brand .ic{position:relative;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#fff;color:var(--ink)}
 .w3-brand .ic svg.w3-prog{position:absolute;inset:-4px;width:52px;height:52px;rotate:-90deg}
 .w3-brand b{font-weight:600}
 .w3-brand b span{color:var(--signal)}
 .w3-mg .m{transform-box:fill-box;transform-origin:50% 50%;animation:w3mer 9s linear infinite;animation-delay:var(--gd,0s)}
 @keyframes w3mer{0%{transform:scaleX(1)}25%{transform:scaleX(0)}50%{transform:scaleX(-1)}75%{transform:scaleX(0)}100%{transform:scaleX(1)}}
-.w3-links{display:flex;align-items:center;gap:4px;padding:4px;border-radius:99px;background:rgba(255,255,255,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:inset 0 0 0 1px rgba(11,11,11,.08);pointer-events:auto}
+.w3-links{display:flex;align-items:center;gap:4px;padding:4px;border-radius:99px;background:rgba(18,18,18,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);pointer-events:auto}
 .w3-links button{height:38px;padding:0 15px;border-radius:99px;font-size:14px;font-weight:500;transition:background-color .3s,color .3s}
-.w3-links button:hover{background:var(--fog)}
-.w3-links button[aria-current]{background:var(--ink);color:#fff}
+.w3-links button:hover{background:rgba(255,255,255,.08)}
+.w3-links button[aria-current]{background:#fff;color:var(--ink)}
 .w3-links button.cta{background:var(--signal);color:var(--ink)}
-.w3-links button.cta:hover{background:var(--ink);color:#fff}
+.w3-links button.cta:hover{background:#fff}
 .w3-menu{display:none;pointer-events:auto}
-.w3-sheet{position:fixed;top:72px;left:12px;right:12px;z-index:2147482001;display:flex;flex-direction:column;padding:8px;border-radius:22px;background:#fff;box-shadow:0 30px 80px -30px rgba(11,11,11,.45),inset 0 0 0 1px rgba(11,11,11,.06)}
+.w3-sheet{position:fixed;top:72px;left:12px;right:12px;z-index:2147482001;display:flex;flex-direction:column;padding:8px;border-radius:22px;background:#151515;color:var(--text);box-shadow:0 30px 80px -30px rgba(0,0,0,.8),inset 0 0 0 1px rgba(255,255,255,.08)}
 .w3-sheet button{display:flex;justify-content:space-between;align-items:center;height:54px;padding:0 16px;border-radius:14px;font-family:var(--disp);font-weight:500;font-size:22px;letter-spacing:-.03em}
-.w3-sheet button:hover{background:var(--fog)}
+.w3-sheet button:hover{background:rgba(255,255,255,.06)}
+
+/* after the globe */
+.w3-rest{position:relative;background:var(--bg);border-top:1px solid rgba(255,255,255,.06)}
+.w3-sec{padding:clamp(72px,10vw,140px) clamp(16px,4vw,64px);max-width:1440px;margin:0 auto;scroll-margin-top:24px}
+.w3-eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--mute);margin-bottom:22px}
+.w3-eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--signal);box-shadow:0 0 0 4px rgba(234,86,40,.2)}
+.w3-h2{font-family:var(--disp);font-weight:500;font-size:clamp(40px,5.6vw,88px);line-height:.93;letter-spacing:-.05em;text-wrap:balance;margin-bottom:22px}
+.w3-contact{display:grid;grid-template-columns:1fr 1.15fr;gap:clamp(32px,5vw,88px);align-items:start}
+.w3-ct-l{position:sticky;top:40px}
+.w3-next{display:flex;flex-direction:column;margin:36px 0}
+.w3-next li{display:grid;grid-template-columns:44px 1fr;padding:14px 0;border-top:1px solid var(--line);font-size:15.5px}
+.w3-next b{font:500 12px/1.6 var(--mono);color:var(--signal)}
+.w3-dl{display:grid;grid-template-columns:repeat(3,auto);gap:16px 28px;justify-content:start}
+.w3-dl dt,.w3-fcols .w3-lab{font:500 11px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin-bottom:6px}
+.w3-dl dd{margin:0;font-size:15px}
+.w3-dl a,.w3-note a{background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;transition:background-size .4s var(--ease)}
+.w3-dl a:hover,.w3-note a:hover{background-size:100% 1px}
+.w3-form{border-radius:28px;background:#121212;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);padding:clamp(20px,3vw,40px)}
+.w3-form form{display:flex;flex-direction:column;gap:28px}
+.w3-who{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.w3-who .w3-lab,.w3-q .w3-lab{color:var(--mute)}
+.w3-seg{display:inline-flex;padding:4px;border-radius:99px;background:rgba(255,255,255,.06)}
+.w3-seg button{height:40px;padding:0 18px;border-radius:99px;font-weight:500;font-size:14.5px;color:var(--mute);transition:background-color .3s,color .3s}
+.w3-seg button[aria-pressed="true"]{background:#fff;color:var(--ink)}
+.w3-q{display:flex;flex-direction:column;gap:12px}
+.w3-svcpick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.w3-svcpick button{position:relative;display:flex;flex-direction:column;gap:4px;padding:14px 40px 14px 16px;border-radius:16px;text-align:left;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);transition:box-shadow .3s,background-color .3s}
+.w3-svcpick button:hover{background:rgba(255,255,255,.03)}
+.w3-svcpick button[aria-pressed="true"]{box-shadow:inset 0 0 0 1.5px var(--signal);background:rgba(234,86,40,.08)}
+.w3-svcpick b{display:flex;align-items:center;gap:8px;font-family:var(--disp);font-weight:500;font-size:16.5px;letter-spacing:-.02em}
+.w3-svcpick b i{font:500 9px/1 var(--mono);font-style:normal;letter-spacing:.08em;text-transform:uppercase;padding:4px 7px;border-radius:99px;background:var(--signal);color:var(--ink)}
+.w3-svcpick span{font-size:13px;line-height:1.4;color:var(--mute)}
+.w3-svcpick em{position:absolute;top:14px;right:14px;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);color:var(--ink)}
+.w3-svcpick button[aria-pressed="true"] em{background:var(--signal);box-shadow:none}
+.w3-chips{display:flex;flex-wrap:wrap;gap:6px}
+.w3-chips button{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 15px;border-radius:99px;font-size:14px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);transition:background-color .3s,color .3s,box-shadow .3s}
+.w3-chips button:hover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}
+.w3-chips button[aria-pressed="true"]{background:#fff;color:var(--ink);box-shadow:none}
+.w3-fields{display:grid;grid-template-columns:1fr 1fr;gap:18px 20px}
+.w3-field{display:flex;flex-direction:column;gap:8px}
+.w3-field.w3-wide{grid-column:1/-1}
+.w3-field span{font:500 11px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.w3-field input,.w3-field textarea{width:100%;font:inherit;font-size:16px;color:var(--text);background:transparent;border:0;border-bottom:1px solid rgba(255,255,255,.18);border-radius:0;padding:8px 0 10px;outline:none;transition:border-color .3s;resize:vertical}
+.w3-field input:focus,.w3-field textarea:focus{border-color:var(--signal)}
+.w3-field ::placeholder{color:rgba(243,241,236,.3)}
+.w3-send{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.w3-send span{font-size:12.5px;color:var(--mute)}
+.w3-btn{display:inline-flex;align-items:center;justify-content:space-between;gap:24px;height:58px;padding:0 22px 0 26px;border-radius:99px;font-family:var(--disp);font-weight:500;font-size:18px;letter-spacing:-.02em;transition:background-color .3s,color .3s,box-shadow .3s}
+.w3-btn[data-tone="signal"]{background:var(--signal);color:var(--ink)}
+.w3-btn[data-tone="signal"]:hover{background:#fff}
+.w3-btn[data-tone="signal"]:disabled{opacity:.6;cursor:progress}
+.w3-btn[data-tone="line"]{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5)}
+.w3-btn[data-tone="line"]:hover{background:#fff;color:var(--ink)}
+.w3-btn svg{transition:translate .4s var(--ease)}
+.w3-btn:hover svg{translate:4px 0}
+.w3-thanks{display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:40px 0}
+.w3-thanks h3{font-family:var(--disp);font-weight:500;font-size:clamp(28px,3vw,40px);letter-spacing:-.04em;line-height:1}
+.w3-thanks p{color:var(--mute);max-width:44ch;line-height:1.5}
+.w3-tick{display:grid;place-items:center;width:58px;height:58px;border-radius:50%;background:var(--signal);color:var(--ink)}
+.w3-link{text-decoration:underline;text-underline-offset:4px;color:var(--mute)}
+.w3-careers{display:grid;grid-template-columns:1fr 1.25fr;gap:clamp(32px,5vw,88px);align-items:start;border-top:1px solid rgba(255,255,255,.06)}
+.w3-cr-head{position:sticky;top:40px}
+.w3-roles{display:flex;flex-direction:column}
+.w3-role{border-top:1px solid var(--line)}
+.w3-role:last-of-type{border-bottom:1px solid var(--line)}
+.w3-role>button{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;column-gap:16px;row-gap:4px;width:100%;padding:22px 0;text-align:left}
+.w3-role>button b{font-family:var(--disp);font-weight:500;font-size:clamp(22px,2.2vw,30px);letter-spacing:-.03em;transition:color .3s}
+.w3-role>button:hover b{color:var(--signal)}
+.w3-role>button span{grid-row:2;font-size:14px;color:var(--mute)}
+.w3-role>button i{grid-row:1/span 2;grid-column:2;align-self:center;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);transition:rotate .4s var(--ease),background-color .3s,color .3s}
+.w3-role.on>button i{rotate:45deg;background:var(--signal);color:var(--ink);box-shadow:none}
+.w3-rbody{display:flex;flex-direction:column;align-items:flex-start;gap:16px;padding:0 0 28px}
+.w3-rbody[hidden]{display:none}
+.w3-rbody p{font-size:16px;line-height:1.55;max-width:56ch}
+.w3-rbody ul{display:flex;flex-direction:column;gap:8px}
+.w3-rbody li{position:relative;padding-left:20px;font-size:14.5px;line-height:1.5;color:var(--mute)}
+.w3-rbody li::before{content:"";position:absolute;left:2px;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--signal)}
+.w3-note{margin-top:22px;font-size:14px;line-height:1.5;color:var(--mute)}
+.w3-note a{color:var(--text)}
+.w3-foot{position:relative;overflow:hidden;padding:clamp(56px,7vw,96px) clamp(16px,4vw,64px) 28px;background:#060606;border-top:1px solid rgba(255,255,255,.06)}
+.w3-fcols{display:grid;grid-template-columns:repeat(3,auto) 1fr;gap:28px clamp(28px,5vw,80px);max-width:1440px;margin:0 auto}
+.w3-fcols>div{display:flex;flex-direction:column;align-items:flex-start;gap:8px;font-size:15px}
+.w3-fcols>div a,.w3-fcols>div button{display:inline-flex;align-items:center;gap:6px;transition:color .3s}
+.w3-fcols>div a:hover,.w3-fcols>div button:hover{color:var(--signal)}
+.w3-fcols>div>span:not(.w3-lab){color:var(--mute)}
+.w3-fnote{justify-self:end;max-width:24ch;text-align:right;font-size:14px;line-height:1.45;color:var(--mute)}
+.w3-fword{margin:clamp(40px,6vw,80px) auto 0;max-width:1440px;font-family:var(--disp);font-weight:600;font-size:clamp(64px,17vw,260px);line-height:.8;letter-spacing:-.065em;white-space:nowrap}
+.w3-fword span{color:var(--signal)}
+.w3-fbase{display:flex;justify-content:space-between;gap:16px;max-width:1440px;margin:28px auto 0;font:500 11px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.w3-fbase button{display:inline-flex;align-items:center;gap:6px;font:inherit;letter-spacing:inherit;text-transform:inherit}
+.w3-fbase button:hover{color:var(--text)}
+
 @media (max-width:820px){
 .w3-links{display:none}.w3-menu{display:inline-flex}
-.w3-head{left:16px;right:16px;bottom:92px;font-size:clamp(38px,11vw,64px)}
+.w3-head{left:16px;right:16px;bottom:96px;font-size:clamp(38px,11vw,64px)}
 .w3-side{left:16px;right:16px;bottom:22px;align-items:stretch;text-align:left;max-width:none}
 .w3-side p{display:none}.w3-side div>*{flex:1;justify-content:center}
 .w3-idx button span{display:none}
+.w3-bd span{font-size:9.5px;padding:5px 8px}
+.w3-contact,.w3-careers{grid-template-columns:1fr}
+.w3-ct-l,.w3-cr-head{position:static}
+.w3-dl{grid-template-columns:1fr}
+.w3-svcpick,.w3-fields{grid-template-columns:1fr}
+.w3-fcols{grid-template-columns:1fr 1fr}
+.w3-fnote{grid-column:1/-1;justify-self:start;text-align:left}
 }
 @container (max-width:760px){
-.w3-why,.w3-svc,.w3-info{grid-template-columns:1fr}
+.w3-why,.w3-svc{grid-template-columns:1fr}
 .w3-beliefs{grid-template-columns:1fr;gap:10px}.w3-beliefs li{padding-top:10px}.w3-beliefs span{font-size:13px}
 .w3-stats{grid-template-columns:1fr;gap:6px}.w3-stat{flex-direction:row;align-items:baseline;gap:14px;padding-top:10px}.w3-stat strong{font-size:44px}
 .w3-logo{min-width:0;height:48px;padding:0 14px;font-size:15px}
 .w3-svi{width:34px;height:34px}.w3-svi svg{width:16px;height:16px}.w3-svc li{column-gap:12px;padding:8px 0}.w3-svc li>span:last-child{font-size:12.5px}
 .w3-reels{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -20px;padding:0 20px;scroll-padding:0 20px;scrollbar-width:none}
 .w3-reel{flex:0 0 46%;scroll-snap-align:start}
-.w3-cta{width:100%}.w3-btn{height:50px;font-size:16px}
-.w3-info dl{grid-template-columns:1fr 1fr;gap:10px 16px}.w3-info dd{font-size:13.5px}
 .w3-aside{display:none}
 }
 .w3-flat{display:flex;flex-direction:column;gap:14px;padding:14px}
-.w3-flatpn.w3-pn{position:relative;display:block;left:auto;top:auto;width:auto;height:auto;min-height:min(780px,92vh)}
-.w3-flatpn .w3-pg{position:relative;min-height:inherit;opacity:1}
+.w3-flatpn{position:relative;border-radius:26px;overflow:hidden;background:var(--tone);min-height:min(780px,92vh)}
+.w3-flatpn .w3-pg{position:relative;left:auto;top:auto;translate:none;width:auto;height:auto;min-height:inherit;overflow:visible}
 @media (prefers-reduced-motion:reduce){.w3 *{transition:none!important;animation:none!important}}
 `
 
-/* ─────────────────────────────── The component ─────────────────────────────── */
+/* ─────────────────────────────── The motion ─────────────────────────────── */
 
+// The scroll, in screens: a moment on the landing, then for each page a turn of the globe and
+// a hold with the page up front, then a last turn back to the globe before the rest of the site.
 const N = PAGES.length
-const LAND = 0.7 // screens of scroll spent on the landing
-const SEG = 2.6 // screens of scroll for each page: rise out of the globe, hold, roll back in
-const TOTAL = LAND + N * SEG - 0.2 * SEG
+const REST = 0.12 // the landing at rest
+const TURN = 1.1 // a turn of the globe from one city to the next
+const HOLD = 1.5 // a page held up front
+const OUT = 0.9 // the globe again, spinning on its own, before the rest of the site
+const TILT = -16 // the globe leans towards you, so you see a little of the north
+const holdStart = (k: number) => REST + TURN + k * (HOLD + TURN)
+const holdEnd = (k: number) => holdStart(k) + HOLD
+const TOTAL = holdEnd(N - 1) + TURN + OUT
+const PAGE_TILES = PAGES.map((_, k) => TILES.findIndex((t) => t.page === k))
+const PAGE_LON = PAGE_TILES.map((i) => TILES[i].lon)
+/** How far the globe turns between two pages: from one page's city to the next one's, and from the last back home to Delhi. */
+const GAP = PAGE_LON.map((lon, k) => mod(lon - PAGE_LON[(k + 1) % N], 360))
+
+type Frame = { rot: number; free: 0 | 1 | 2; lifts: number[] }
+
+/** Where the globe is turned to, and how far each page is lifted off it, at scroll u. */
+function motion(u: number, spin: number, spin2: number): Frame {
+    const lifts = PAGES.map((_, k) => {
+        const up = smooth((u - (holdStart(k) - 0.4)) / 0.75)
+        const down = 1 - smooth((u - (holdEnd(k) - 0.35)) / 0.75)
+        return Math.max(0, Math.min(up, down))
+    })
+    if (u < holdStart(0)) {
+        // From the landing into the first page: whatever way the globe faces, it turns at least a
+        // third of a turn forward to India.
+        const e = easeInOut((u - REST) / TURN)
+        const w0 = mod(spin + PAGE_LON[0] + 120, 360) - 480
+        return { rot: -PAGE_LON[0] + w0 * (1 - e), free: e <= 0 ? 1 : 0, lifts }
+    }
+    const last = holdEnd(N - 1)
+    if (u >= last) {
+        const e = easeInOut((u - last) / TURN)
+        return { rot: -PAGE_LON[N - 1] + GAP[N - 1] * e + wrap(spin2) * e, free: e >= 1 ? 2 : 0, lifts }
+    }
+    const k = Math.min(N - 1, Math.floor((u - holdStart(0)) / (HOLD + TURN)))
+    const into = u - holdStart(k)
+    if (into <= HOLD) return { rot: -PAGE_LON[k], free: 0, lifts }
+    return { rot: -PAGE_LON[k] + GAP[k] * easeInOut((into - HOLD) / TURN), free: 0, lifts }
+}
+
+/** The element whose scrolling moves this page: a scrolling box around it, or the window. */
+function scrollBox(el: HTMLElement | null): HTMLElement | null {
+    let n = el ? el.parentElement : null
+    while (n && n !== document.body && n !== document.documentElement) {
+        const o = getComputedStyle(n).overflowY
+        if ((o === "auto" || o === "scroll" || o === "overlay") && n.scrollHeight > n.clientHeight + 1) return n
+        n = n.parentElement
+    }
+    return null
+}
 
 /**
  * @framerSupportedLayoutWidth fixed
  * @framerSupportedLayoutHeight auto
  */
 export default function W3Globe(props: Props) {
-    const { media = [], samples = true, email = "social@worldmedia.co.in", phone = "+91 88000 40301", style } = props
+    const { media = NO_MEDIA, samples = true, rest = true, email = "social@worldmedia.co.in", phone = "+91 88000 40301", endpoint = "", style } = props
     const isStatic = useIsStaticRenderer()
     const [reduce, setReduce] = React.useState(false)
     const [mounted, setMounted] = React.useState(false)
     const [open, setOpen] = React.useState(false)
+    const [side, setSide] = React.useState<"brand" | "creator">("brand")
     const [size, setSize] = React.useState({ w: 1440, h: 900 })
+    const [shapes, setShapes] = React.useState<number[]>(() => TILES.map((t) => t.ar))
 
     const rootRef = React.useRef<HTMLDivElement>(null)
+    const trackRef = React.useRef<HTMLDivElement>(null)
     const stageRef = React.useRef<HTMLDivElement>(null)
+    const canvasRef = React.useRef<HTMLCanvasElement>(null)
     const worldRef = React.useRef<HTMLDivElement>(null)
     const spinRef = React.useRef<HTMLDivElement>(null)
-    const orbitRef = React.useRef<HTMLDivElement>(null)
     const veilRef = React.useRef<HTMLDivElement>(null)
     const landRef = React.useRef<HTMLDivElement>(null)
+    const outroRef = React.useRef<HTMLDivElement>(null)
     const wordRef = React.useRef<HTMLDivElement>(null)
     const idxRef = React.useRef<HTMLDivElement>(null)
+    const navRef = React.useRef<HTMLElement>(null)
     const progRef = React.useRef<SVGCircleElement>(null)
+    const tileEls = React.useRef<(HTMLDivElement | null)[]>([])
+    const tileVids = React.useRef<(HTMLVideoElement | null)[]>([])
+    const badgeEls = React.useRef<(HTMLDivElement | null)[]>([])
     const panels = React.useRef<(HTMLDivElement | null)[]>([])
     const covers = React.useRef<(HTMLDivElement | null)[]>([])
+    const coverMedia = React.useRef<(HTMLDivElement | null)[]>([])
     const bodies = React.useRef<(HTMLDivElement | null)[]>([])
     const navBtns = React.useRef<(HTMLButtonElement | null)[]>([])
     const idxBtns = React.useRef<(HTMLButtonElement | null)[]>([])
+    const openRef = React.useRef(false)
+    openRef.current = open
 
     const still = isStatic || reduce
 
-    // Sizes: the globe's radius, the perspective, and the size of a page.
+    // Whether the visitor prefers less motion.
     React.useEffect(() => {
         if (isStatic) return
         const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
-        const read = () => React.startTransition(() => setSize({ w: window.innerWidth, h: window.innerHeight }))
         const onMq = () => React.startTransition(() => setReduce(mq.matches))
-        read()
         onMq()
         React.startTransition(() => setMounted(true))
-        window.addEventListener("resize", read)
         mq.addEventListener("change", onMq)
-        return () => {
-            window.removeEventListener("resize", read)
-            mq.removeEventListener("change", onMq)
-        }
+        return () => mq.removeEventListener("change", onMq)
     }, [isStatic])
+    // The stage's size: the globe, the pages and the scroll are all measured from it.
+    React.useEffect(() => {
+        const st = stageRef.current
+        if (!st || typeof ResizeObserver === "undefined") return
+        const read = () => {
+            const w = st.clientWidth
+            const h = st.clientHeight
+            if (w && h) React.startTransition(() => setSize((o) => (o.w === w && o.h === h ? o : { w, h })))
+        }
+        read()
+        const ro = new ResizeObserver(read)
+        ro.observe(st)
+        return () => ro.disconnect()
+    }, [])
 
     const phoneW = size.w <= 820
-    const R = Math.round(phoneW ? Math.min(size.w * 0.46, size.h * 0.29) : Math.min(size.h * 0.34, size.w * 0.27))
+    const R = Math.round(phoneW ? Math.min(size.w * 0.4, size.h * 0.27) : Math.min(size.h * 0.33, size.w * 0.26))
     const P = phoneW ? 1100 : 1700
-    const gy = phoneW ? "38%" : "46%"
-    const W = phoneW ? size.w - 20 : Math.min(1240, size.w - 2 * Math.max(56, size.w * 0.04))
+    const gyF = phoneW ? 0.4 : 0.47
+    const W = phoneW ? size.w - 16 : Math.min(1240, size.w - 2 * Math.max(56, size.w * 0.04))
     const navH = phoneW ? 68 : 84
-    const H = phoneW ? Math.min(size.h - navH - 10, 720) : Math.min(800, size.h - navH - 14)
-    // The globe's centre, and how far a page drops from it to sit just under the menu.
-    const gyPx = size.h * (phoneW ? 0.38 : 0.46)
-    const dy = Math.round(navH + (size.h - navH - H) / 2 + H / 2 - gyPx)
+    const H = phoneW ? Math.min(size.h - navH - 8, 760) : Math.min(820, size.h - navH - 16)
+    // How far a page drops from the globe's centre to sit just under the menu.
+    const dy = Math.round(navH + (size.h - navH - H) / 2 + H / 2 - size.h * gyF)
 
-    const items: Media[] = React.useMemo(
-        () => (media || []).filter(Boolean).map((src) => ({ src, type: /\.(mp4|webm|mov)(\?|$)/i.test(src) ? "video" : "image" })),
-        [media]
-    )
-    const tiles = React.useMemo(() => buildTiles(R, items), [R, items])
-    const front = tiles.find((t) => t.lat === 0) || tiles[0]
-
-    // The motion: one loop reads the scroll and moves the globe, the pages and the menu.
-    const state = React.useRef({ cur: 0, rot: 18, vel: 0, drag: false, px: 0, last: 0, onIdx: -2 })
+    const key = (media || NO_MEDIA).filter(Boolean).join("\n")
+    const items = React.useMemo(() => (key ? key.split("\n") : NO_MEDIA), [key])
+    const srcOf = (i: number) => (items[i] ? items[i] : samples ? SAMPLE + PHOTOS[i % PHOTOS.length] + ".jpg" : "")
+    const setShape = React.useCallback((i: number, ar: number) => {
+        const v = clamp(ar, 0.4, 2.4)
+        React.startTransition(() => setShapes((o) => (Math.abs(o[i] - v) < 0.01 ? o : o.map((x, j) => (j === i ? v : x)))))
+    }, [])
+    // A new set of media starts again from the tiles' own shapes, until each video says its own.
     React.useEffect(() => {
-        if (still || !mounted) return
-        const root = rootRef.current
-        if (!root) return
+        React.startTransition(() => setShapes((o) => (o.every((v, i) => v === TILES[i].ar) ? o : TILES.map((t) => t.ar))))
+    }, [items])
+
+    // The motion: one loop reads the scroll and moves the globe, the tiles, the pages and the menu.
+    const state = React.useRef({ cur: 0, spin: -110, spin2: 0, vel: 0, drag: 0 as 0 | 1 | 2, px: 0, last: 0, t0: 0, onIdx: -2, py: 0, tilt: 0, fix: false, free: 1 as 0 | 1 | 2 })
+    React.useEffect(() => {
+        const cv = canvasRef.current
+        const track = trackRef.current
+        const stage = stageRef.current
+        if (!cv || !track || !stage) return
+        if (!still && !mounted) return
+        const ctx = cv.getContext("2d")
+        if (!ctx) return
+        const kit: Kit = {
+            dots: landDots(),
+            grid: graticule(),
+            routes: routes(),
+            cities: Object.values(CITY).map(([lon, lat]) => onGlobe(lon, lat)),
+            hot: [0, ...BADGES.map((b) => Object.keys(CITY).indexOf(b.at))],
+        }
+        const dpr = Math.min(2, window.devicePixelRatio || 1)
+        cv.width = Math.round(size.w * dpr)
+        cv.height = Math.round(size.h * dpr)
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+        const cx = size.w / 2
+        const cy = size.h * gyF
         const s = state.current
+        const sizes = TILES.map((_, i) => tileSize(R, shapes[i]))
+        const badgeAt = BADGES.map((b) => onGlobe(CITY[b.at][0], CITY[b.at][1]))
+        const tileAt = TILES.map((t) => onGlobe(t.lon, t.lat))
+
+        if (still) {
+            drawScene(ctx, { w: size.w, h: size.h, cx, cy, R, P, rot: -PAGE_LON[0] + 18, tilt: TILT, wz: 0, lift: 0, intro: 1, time: 0 }, kit)
+            return
+        }
+
         let raf = 0
         let visible = true
-        const vhPx = () => window.innerHeight
+        let lastLift = -1
         const frame = (now: number) => {
             raf = 0
             const dt = s.last ? Math.min(64, now - s.last) : 16.7
             s.last = now
-            const vh = vhPx()
-            const rect = root.getBoundingClientRect()
+            if (!s.t0) s.t0 = now
+            const vh = size.h
+            const rect = track.getBoundingClientRect()
             const target = clamp(-rect.top / vh, 0, TOTAL)
-            s.cur += (target - s.cur) * (1 - Math.pow(0.87, dt / 16.7))
+            s.cur += (target - s.cur) * (1 - Math.pow(0.86, dt / 16.7))
             if (Math.abs(target - s.cur) < 0.0005) s.cur = target
             const u = s.cur
 
-            // Which page is on, and how far through it.
-            let k = -1
-            let t = 0
-            if (u > LAND) {
-                k = Math.min(N - 1, Math.floor((u - LAND) / SEG))
-                t = (u - LAND - k * SEG) / SEG
+            // If the page around us stops the stage from staying put, hold it in place ourselves.
+            if (!s.fix && rect.top < -4 && rect.bottom > vh + 4 && Math.abs(stage.getBoundingClientRect().top) > 2) {
+                s.fix = true
+                stage.classList.add("fix")
             }
-            let lift = 0
-            let theta = 0
-            let turn = 0
-            if (k >= 0) {
-                const enter = clamp(t / 0.32)
-                const exit = k === N - 1 ? 0 : clamp((t - 0.68) / 0.32)
-                theta = -78 * (1 - easeOut(enter)) + 78 * easeInOut(exit)
-                lift = Math.min(smooth((enter - 0.26) / 0.74), 1 - smooth(exit / 0.72))
-                turn = 0.5 * easeInOut(enter) + 0.5 * easeInOut(exit)
-            }
+            if (s.fix) stage.style.transform = `translateY(${clamp(-rect.top, 0, rect.height - vh).toFixed(1)}px)`
 
-            // The globe turns on its own, with a drag, and a fifth of a turn for every page.
-            if (!s.drag) {
-                s.rot += s.vel
-                s.vel *= Math.pow(0.93, dt / 16.7)
-            }
-            s.rot += dt * 0.0045 * (1 - lift)
-            const rot = s.rot + 72 * (Math.max(0, k) + turn) + (k < 0 ? u * 40 : 0)
-            const recede = lift
-            const worldZ = -900 * recede
-            if (worldRef.current) worldRef.current.style.transform = `translateZ(${worldZ.toFixed(1)}px)`
-            if (spinRef.current) spinRef.current.style.transform = `rotateX(-14deg) rotateY(${rot.toFixed(2)}deg)`
-            if (orbitRef.current) orbitRef.current.style.transform = `rotateX(76deg) rotateY(-8deg) rotateZ(${(-rot * 1.6).toFixed(2)}deg)`
-            if (veilRef.current) veilRef.current.style.opacity = (0.6 * recede).toFixed(3)
+            // The globe spins on its own and can be dragged while it is free: on the landing and at the end.
+            const m0 = motion(u, s.spin, s.spin2)
+            s.free = m0.free
+            if (m0.free) {
+                const key = m0.free === 1 ? "spin" : "spin2"
+                if (s.drag !== m0.free) {
+                    s[key] += s.vel
+                    s.vel *= Math.pow(0.93, dt / 16.7)
+                }
+                s[key] += dt * 0.006
+            } else s.vel = 0
+            const m = motion(u, s.spin, s.spin2)
+            const rot = m.rot
+            const lift = Math.max(...m.lifts)
+            const wz = -900 * lift
+            s.tilt += (s.py * 5 * (1 - lift) - s.tilt) * (1 - Math.pow(0.9, dt / 16.7))
+            const tilt = TILT + s.tilt
+            const intro = smooth((now - s.t0) / 1900)
 
-            // The landing steps back as soon as the globe starts to turn.
-            const fade = smooth((u - 0.12) / 0.5)
+            if (lift < 0.995 || lastLift < 0.995) drawScene(ctx, { w: size.w, h: size.h, cx, cy, R, P, rot, tilt, wz, lift, intro, time: now }, kit)
+            lastLift = lift
+            if (worldRef.current) worldRef.current.style.transform = `translateZ(${wz.toFixed(1)}px)`
+            if (spinRef.current) spinRef.current.style.transform = `rotateX(${tilt.toFixed(2)}deg) rotateY(${rot.toFixed(2)}deg)`
+            if (veilRef.current) veilRef.current.style.opacity = (0.74 * lift).toFixed(3)
+
+            // How squarely a point of the globe faces you: 1 at the front, 0 at the edge.
+            const cr = Math.cos(rot * D2R)
+            const sr = Math.sin(rot * D2R)
+            const ct = Math.cos(tilt * D2R)
+            const st = Math.sin(tilt * D2R)
+            const facing = (p: [number, number, number]) => p[1] * st + (p[2] * cr - p[0] * sr) * ct
+
+            // The tiles fade as they near the globe's edge, and their videos rest while out of sight.
+            tileEls.current.forEach((el, i) => {
+                if (!el) return
+                const f = facing(tileAt[i])
+                const pg = TILES[i].page
+                const up = pg !== undefined && m.lifts[pg] > 0
+                el.style.opacity = up ? "0" : (smooth((f + 0.05) / 0.4) * smooth(intro * 1.6 - 0.5 - i * 0.06)).toFixed(3)
+                const v = tileVids.current[i]
+                if (v) {
+                    if (f < -0.2 && !v.paused) v.pause()
+                    else if (f > -0.1 && v.paused) v.play().catch(() => {})
+                }
+            })
+
+            // The tags float over their cities, always facing you.
+            badgeAt.forEach((p, i) => {
+                const el = badgeEls.current[i]
+                if (!el) return
+                const x0 = (p[0] * cr + p[2] * sr) * R
+                const z0 = (p[2] * cr - p[0] * sr) * R
+                const y1 = p[1] * R * ct - z0 * st
+                const z1 = p[1] * R * st + z0 * ct
+                const sc = P / (P - (z1 + wz))
+                const a = smooth((z1 / R - 0.15) / 0.3) * (1 - lift) * smooth((intro - 0.6) / 0.4)
+                el.style.opacity = a.toFixed(3)
+                el.style.transform = `translate3d(${(cx + x0 * sc).toFixed(1)}px,${(cy + y1 * sc).toFixed(1)}px,0)`
+            })
+
+            // The landing steps back as the globe starts to turn; the way out comes in at the end.
+            const fade = smooth((u - 0.04) / 0.4)
             if (landRef.current) {
                 landRef.current.style.opacity = (1 - fade).toFixed(3)
                 landRef.current.style.transform = `translateY(${(fade * 30).toFixed(1)}px)`
                 landRef.current.style.visibility = fade > 0.99 ? "hidden" : "visible"
             }
-            if (wordRef.current) wordRef.current.style.opacity = (1 - Math.max(fade * 0.7, recede)).toFixed(3)
+            const out = smooth((u - (holdEnd(N - 1) + TURN * 0.55)) / 0.5)
+            if (outroRef.current) {
+                outroRef.current.style.opacity = out.toFixed(3)
+                outroRef.current.style.transform = `translateY(${((1 - out) * 30).toFixed(1)}px)`
+                outroRef.current.style.visibility = out < 0.01 ? "hidden" : "visible"
+            }
+            if (wordRef.current) wordRef.current.style.opacity = (1 - lift).toFixed(3)
 
-            // The page: it rides the globe's surface from the left edge to the front, lifts off
-            // towards you while the globe sinks back, then rolls on into the right edge.
-            panels.current.forEach((el, i) => {
+            // The pages: a page starts as its video tile on the globe, rides the turn to the front,
+            // then lifts off towards you and opens up while the globe sinks back.
+            PAGES.forEach((_, k) => {
+                const el = panels.current[k]
                 if (!el) return
-                const on = i === k && (t > 0 || k === 0) && !(k < N - 1 && t >= 1)
-                if (!on) {
+                const lk = m.lifts[k]
+                if (lk <= 0) {
                     if (el.style.display !== "none") el.style.display = "none"
                     el.classList.remove("on", "live")
                     return
                 }
-                el.style.display = "block"
-                const l = easeInOut(lift)
-                const r = R + (-worldZ - R) * l
-                const sx = front.w / W + (1 - front.w / W) * l
-                const sy = front.h / H + (1 - front.h / H) * l
+                const ti = PAGE_TILES[k]
+                const t = TILES[ti]
+                const sz = sizes[ti]
+                const l = easeInOut(lk)
+                const rt = R * 1.02
+                const r = rt + (-wz - rt) * l
+                const theta = wrap(rot + t.lon)
+                el.style.display = "grid"
                 el.style.transform =
-                    lift > 0.999 && Math.abs(theta) < 0.01
+                    l > 0.999 && Math.abs(theta) < 0.01
                         ? `translateY(${dy}px)`
-                        : `translateY(${(dy * l).toFixed(1)}px) translateZ(${worldZ.toFixed(1)}px) rotateY(${theta.toFixed(2)}deg) translateZ(${r.toFixed(1)}px) scale(${sx.toFixed(4)},${sy.toFixed(4)})`
-                el.style.borderRadius = `${(12 / Math.min(sx, sy)) * (1 - l) + 28 * l}px`
-                const show = clamp((lift - 0.62) / 0.3)
-                const c = covers.current[i]
-                const b = bodies.current[i]
-                if (c) c.style.opacity = (1 - show).toFixed(3)
-                if (b) b.style.opacity = show.toFixed(3)
-                el.classList.toggle("on", lift > 0.8)
-                el.classList.toggle("live", lift > 0.92)
+                        : `translateY(${(dy * l).toFixed(1)}px) translateZ(${wz.toFixed(1)}px) rotateX(${(tilt * (1 - l)).toFixed(2)}deg) rotateY(${theta.toFixed(2)}deg) rotateX(${(t.lat * (1 - l)).toFixed(2)}deg) translateZ(${r.toFixed(1)}px)`
+                const c = covers.current[k]
+                if (c) {
+                    c.style.width = (sz.w + (W - sz.w) * l).toFixed(1) + "px"
+                    c.style.height = (sz.h + (H - sz.h) * l).toFixed(1) + "px"
+                    c.style.borderRadius = (10 + 16 * l).toFixed(1) + "px"
+                }
+                const show = clamp((l - 0.72) / 0.22)
+                const cm = coverMedia.current[k]
+                if (cm) cm.style.opacity = (1 - show).toFixed(3)
+                const b = bodies.current[k]
+                if (b) {
+                    b.style.opacity = show.toFixed(3)
+                    b.style.visibility = show > 0 ? "visible" : "hidden"
+                }
+                el.classList.toggle("on", l > 0.85)
+                el.classList.toggle("live", l > 0.95)
             })
 
-            // The menu and the index follow the page in front.
-            const cur = k >= 0 && lift > 0.5 ? k : -1
+            // The menu and the dots follow the page in front.
+            let cur = -1
+            m.lifts.forEach((v, k) => {
+                if (v > 0.5) cur = k
+            })
             if (cur !== s.onIdx) {
                 s.onIdx = cur
                 navBtns.current.forEach((b, i) => b && (i === cur ? b.setAttribute("aria-current", "true") : b.removeAttribute("aria-current")))
                 idxBtns.current.forEach((b, i) => b && (i === cur ? b.setAttribute("aria-current", "true") : b.removeAttribute("aria-current")))
             }
-            if (idxRef.current) idxRef.current.classList.toggle("on", u > LAND * 0.8)
+            if (idxRef.current) idxRef.current.classList.toggle("on", u > REST + TURN * 0.5 && u < holdEnd(N - 1) + TURN * 0.6)
             if (progRef.current) progRef.current.style.strokeDashoffset = (151 * (1 - u / TOTAL)).toFixed(1)
 
-            if (visible || Math.abs(s.vel) > 0.01) raf = requestAnimationFrame(frame)
+            if (visible || Math.abs(s.vel) > 0.01 || Math.abs(target - s.cur) > 0.001) raf = requestAnimationFrame(frame)
         }
         const kick = () => {
             if (!raf) {
@@ -768,19 +1703,20 @@ export default function W3Globe(props: Props) {
             visible = e.isIntersecting
             if (visible) kick()
         })
-        io.observe(root)
+        io.observe(track)
         kick()
         return () => {
             io.disconnect()
             if (raf) cancelAnimationFrame(raf)
         }
-    }, [still, mounted, R, W, H, dy, front])
+    }, [still, mounted, size, R, P, gyF, W, H, dy, shapes])
 
-    // Drag the globe to spin it (sideways; up and down still scrolls the page).
+    // Drag the globe sideways to spin it (up and down still scrolls the page), and lean it a
+    // little towards the pointer.
     const onDown = (e: React.PointerEvent) => {
-        if (still || (e.target as HTMLElement).closest(".w3-pn,.w3-side,a,button")) return
         const s = state.current
-        s.drag = true
+        if (still || !s.free || (e.target as HTMLElement).closest(".w3-pn,a,button")) return
+        s.drag = s.free
         s.px = e.clientX
         s.vel = 0
     }
@@ -788,14 +1724,20 @@ export default function W3Globe(props: Props) {
         if (still) return
         const s = state.current
         const move = (e: PointerEvent) => {
+            if (e.pointerType === "mouse") s.py = clamp((e.clientY / window.innerHeight) * 2 - 1, -1, 1)
             if (!s.drag) return
+            if (s.drag !== s.free) {
+                s.drag = 0
+                return
+            }
             const dx = e.clientX - s.px
             s.px = e.clientX
-            s.rot += dx * 0.22
+            if (s.drag === 1) s.spin += dx * 0.22
+            else s.spin2 += dx * 0.22
             s.vel = dx * 0.16
         }
         const up = () => {
-            s.drag = false
+            s.drag = 0
         }
         window.addEventListener("pointermove", move, { passive: true })
         window.addEventListener("pointerup", up)
@@ -807,33 +1749,87 @@ export default function W3Globe(props: Props) {
         }
     }, [still])
 
-    // The menu sends the globe round to a page: to the middle of its hold.
+    // The menu steps aside while you scroll down, and comes back when you scroll up, near the top,
+    // when the pointer reaches for it, or while the phone menu is open.
+    React.useEffect(() => {
+        if (still || !mounted) return
+        const root = rootRef.current
+        if (!root) return
+        let last = -root.getBoundingClientRect().top
+        let up = true
+        let peek = false
+        const apply = () => {
+            const y = -root.getBoundingClientRect().top
+            const show = y < 60 || up || peek || openRef.current
+            if (navRef.current) navRef.current.classList.toggle("hide", !show)
+        }
+        const onScroll = () => {
+            const y = -root.getBoundingClientRect().top
+            if (y > last + 6) up = false
+            else if (y < last - 6) up = true
+            if (Math.abs(y - last) > 6) last = y
+            apply()
+        }
+        const onMove = (e: PointerEvent) => {
+            if (e.pointerType !== "mouse") return
+            const p = e.clientY < 96
+            if (p !== peek) {
+                peek = p
+                apply()
+            }
+        }
+        window.addEventListener("scroll", onScroll, { passive: true, capture: true })
+        window.addEventListener("pointermove", onMove, { passive: true })
+        apply()
+        return () => {
+            window.removeEventListener("scroll", onScroll, { capture: true })
+            window.removeEventListener("pointermove", onMove)
+        }
+    }, [still, mounted, open])
+
+    // The menu sends the globe round to a page (the middle of its hold), or scrolls to a section.
     const go = React.useCallback(
-        (i: number) => {
+        (to: number | string) => {
             React.startTransition(() => setOpen(false))
             const root = rootRef.current
-            if (!root) return
+            const track = trackRef.current
+            if (!root || !track) return
+            if (typeof to === "string") {
+                const el = document.getElementById("w3-" + to)
+                if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
+                return
+            }
             if (still) {
-                const el = document.getElementById("w3-" + (i < 0 ? "top" : PAGES[i].id))
+                const el = document.getElementById("w3-" + (to < 0 ? "top" : PAGES[to].id))
                 if (el) el.scrollIntoView({ behavior: "smooth" })
                 return
             }
-            const top = root.getBoundingClientRect().top + window.scrollY
-            const u = i < 0 ? 0 : LAND + i * SEG + 0.5 * SEG
-            window.scrollTo({ top: top + u * window.innerHeight, behavior: "smooth" })
+            const u = to < 0 ? 0 : holdStart(to) + HOLD / 2
+            const box = scrollBox(root)
+            const rect = track.getBoundingClientRect()
+            const off = u * (stageRef.current ? stageRef.current.clientHeight : window.innerHeight)
+            if (box) box.scrollTo({ top: box.scrollTop + rect.top - box.getBoundingClientRect().top + off, behavior: "smooth" })
+            else window.scrollTo({ top: window.scrollY + rect.top + off, behavior: "smooth" })
         },
         [still]
     )
+    // "Let's talk" and "Start a campaign" go to the form, on the right side; on the demo, to an email.
+    const talk = (as: "brand" | "creator") => {
+        React.startTransition(() => setSide(as))
+        if (rest) go("contact")
+        else window.location.href = "mailto:" + email + "?subject=" + encodeURIComponent(as === "brand" ? "New campaign" : "Creator application")
+    }
 
-    const navItems: [string, number][] = [
+    const navItems: [string, number | string][] = [
         ["About", 0],
-        ["Services", 2],
-        ["Projects", 3],
-        ["Contact", 4],
+        ["Services", 1],
+        ["Work", 2],
+        ["Brands", 3],
     ]
+    if (rest) navItems.push(["Careers", "careers"])
 
     const nav = (
-        <nav className="w3-nav" aria-label="Main">
+        <nav className="w3-nav" aria-label="Main" ref={navRef}>
             <button type="button" className="w3-brand" onClick={() => go(-1)} aria-label="World Media, back to the globe">
                 <span className="ic">
                     <MiniGlobe size={26} />
@@ -846,53 +1842,88 @@ export default function W3Globe(props: Props) {
                 </b>
             </button>
             <div className="w3-links">
-                {navItems.map(([l, i]) => (
-                    <button key={l} type="button" ref={(el) => { navBtns.current[i] = el }} onClick={() => go(i)}>
+                {navItems.map(([l, to]) => (
+                    <button
+                        key={l}
+                        type="button"
+                        ref={(el) => {
+                            if (typeof to === "number") navBtns.current[to] = el
+                        }}
+                        onClick={() => go(to)}
+                    >
                         {l}
                     </button>
                 ))}
-                <button type="button" onClick={() => go(4)}>
-                    Join us
-                </button>
-                <button type="button" className="cta" onClick={() => go(4)}>
+                <button type="button" className="cta" onClick={() => talk("brand")}>
                     Let’s talk
                 </button>
             </div>
-            <button type="button" className="w3-menu w3-pill" data-tone="ink" onClick={() => setOpen(!open)} aria-expanded={open}>
+            <button type="button" className="w3-menu w3-pill" data-tone="paper" onClick={() => setOpen(!open)} aria-expanded={open}>
                 {open ? "Close" : "Menu"}
             </button>
         </nav>
     )
     const sheet = open ? (
         <div className="w3 w3-sheet" role="dialog" aria-label="Menu">
-            {[...navItems, ["Join us", 4] as [string, number], ["Let’s talk", 4] as [string, number]].map(([l, i]) => (
-                <button key={l} type="button" onClick={() => go(i)}>
+            {navItems.map(([l, to]) => (
+                <button key={l} type="button" onClick={() => go(to)}>
                     {l}
                     <Icon name="arrow" size={20} />
                 </button>
             ))}
+            <button type="button" onClick={() => talk("brand")}>
+                Let’s talk
+                <Icon name="arrow" size={20} />
+            </button>
         </div>
     ) : null
 
-    const globe = (
+    const tiles = (
         <div className="w3-3d">
             <div className="w3-o">
                 <div className="w3-world" ref={worldRef}>
-                    <div className="w3-core" />
-                    <div className="w3-spin" ref={spinRef} style={{ transform: "rotateX(-14deg) rotateY(18deg)" }}>
-                        {tiles.map((t, i) => (
-                            <div
-                                key={i}
-                                className="w3-tile"
-                                style={{ width: t.w, height: t.h, left: -t.w / 2, top: -t.h / 2, transform: `rotateY(${t.lon.toFixed(2)}deg) rotateX(${t.lat}deg) translateZ(${R}px)` }}
-                            >
-                                <TileFace t={t} samples={samples} still={still} />
-                                <div className="w3-bk" />
-                            </div>
-                        ))}
-                    </div>
-                    <div className="w3-orbit" ref={orbitRef} style={{ transform: "rotateX(76deg) rotateY(-8deg)" }}>
-                        <i />
+                    <div className="w3-spin" ref={spinRef} style={{ transform: `rotateX(${TILT}deg) rotateY(${-PAGE_LON[0] + 18}deg)` }}>
+                        {TILES.map((t, i) => {
+                            const sz = tileSize(R, shapes[i])
+                            const src = srcOf(i)
+                            return (
+                                <div
+                                    key={i}
+                                    className="w3-tile"
+                                    data-page={t.page !== undefined ? "" : undefined}
+                                    ref={(el) => {
+                                        tileEls.current[i] = el
+                                    }}
+                                    style={{
+                                        width: sz.w,
+                                        height: sz.h,
+                                        left: -sz.w / 2,
+                                        top: -sz.h / 2,
+                                        opacity: still ? 1 : 0,
+                                        transform: `rotateY(${t.lon}deg) rotateX(${t.lat}deg) translateZ(${(R * 1.02).toFixed(1)}px)`,
+                                    }}
+                                >
+                                    <Media
+                                        src={src}
+                                        play={!still}
+                                        onShape={items[i] ? (ar) => setShape(i, ar) : undefined}
+                                        vref={(el) => {
+                                            tileVids.current[i] = el
+                                        }}
+                                    />
+                                    {sz.h > 46 ? (
+                                        <span className="w3-tag">
+                                            {isVideo(src) || i % 2 === 0 ? (
+                                                <i>
+                                                    <Icon name="play" size={8} width={2.4} />
+                                                </i>
+                                            ) : null}
+                                            <span>{t.tag}</span>
+                                        </span>
+                                    ) : null}
+                                </div>
+                            )
+                        })}
                     </div>
                 </div>
             </div>
@@ -906,13 +1937,40 @@ export default function W3Globe(props: Props) {
             <div className="w3-veil" ref={veilRef} />
             <div className="w3-3d w3-pages">
                 <div className="w3-o">
-                    {PAGES.map((pg, i) => (
-                        <div key={pg.id} className="w3-pn" data-tone={pg.tone} ref={(el) => { panels.current[i] = el }} aria-label={pg.title} role="region">
-                            <div className="w3-cover" ref={(el) => { covers.current[i] = el }}>
-                                <Icon name={pg.icon} size={Math.round(Math.min(W, H) * 0.22)} width={1.2} />
+                    {PAGES.map((pg, k) => (
+                        <div
+                            key={pg.id}
+                            className="w3-pn"
+                            data-tone={pg.tone}
+                            ref={(el) => {
+                                panels.current[k] = el
+                            }}
+                            aria-label={pg.title}
+                            role="region"
+                        >
+                            <div
+                                className="w3-cover"
+                                ref={(el) => {
+                                    covers.current[k] = el
+                                }}
+                            >
+                                <div
+                                    className="w3-cm"
+                                    ref={(el) => {
+                                        coverMedia.current[k] = el
+                                    }}
+                                >
+                                    <Media src={srcOf(PAGE_TILES[k])} play={!still} />
+                                </div>
                             </div>
-                            <div className="w3-pg" ref={(el) => { bodies.current[i] = el }} style={{ opacity: 0 }}>
-                                <PageBody id={pg.id} samples={samples} email={email} phone={phone} />
+                            <div
+                                className="w3-pg"
+                                ref={(el) => {
+                                    bodies.current[k] = el
+                                }}
+                                style={{ opacity: 0, visibility: "hidden" }}
+                            >
+                                <PageBody id={pg.id} samples={samples} />
                             </div>
                         </div>
                     ))}
@@ -921,59 +1979,115 @@ export default function W3Globe(props: Props) {
         </>
     )
 
-    const vars = cssVars({ "--R": R + "px", "--P": P + "px", "--gy": gy, "--W": W + "px", "--H": H + "px" })
+    const vars = cssVars({ "--R": R + "px", "--P": P + "px", "--gy": gyF * 100 + "%", "--W": W + "px", "--H": H + "px" })
 
     return (
-        <div ref={rootRef} className={"w3" + (still ? " w3-still" : "")} style={{ ...style, ...vars, height: still ? "auto" : `calc(${(TOTAL + 1) * 100}vh)` }}>
+        <div ref={rootRef} className={"w3" + (still ? " w3-still" : "")} style={{ ...style, ...vars }}>
             <link rel="preconnect" href="https://fonts.googleapis.com" />
             <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
             <link rel="stylesheet" href={FONT_HREF} />
             <style dangerouslySetInnerHTML={{ __html: CSS }} />
-            <div className="w3-stage" ref={stageRef} id="w3-top" onPointerDown={onDown}>
-                <div className="w3-word" ref={wordRef} aria-hidden="true">
-                    world media<span>.</span>
-                </div>
-                {globe}
-                {pageLayer}
-                <div className="w3-land" ref={landRef}>
-                    <h1 className="w3-head">
-                        Culture moves
-                        <br />
-                        <em>through people.</em>
-                    </h1>
-                    <div className="w3-side">
-                        <p>A creator-first media agency from New Delhi. We put brands where the conversation already is.</p>
-                        <div>
-                            <a className="w3-pill" data-tone="ink" href={"mailto:" + email + "?subject=New%20campaign"}>
-                                Start a campaign
-                            </a>
-                            <a className="w3-pill" data-tone="line" href={"mailto:" + email + "?subject=Creator%20application"}>
-                                I’m a creator
-                            </a>
+            <div className="w3-track" ref={trackRef} style={{ height: still ? "auto" : Math.round((TOTAL + 1) * size.h) + "px" }}>
+                <div className="w3-stage" ref={stageRef} id="w3-top" onPointerDown={onDown}>
+                    <div className="w3-word" ref={wordRef} aria-hidden="true">
+                        world media.
+                    </div>
+                    <canvas className="w3-cv" ref={canvasRef} aria-hidden="true" />
+                    {tiles}
+                    <div className="w3-badges" aria-hidden="true">
+                        {BADGES.map((b, i) => (
+                            <div
+                                key={b.at}
+                                className="w3-bd"
+                                data-live={b.live ? "" : undefined}
+                                data-left={b.left ? "" : undefined}
+                                ref={(el) => {
+                                    badgeEls.current[i] = el
+                                }}
+                            >
+                                <span>
+                                    <i />
+                                    {b.text}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                    {pageLayer}
+                    <div className="w3-land" ref={landRef}>
+                        <h1 className="w3-head">
+                            Culture moves
+                            <br />
+                            <em>through people.</em>
+                        </h1>
+                        <div className="w3-side">
+                            <p>A creator-first media agency from New Delhi. We put brands inside the feeds people actually trust.</p>
+                            <div>
+                                <button type="button" className="w3-pill" data-tone="signal" onClick={() => talk("brand")}>
+                                    Start a campaign
+                                </button>
+                                <button type="button" className="w3-pill" data-tone="line" onClick={() => talk("creator")}>
+                                    I’m a creator
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div className="w3-idx" ref={idxRef}>
-                    {PAGES.map((pg, i) => (
-                        <button key={pg.id} type="button" ref={(el) => { idxBtns.current[i] = el }} onClick={() => go(i)} aria-label={"Go to " + pg.title}>
-                            <span>
-                                {String(i + 1).padStart(2, "0")} {pg.title}
-                            </span>
-                            <i />
-                        </button>
-                    ))}
-                </div>
-                {still ? nav : null}
-            </div>
-            {still ? (
-                <div className="w3-flat">
-                    {PAGES.map((pg) => (
-                        <section key={pg.id} id={"w3-" + pg.id} className="w3-pn w3-flatpn" data-tone={pg.tone} aria-label={pg.title}>
-                            <div className="w3-pg">
-                                <PageBody id={pg.id} samples={samples} email={email} phone={phone} />
+                    {still ? null : (
+                        <div className="w3-outro" ref={outroRef}>
+                            <h2 className="w3-head">
+                                Your brand,
+                                <br />
+                                <em>next on the globe?</em>
+                            </h2>
+                            <div className="w3-side">
+                                <p>{rest ? "Tell us what you’re building. A real person replies within a day." : "That’s the tour. Go round again, or tell us about your brand."}</p>
+                                <div>
+                                    <button type="button" className="w3-pill" data-tone="signal" onClick={() => talk("brand")}>
+                                        Let’s talk {rest ? <Icon name="down" size={16} /> : null}
+                                    </button>
+                                    <button type="button" className="w3-pill" data-tone="line" onClick={() => (rest ? go("careers") : go(-1))}>
+                                        {rest ? "Join the crew" : "Go round again"}
+                                    </button>
+                                </div>
                             </div>
-                        </section>
-                    ))}
+                        </div>
+                    )}
+                    <div className="w3-idx" ref={idxRef}>
+                        {PAGES.map((pg, i) => (
+                            <button
+                                key={pg.id}
+                                type="button"
+                                ref={(el) => {
+                                    idxBtns.current[i] = el
+                                }}
+                                onClick={() => go(i)}
+                                aria-label={"Go to " + pg.title}
+                            >
+                                <span>
+                                    {String(i + 1).padStart(2, "0")} {pg.title}
+                                </span>
+                                <i />
+                            </button>
+                        ))}
+                    </div>
+                    {still ? nav : null}
+                </div>
+                {still ? (
+                    <div className="w3-flat">
+                        {PAGES.map((pg) => (
+                            <section key={pg.id} id={"w3-" + pg.id} className="w3-flatpn" data-tone={pg.tone} aria-label={pg.title}>
+                                <div className="w3-pg">
+                                    <PageBody id={pg.id} samples={samples} />
+                                </div>
+                            </section>
+                        ))}
+                    </div>
+                ) : null}
+            </div>
+            {rest ? (
+                <div className="w3-rest">
+                    <Contact email={email} phone={phone} endpoint={endpoint} side={side} setSide={setSide} />
+                    <Careers email={email} />
+                    <Footer email={email} phone={phone} go={go} />
                 </div>
             ) : null}
             {!still && mounted ? createPortal(<div className="w3">{nav}{sheet}</div>, document.body) : null}
@@ -986,9 +2100,17 @@ addPropertyControls(W3Globe, {
         type: ControlType.Array,
         title: "Globe media",
         control: { type: ControlType.File, allowedFileTypes: ["mp4", "webm", "mov", "jpg", "jpeg", "png", "webp"] },
-        description: "Videos and photos for the globe's tiles, in order. Empty tiles show samples.",
+        description: "Videos and photos for the globe’s eight tiles, in order; the first four open into the pages. Any shape works: each tile takes the shape of its video.",
     },
     samples: { type: ControlType.Boolean, title: "Sample photos", defaultValue: true, enabledTitle: "Show", disabledTitle: "Hide" },
+    rest: { type: ControlType.Boolean, title: "Rest of site", defaultValue: true, enabledTitle: "Show", disabledTitle: "Hide", description: "Hide for a globe-only demo: no form, careers or footer." },
     email: { type: ControlType.String, title: "Email", defaultValue: "social@worldmedia.co.in" },
     phone: { type: ControlType.String, title: "Phone", defaultValue: "+91 88000 40301" },
+    endpoint: {
+        type: ControlType.String,
+        title: "Form endpoint",
+        defaultValue: "",
+        placeholder: "https://…",
+        description: "Optional: a form service address to send enquiries to. Empty, the form opens an email to the address above.",
+    },
 })
