@@ -8,7 +8,7 @@ short playful copy) without copying it.
 
 ## How it moves
 
-- The landing is the World Media globe, built from tiles: reels, photos and small line icons of what
+- The landing is the World Media globe, built from about 80 tiles in seven rings: reels, photos and small line icons of what
   World Media does (reels, podcasts, launches, live, creators). It turns on its own and can be
   dragged sideways.
 - Scrolling spins the globe a fifth of a turn per page. Each page peels off the globe's left edge,
@@ -26,7 +26,6 @@ short playful copy) without copying it.
 - Colours: white first, black second, orange-red `#EA5628` as the signal colour.
 - Type: Funnel Display for headlines, Funnel Sans for text, Geist Mono for small labels
   (all Google Fonts).
-- Motif: the studio's coordinates in New Friends Colony, 28.5672° N · 77.2700° E.
 
 ## Placeholders
 

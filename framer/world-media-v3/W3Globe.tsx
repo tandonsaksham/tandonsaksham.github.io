@@ -26,9 +26,6 @@ const FONT_HREF = "https://fonts.googleapis.com/css2?family=Funnel+Display:wght@
 const SAMPLE = "https://cdn.jsdelivr.net/gh/tandonsaksham/tandonsaksham.github.io@16cfefc4bae4bbd2c69898b7d689135c895bf250/framer/world-media-v2/placeholders/"
 const PHOTOS = ["project-2", "hello-1", "about-1", "project-4", "hello-3", "project-1", "about-2", "hello-2", "project-3"]
 
-/** New Friends Colony, New Delhi. */
-const COORDS = "28.5672° N · 77.2700° E"
-
 const cssVars = (o: Record<string, string | number>): React.CSSProperties => o as React.CSSProperties
 const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v))
 const smooth = (v: number) => {
@@ -89,12 +86,15 @@ function MiniGlobe(p: { size?: number }) {
 
 type Tile = { lat: number; lon: number; w: number; h: number; kind: "photo" | "icon"; photo?: string; video?: boolean; icon?: string; tone?: string; label?: string; media?: Media }
 
+/** Seven rings of tiles, 23° apart, so the globe reads round rather than faceted. */
 const BANDS: [number, number][] = [
-    [-58, 7],
-    [-29, 11],
-    [0, 13],
-    [29, 11],
-    [58, 7],
+    [-69, 6],
+    [-46, 11],
+    [-23, 15],
+    [0, 16],
+    [23, 15],
+    [46, 11],
+    [69, 6],
 ]
 const ICON_SET = ["play", "camera", "mic", "heart", "chat", "megaphone", "star", "chart", "film", "hash", "at", "pin", "ring", "eye", "spark", "phone"]
 const LABELS: Record<string, string> = { play: "Reels", mic: "Podcast", heart: "1.2K", chat: "#collab", at: "@creator", hash: "Trending", ring: "Live ●", eye: "Views", film: "Shorts", megaphone: "Launch" }
@@ -108,8 +108,8 @@ function buildTiles(R: number, media: Media[]): Tile[] {
     let md = 0
     BANDS.forEach(([lat, count], b) => {
         const ring = 2 * Math.PI * R * Math.cos((lat * Math.PI) / 180)
-        const w = (ring / count) * 0.8
-        const h = R * ((29 * Math.PI) / 180) * 0.8
+        const w = (ring / count) * 0.86
+        const h = R * ((23 * Math.PI) / 180) * 0.86
         for (let i = 0; i < count; i++) {
             const lon = (360 / count) * i + (b % 2 ? 180 / count : 0)
             const isPhoto = n % 3 !== 1
@@ -117,7 +117,7 @@ function buildTiles(R: number, media: Media[]): Tile[] {
             if (isPhoto) {
                 if (md < media.length) t.media = media[md++]
                 else t.photo = PHOTOS[ph++ % PHOTOS.length]
-                t.video = n % 4 === 0
+                t.video = n % 7 === 0
             } else {
                 t.icon = ICON_SET[ic % ICON_SET.length]
                 t.tone = TONES[ic % TONES.length]
@@ -136,8 +136,8 @@ function TileFace(p: { t: Tile; samples: boolean; still: boolean }) {
     if (t.kind === "icon") {
         return (
             <div className={"w3-f w3-ic"} data-tone={t.tone}>
-                <Icon name={t.icon || "spark"} size={Math.max(18, Math.round(Math.min(t.w, t.h) * 0.3))} width={1.5} />
-                {t.label ? <span>{t.label}</span> : null}
+                <Icon name={t.icon || "spark"} size={Math.max(14, Math.round(Math.min(t.w, t.h) * 0.3))} width={1.5} />
+                {t.label && Math.min(t.w, t.h) > 70 ? <span>{t.label}</span> : null}
             </div>
         )
     }
@@ -146,7 +146,7 @@ function TileFace(p: { t: Tile; samples: boolean; still: boolean }) {
     const isVideo = m && m.src ? m.type === "video" : false
     return (
         <div className="w3-f w3-ph">
-            {src ? isVideo ? <video src={src} autoPlay={!p.still} muted loop playsInline preload="metadata" /> : <img src={src} alt="" loading="lazy" decoding="async" draggable={false} /> : <b />}
+            {src ? isVideo ? <video src={src} autoPlay={!p.still} muted loop playsInline preload="metadata" /> : <img src={src} alt="" decoding="async" draggable={false} /> : <b />}
             {t.video || isVideo ? (
                 <i className="w3-badge">
                     <Icon name="play" size={10} width={2} />
@@ -421,14 +421,14 @@ position:relative;width:100%;background:var(--paper);color:var(--ink);font-famil
 .w3-word span{color:var(--fog2)}
 .w3-3d{position:absolute;inset:0;perspective:var(--P);perspective-origin:50% var(--gy);transform-style:preserve-3d;pointer-events:none}
 .w3-o{position:absolute;left:50%;top:var(--gy);width:0;height:0;transform-style:preserve-3d}
-.w3-world,.w3-spin{position:absolute;left:0;top:0;transform-style:preserve-3d}
+.w3-world,.w3-spin{position:absolute;left:0;top:0;transform-style:preserve-3d;will-change:transform}
 .w3-world{cursor:grab}
 .w3-core{position:absolute;left:calc(var(--R) * -.97);top:calc(var(--R) * -.97);width:calc(var(--R) * 1.94);height:calc(var(--R) * 1.94);border-radius:50%;
-background:radial-gradient(circle at 38% 30%,rgba(255,255,255,.92),rgba(243,242,239,.9) 46%,rgba(214,211,205,.92) 100%);box-shadow:0 60px 120px -60px rgba(11,11,11,.35)}
+background:radial-gradient(circle at 38% 30%,#FFFFFF,#F1EFEB 46%,#DCD9D3 100%);box-shadow:0 70px 140px -70px rgba(11,11,11,.38)}
 .w3-tile{position:absolute;transform-style:preserve-3d;pointer-events:auto}
-.w3-f,.w3-bk{position:absolute;inset:0;border-radius:12px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.w3-f,.w3-bk{position:absolute;inset:0;border-radius:10px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .w3-f{transition:translate .5s var(--ease)}
-.w3-tile:hover .w3-f{translate:0 0 22px}
+.w3-tile:hover .w3-f{translate:0 0 18px}
 .w3-bk{transform:rotateY(180deg);background:rgba(11,11,11,.07)}
 .w3-ph{background:var(--fog2)}
 .w3-ph img,.w3-ph video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
@@ -517,9 +517,9 @@ backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:non
 
 /* the landing */
 .w3-land{position:absolute;inset:0;pointer-events:none}
-.w3-head{position:absolute;left:clamp(16px,2.6vw,40px);bottom:clamp(64px,8vh,92px);font-family:var(--disp);font-weight:500;font-size:clamp(40px,5.6vw,92px);line-height:.92;letter-spacing:-.05em}
+.w3-head{position:absolute;left:clamp(16px,2.6vw,40px);bottom:clamp(28px,5vh,56px);font-family:var(--disp);font-weight:500;font-size:clamp(40px,5.6vw,92px);line-height:.92;letter-spacing:-.05em}
 .w3-head em{font-style:normal;color:var(--signal)}
-.w3-side{position:absolute;right:clamp(16px,2.6vw,40px);bottom:clamp(64px,8vh,92px);display:flex;flex-direction:column;align-items:flex-end;gap:16px;max-width:300px;text-align:right;pointer-events:auto}
+.w3-side{position:absolute;right:clamp(16px,2.6vw,40px);bottom:clamp(28px,5vh,56px);display:flex;flex-direction:column;align-items:flex-end;gap:16px;max-width:300px;text-align:right;pointer-events:auto}
 .w3-side p{font-size:15px;line-height:1.45;color:var(--mute)}
 .w3-side div{display:flex;gap:6px}
 .w3-pill{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 18px;border-radius:99px;font-weight:500;font-size:14.5px;transition:background-color .3s,color .3s}
@@ -527,12 +527,6 @@ backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:non
 .w3-pill[data-tone="ink"]:hover{background:var(--signal);color:var(--ink)}
 .w3-pill[data-tone="line"]{box-shadow:inset 0 0 0 1px rgba(11,11,11,.25)}
 .w3-pill[data-tone="line"]:hover{background:var(--ink);color:#fff}
-.w3-meta{position:absolute;left:clamp(16px,2.6vw,40px);right:clamp(16px,2.6vw,40px);bottom:clamp(18px,2.4vh,28px);display:flex;justify-content:space-between;align-items:center;color:var(--mute)}
-.w3-meta .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--signal);margin-right:8px;vertical-align:1px}
-.w3-hint{display:inline-flex;align-items:center;gap:10px}
-.w3-hint i{position:relative;width:16px;height:24px;border-radius:9px;box-shadow:inset 0 0 0 1.5px currentColor}
-.w3-hint i::after{content:"";position:absolute;left:50%;top:5px;width:2px;height:5px;margin-left:-1px;border-radius:2px;background:currentColor;animation:w3wheel 1.8s var(--ease) infinite}
-@keyframes w3wheel{0%{translate:0 0;opacity:1}70%{translate:0 7px;opacity:0}100%{translate:0 0;opacity:0}}
 
 /* the orbit index */
 .w3-idx{position:absolute;right:clamp(12px,1.6vw,24px);top:50%;translate:0 -50%;display:flex;flex-direction:column;gap:4px;opacity:0;transition:opacity .5s}
@@ -566,10 +560,9 @@ backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:non
 .w3-sheet button:hover{background:var(--fog)}
 @media (max-width:820px){
 .w3-links{display:none}.w3-menu{display:inline-flex}
-.w3-head{left:16px;right:16px;bottom:auto;top:calc(var(--gy) + var(--R) * 1.12);font-size:clamp(38px,11vw,64px)}
-.w3-side{left:16px;right:16px;bottom:58px;align-items:stretch;text-align:left;max-width:none}
+.w3-head{left:16px;right:16px;bottom:92px;font-size:clamp(38px,11vw,64px)}
+.w3-side{left:16px;right:16px;bottom:22px;align-items:stretch;text-align:left;max-width:none}
 .w3-side p{display:none}.w3-side div>*{flex:1;justify-content:center}
-.w3-meta .w3-coord{display:none}
 .w3-idx button span{display:none}
 }
 @container (max-width:760px){
@@ -597,18 +590,6 @@ const LAND = 0.7 // screens of scroll spent on the landing
 const SEG = 2.6 // screens of scroll for each page: rise out of the globe, hold, roll back in
 const TOTAL = LAND + N * SEG - 0.2 * SEG
 
-function useClock(): string {
-    const [now, setNow] = React.useState("")
-    React.useEffect(() => {
-        const f = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })
-        const tick = () => React.startTransition(() => setNow(f.format(new Date())))
-        tick()
-        const id = window.setInterval(tick, 15000)
-        return () => window.clearInterval(id)
-    }, [])
-    return now
-}
-
 /**
  * @framerSupportedLayoutWidth fixed
  * @framerSupportedLayoutHeight auto
@@ -620,7 +601,6 @@ export default function W3Globe(props: Props) {
     const [mounted, setMounted] = React.useState(false)
     const [open, setOpen] = React.useState(false)
     const [size, setSize] = React.useState({ w: 1440, h: 900 })
-    const time = useClock()
 
     const rootRef = React.useRef<HTMLDivElement>(null)
     const stageRef = React.useRef<HTMLDivElement>(null)
@@ -658,14 +638,14 @@ export default function W3Globe(props: Props) {
     }, [isStatic])
 
     const phoneW = size.w <= 820
-    const R = Math.round(phoneW ? Math.min(size.w * 0.38, size.h * 0.24) : Math.min(size.h * 0.28, size.w * 0.22))
+    const R = Math.round(phoneW ? Math.min(size.w * 0.46, size.h * 0.29) : Math.min(size.h * 0.34, size.w * 0.27))
     const P = phoneW ? 1100 : 1700
-    const gy = phoneW ? "34%" : "45%"
+    const gy = phoneW ? "38%" : "46%"
     const W = phoneW ? size.w - 20 : Math.min(1240, size.w - 2 * Math.max(56, size.w * 0.04))
     const navH = phoneW ? 68 : 84
     const H = phoneW ? Math.min(size.h - navH - 10, 720) : Math.min(800, size.h - navH - 14)
     // The globe's centre, and how far a page drops from it to sit just under the menu.
-    const gyPx = size.h * (phoneW ? 0.34 : 0.45)
+    const gyPx = size.h * (phoneW ? 0.38 : 0.46)
     const dy = Math.round(navH + (size.h - navH - H) / 2 + H / 2 - gyPx)
 
     const items: Media[] = React.useMemo(
@@ -692,7 +672,7 @@ export default function W3Globe(props: Props) {
             const vh = vhPx()
             const rect = root.getBoundingClientRect()
             const target = clamp(-rect.top / vh, 0, TOTAL)
-            s.cur += (target - s.cur) * (1 - Math.pow(0.84, dt / 16.7))
+            s.cur += (target - s.cur) * (1 - Math.pow(0.87, dt / 16.7))
             if (Math.abs(target - s.cur) < 0.0005) s.cur = target
             const u = s.cur
 
@@ -971,17 +951,6 @@ export default function W3Globe(props: Props) {
                                 I’m a creator
                             </a>
                         </div>
-                    </div>
-                    <div className="w3-meta w3-lab">
-                        <span className="w3-coord">
-                            <i className="dot" />
-                            {COORDS} — New Delhi
-                        </span>
-                        <span className="w3-hint">
-                            <i />
-                            {still ? "Drag the globe" : "Scroll to spin · drag the globe"}
-                        </span>
-                        <span>IST {time || "--:--"}</span>
                     </div>
                 </div>
                 <div className="w3-idx" ref={idxRef}>
