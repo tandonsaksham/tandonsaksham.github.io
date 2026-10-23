@@ -22,6 +22,9 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
 - Scrolling turns the globe from city to city. At each one, a video tile rides the turn to the
   front, lifts off and opens into a page while the globe sinks back; then it closes and the globe
   turns on to the next city.
+- A page opens on one steady path, from its tile's spot straight to the front, with one gentle
+  ease: it never shrinks back or rushes in the middle. The tile's video melts into the page's
+  colour first, and only then do the words come in, so a page never shows through a picture.
 - The four pages: The why (Delhi), What we do (New York), The work (Tokyo), The brands (London).
 - After the last page the globe turns home to Delhi and asks "Your brand, next on the globe?".
 - Then the rest of the site: the enquiry form (brands and creators, as in the client's contact
@@ -36,7 +39,10 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
 - The globe's glass body, its glow and the lines across the screen are drawn once and only moved;
   the canvas draws just the moving lines and dots, at no more than about 2.4 million pixels.
 - Styles are only touched when they change, nothing that moves uses a background blur, and a
-  page's picture is scaled, not redrawn, while the page opens.
+  page opens by scaling (its picture and words scaled back), so nothing is laid out again while
+  it moves; its rounded corners are only redrawn when they would drift by more than a pixel.
+- Tile videos rest while they face away and while a page covers the globe; a page's opening
+  video only plays while it is in view.
 - The globe turns between pages with a soft ease over a longer stretch of scroll.
 
 ## Settings in Framer
@@ -51,11 +57,12 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
 
 ## Placeholders
 
-- Tiles show the sample photos from `../world-media-v2/placeholders` until videos or photos are
-  added.
+- Tiles play the sample video loops in `placeholders/` (Mixkit stock, WebM and MP4, see
+  `placeholders/CREDITS.md`) until videos or photos are added; "The work" uses five of them as
+  stand-ins for the reels. The **Sample videos** switch hides them.
 - Numbers are in brackets (`[00]M+`) until World Media confirms them; brand plates are names, not
   logos, until the logo files arrive.
-- The reels on "The work" link to the five World Media originals on Instagram, with photo
+- The reels on "The work" link to the five World Media originals on Instagram, with video
   stand-ins and `[0.0]M views` until the videos and view counts arrive.
 
 ## The world map

@@ -20,12 +20,12 @@ type Props = {
     style?: React.CSSProperties
 }
 
-const FONT_HREF = "https://fonts.googleapis.com/css2?family=Funnel+Display:wght@400;500;600;700&family=Funnel+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"
+const FONT_HREF = "https://fonts.googleapis.com/css2?family=Funnel+Display:wght@400;500;600;700;800&family=Funnel+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"
 
-/** Sample photos, kept in the site's GitHub repo and served by jsDelivr, pinned to one commit. */
-const SAMPLE = "https://cdn.jsdelivr.net/gh/tandonsaksham/tandonsaksham.github.io@16cfefc4bae4bbd2c69898b7d689135c895bf250/framer/world-media-v2/placeholders/"
+/** Sample video loops for the globe's tiles (Mixkit stock, see world-media-v3/placeholders), pinned to one commit. */
+const SAMPLE_V = "https://cdn.jsdelivr.net/gh/tandonsaksham/tandonsaksham.github.io@0f6492409bf4788355abff3742f83dfedc208008/framer/world-media-v3/placeholders/"
+const sampleClip = (i: number) => SAMPLE_V + "tile-" + String(i % 15).padStart(2, "0") + ".mp4"
 const NO_MEDIA: string[] = []
-const PHOTOS = ["hello-1", "project-2", "project-4", "about-1", "project-1", "hello-3", "about-2", "hello-2", "project-3"]
 
 const D2R = Math.PI / 180
 const cssVars = (o: Record<string, string | number>): React.CSSProperties => o as React.CSSProperties
@@ -33,10 +33,6 @@ const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v))
 const smooth = (v: number) => {
     const x = clamp(v)
     return x * x * (3 - 2 * x)
-}
-const easeInOut = (v: number) => {
-    const x = clamp(v)
-    return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2
 }
 /** A soft ease for the globe's turns: it never moves faster than half as fast again as on average. */
 const glide = (v: number) => 0.5 - 0.5 * Math.cos(Math.PI * clamp(v))
@@ -546,23 +542,43 @@ const tileSize = (R: number, ar: number) => {
 }
 
 function Media(p: { src: string; play: boolean; onShape?: (ar: number) => void; vref?: (el: HTMLVideoElement | null) => void }) {
+    const { vref, play } = p
+    // Muted is set on the element itself, so the browser lets it play on its own.
+    const ref = React.useCallback(
+        (el: HTMLVideoElement | null) => {
+            if (el && !el.dataset.w3) {
+                el.dataset.w3 = "1"
+                el.muted = true
+                el.setAttribute("muted", "")
+                if (play && el.paused) el.play().catch(() => {})
+            }
+            if (vref) vref(el)
+        },
+        [vref, play]
+    )
     if (!p.src) return <b className="w3-blank" />
-    if (isVideo(p.src))
+    if (isVideo(p.src)) {
+        // The sample loops come as WebM and MP4, so every browser can play one of them.
+        const sample = p.src.startsWith(SAMPLE_V)
         return (
             <video
-                ref={p.vref}
-                src={p.src}
-                autoPlay={p.play}
+                ref={ref}
+                src={sample ? undefined : p.src}
+                autoPlay={play}
                 muted
                 loop
                 playsInline
-                preload="metadata"
+                preload={sample ? "auto" : "metadata"}
                 onLoadedMetadata={(e) => {
                     const v = e.currentTarget
                     if (p.onShape && v.videoWidth && v.videoHeight) p.onShape(v.videoWidth / v.videoHeight)
                 }}
-            />
+            >
+                {sample ? <source src={p.src.replace(/\.mp4$/, ".webm")} type="video/webm" /> : null}
+                {sample ? <source src={p.src} type="video/mp4" /> : null}
+            </video>
         )
+    }
     return (
         <img
             src={p.src}
@@ -618,13 +634,13 @@ function PageWhy() {
             </h2>
             <div className="w3-why">
                 <p className="w3-lead w3-r" style={cssVars({ "--d": ".08s" })}>
-                    The feed is where India decides what to buy, watch and believe, and the people in it are creators. We built World Media to put brands inside the feeds people actually trust, from Delhi to everywhere.
+                    India decides what to buy in the feed. We put brands inside the feeds people trust.
                 </p>
                 <ul className="w3-beliefs">
                     {[
-                        ["Cast for trust", "Picked for the community they’ve built, not the follower count."],
-                        ["Stories that stick", "Series and moments people follow, share and remember."],
-                        ["Measured to the rupee", "Every campaign ends with numbers your finance team will read."],
+                        ["Cast for trust", "Community over follower count."],
+                        ["Stories that stick", "Series people follow and share."],
+                        ["Measured to the rupee", "Numbers your CFO will read."],
                     ].map(([h, t], i) => (
                         <li key={h} className="w3-r" style={cssVars({ "--d": 0.14 + i * 0.06 + "s" })}>
                             <b>{h}</b>
@@ -639,11 +655,11 @@ function PageWhy() {
 
 function PageServices() {
     const list = [
-        ["megaphone", "Influencer Marketing", "Creators your audience already trusts, matched to one clear goal and vetted for fit and fraud.", "Our core"],
-        ["film", "Production", "Reels, shoots and ad films made by our in-house crew.", ""],
-        ["camera", "Studio", "A space to shoot, record and create, on call.", ""],
-        ["star", "Talent Management", "Brand deals, a team and room to grow for creators.", ""],
-        ["heart", "Social Media", "Calendars, posting and community, handled monthly.", ""],
+        ["megaphone", "Influencer Marketing", "Our core"],
+        ["film", "Production", ""],
+        ["camera", "Studio", ""],
+        ["star", "Talent Management", ""],
+        ["heart", "Social Media", ""],
     ]
     return (
         <>
@@ -655,7 +671,7 @@ function PageServices() {
                     Done properly.
                 </h2>
                 <ol>
-                    {list.map(([ic, h, t, tag], i) => (
+                    {list.map(([ic, h, tag], i) => (
                         <li key={h} className="w3-r" style={cssVars({ "--d": 0.06 + i * 0.06 + "s" })}>
                             <span className="w3-svi">
                                 <Icon name={ic} size={20} />
@@ -664,7 +680,6 @@ function PageServices() {
                                 {h}
                                 {tag ? <i>{tag}</i> : null}
                             </b>
-                            <span>{t}</span>
                         </li>
                     ))}
                 </ol>
@@ -673,7 +688,10 @@ function PageServices() {
     )
 }
 
-function PageWork(p: { samples: boolean }) {
+/** The vertical sample loops that stand in for the five originals on "The work". */
+const REEL_CLIPS = [5, 8, 0, 14, 12]
+
+function PageWork(p: { samples: boolean; play: boolean }) {
     return (
         <>
             <Top n={3} title="The work" aside="(sound on. trust us.)" />
@@ -686,7 +704,7 @@ function PageWork(p: { samples: boolean }) {
                 {ORIGINALS.map((href, i) => (
                     <a key={href} className="w3-reel w3-r" style={cssVars({ "--d": 0.08 + i * 0.06 + "s" })} href={href} target="_blank" rel="noreferrer">
                         <div className="w3-rv">
-                            {p.samples ? <img src={SAMPLE + PHOTOS[(i + 3) % PHOTOS.length] + ".jpg"} alt="" loading="lazy" decoding="async" /> : null}
+                            {p.samples ? <Media src={sampleClip(REEL_CLIPS[i])} play={p.play} /> : null}
                             <span className="w3-play">
                                 <Icon name="play" size={16} width={2} />
                             </span>
@@ -696,10 +714,9 @@ function PageWork(p: { samples: boolean }) {
                             </span>
                         </div>
                         <span className="w3-cap">
-                            <b>[Original IP name]</b>
-                            <span>
-                                World Media original <Icon name="out" size={12} />
-                            </span>
+                            <b>
+                                [Original IP name] <Icon name="out" size={12} />
+                            </b>
                         </span>
                     </a>
                 ))}
@@ -710,13 +727,13 @@ function PageWork(p: { samples: boolean }) {
 
 function PageBrands() {
     const stats = [
-        ["[00]M+", "Views on the reels we’ve made"],
+        ["[00]M+", "Views on our reels"],
         ["[000]+", "Campaigns delivered"],
         ["[00]+", "Creators in our network"],
     ]
     return (
         <>
-            <Top n={4} title="The brands" aside="(numbers don’t lie. we checked twice.)" />
+            <Top n={4} title="The brands" aside="(we checked twice.)" />
             <h2 className="w3-big w3-r">
                 Big names.
                 <br />
@@ -745,10 +762,10 @@ function PageBrands() {
     )
 }
 
-function PageBody(p: { id: string; samples: boolean }) {
+function PageBody(p: { id: string; samples: boolean; play: boolean }) {
     if (p.id === "why") return <PageWhy />
     if (p.id === "services") return <PageServices />
-    if (p.id === "work") return <PageWork samples={p.samples} />
+    if (p.id === "work") return <PageWork samples={p.samples} play={p.play} />
     return <PageBrands />
 }
 
@@ -855,7 +872,7 @@ function Contact(p: { email: string; phone: string; endpoint: string; side: "bra
                     <br />
                     <em>worth talking about?</em>
                 </h2>
-                <p className="w3-lead">Creator campaigns at the core, backed by an in-house team that shoots, edits and runs your social, so the story stays the same from the first reel to the last.</p>
+                <p className="w3-lead">Creators at the core. An in-house crew for everything else.</p>
                 <ol className="w3-next">
                     {["We read every note and reply within a day.", "A quick call to understand your goals.", "A plan made for you. Then we get to work."].map((t, i) => (
                         <li key={t}>
@@ -1025,7 +1042,7 @@ function Careers(p: { email: string }) {
                     <br />
                     <em>Real briefs from day one.</em>
                 </h2>
-                <p className="w3-lead">We move fast and care about content people actually stop scrolling for. Everyone works with us in New Friends Colony, New Delhi.</p>
+                <p className="w3-lead">We move fast and make content people stop for. New Friends Colony, New Delhi.</p>
             </div>
             <div className="w3-roles">
                 {ROLES.map((r, i) => {
@@ -1167,58 +1184,57 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-pn{position:absolute;left:calc(var(--W) / -2);top:calc(var(--H) / -2);width:var(--W);height:var(--H);display:none;place-items:center;
 backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:none}
 .w3-pn.live{pointer-events:auto}
-.w3-cover{position:relative;width:100%;height:100%;border-radius:26px;overflow:hidden;background:var(--tone);box-shadow:0 0 0 1px rgba(255,255,255,.1)}
+.w3-cover{position:relative;width:100%;height:100%;border-radius:26px;overflow:hidden;background:var(--tone);box-shadow:0 0 0 1px rgba(255,255,255,.1);will-change:transform}
 .w3-pn.live .w3-cover{box-shadow:0 0 0 1px rgba(255,255,255,.1),0 60px 120px -50px rgba(0,0,0,.9)}
 .w3-cover .w3-cm{position:absolute;left:50%;top:50%;width:var(--W);height:var(--H);margin:calc(var(--H) / -2) 0 0 calc(var(--W) / -2);will-change:transform,opacity}
 .w3-pn[data-tone="char"],.w3-flatpn[data-tone="char"]{--tone:var(--char);color:var(--text);--hair:rgba(255,255,255,.14)}
 .w3-pn[data-tone="ink"],.w3-flatpn[data-tone="ink"]{--tone:#0D0D0D;color:var(--text);--hair:rgba(255,255,255,.14)}
 .w3-pn[data-tone="signal"],.w3-flatpn[data-tone="signal"]{--tone:var(--signal);color:var(--ink);--mute:rgba(10,10,10,.68);--hair:rgba(10,10,10,.2)}
 .w3-pn[data-tone="paper"],.w3-flatpn[data-tone="paper"]{--tone:var(--paper);color:var(--ink);--mute:rgba(10,10,10,.58);--hair:rgba(10,10,10,.14)}
-.w3-pg{position:absolute;left:50%;top:50%;width:var(--W);height:var(--H);translate:-50% -50%;container-type:inline-size;padding:clamp(20px,3.2cqw,46px);display:flex;flex-direction:column;justify-content:space-between;gap:clamp(14px,2.4cqw,32px);overflow:auto;scrollbar-width:none}
+.w3-pg{position:absolute;left:50%;top:50%;width:var(--W);height:var(--H);translate:-50% -50%;will-change:transform,opacity;container-type:inline-size;padding:clamp(20px,3.2cqw,46px);display:flex;flex-direction:column;justify-content:space-between;gap:clamp(14px,2.4cqw,32px);overflow:auto;scrollbar-width:none}
 .w3-top{display:flex;justify-content:space-between;gap:16px;color:var(--mute)}
-.w3-big{font-family:var(--disp);font-weight:500;font-size:clamp(34px,7.2cqw,108px);line-height:.92;letter-spacing:-.05em;text-wrap:balance}
+.w3-big{font-family:var(--disp);font-weight:800;font-size:clamp(44px,9.4cqw,148px);line-height:.88;letter-spacing:-.055em;text-wrap:balance}
 .w3-big em,.w3-h2 em{font-style:normal;color:var(--signal)}
 .w3-pn[data-tone="signal"] .w3-big em,.w3-flatpn[data-tone="signal"] .w3-big em{color:#fff}
-.w3-lead{font-size:clamp(15px,1.45cqw,19px);line-height:1.5;color:var(--mute);max-width:46ch}
+.w3-lead{font-size:clamp(16px,1.6cqw,21px);line-height:1.4;color:var(--mute);max-width:36ch}
 .w3-r{opacity:0;translate:0 26px;transition:opacity .9s var(--ease),translate 1s var(--ease);transition-delay:var(--d,0s)}
 .w3-pn.on .w3-r,.w3-still .w3-r{opacity:1;translate:0 0}
 .w3-why{display:grid;grid-template-columns:1fr 1.25fr;gap:clamp(20px,4cqw,64px);align-items:end}
 .w3-beliefs{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,1.6cqw,22px)}
 .w3-beliefs li{display:flex;flex-direction:column;gap:8px;padding-top:14px;border-top:1px solid var(--hair)}
-.w3-beliefs b{font-family:var(--disp);font-weight:500;font-size:clamp(17px,1.7cqw,23px);letter-spacing:-.02em}
+.w3-beliefs b{font-family:var(--disp);font-weight:700;font-size:clamp(19px,2cqw,27px);letter-spacing:-.03em}
 .w3-beliefs span{font-size:14px;line-height:1.4;color:var(--mute)}
-.w3-svc{display:grid;grid-template-columns:1fr 1.2fr;gap:clamp(20px,4cqw,64px);align-items:end;flex:1}
+.w3-svc{display:grid;grid-template-columns:1.35fr 1fr;gap:clamp(20px,4cqw,64px);align-items:end;flex:1}
 .w3-svc ol{display:flex;flex-direction:column}
-.w3-svc li{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:16px;row-gap:2px;padding:clamp(10px,1.2cqw,16px) 0;border-top:1px solid var(--hair)}
-.w3-svi{grid-row:span 2;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--ink);color:var(--signal)}
-.w3-svc b{font-family:var(--disp);font-weight:500;font-size:clamp(19px,2cqw,27px);letter-spacing:-.03em;display:flex;align-items:center;gap:10px}
+.w3-svc li{display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:16px;padding:clamp(10px,1.2cqw,16px) 0;border-top:1px solid var(--hair)}
+.w3-svi{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--ink);color:var(--signal)}
+.w3-svc b{font-family:var(--disp);font-weight:700;font-size:clamp(20px,2.3cqw,32px);letter-spacing:-.035em;display:flex;align-items:center;gap:10px}
 .w3-svc b i{font:500 9.5px/1 var(--mono);font-style:normal;letter-spacing:.08em;text-transform:uppercase;padding:5px 8px;border-radius:99px;background:var(--ink);color:#fff}
-.w3-svc li>span:last-child{font-size:14.5px;color:var(--mute)}
 .w3-reels{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(8px,1.2cqw,16px)}
 .w3-reel{display:flex;flex-direction:column;gap:10px;min-width:0}
-.w3-rv{position:relative;aspect-ratio:9/14;border-radius:16px;overflow:hidden;background:#1C1C1C;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
-.w3-rv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:scale .8s var(--ease)}
-.w3-reel:hover .w3-rv img{scale:1.06}
+.w3-rv{position:relative;aspect-ratio:9/13;border-radius:16px;overflow:hidden;background:#1C1C1C;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.w3-rv img,.w3-rv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:scale .8s var(--ease)}
+.w3-reel:hover .w3-rv img,.w3-reel:hover .w3-rv video{scale:1.06}
 .w3-play{position:absolute;left:50%;top:50%;translate:-50% -50%;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.92);color:var(--ink);transition:scale .4s var(--ease)}
 .w3-reel:hover .w3-play{scale:1.12}
 .w3-views{position:absolute;left:8px;bottom:8px;display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:99px;background:rgba(10,10,10,.6);font:500 10.5px/1 var(--mono);letter-spacing:.03em;color:#fff;backdrop-filter:blur(6px)}
-.w3-cap{display:flex;flex-direction:column;gap:2px;font-size:13.5px}
-.w3-cap span{display:inline-flex;align-items:center;gap:4px;color:var(--mute)}
+.w3-cap{font-size:14px}
+.w3-cap b{display:inline-flex;align-items:center;gap:4px;font-weight:600}
 .w3-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,2cqw,28px)}
 .w3-stat{display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--hair)}
-.w3-stat strong{font-family:var(--disp);font-weight:500;font-size:clamp(40px,6cqw,88px);line-height:.9;letter-spacing:-.055em}
+.w3-stat strong{font-family:var(--disp);font-weight:800;font-size:clamp(48px,7.6cqw,116px);line-height:.88;letter-spacing:-.06em}
 .w3-stat span{font-size:14.5px;color:var(--mute)}
 .w3-logos{display:flex;flex-wrap:wrap;gap:8px}
-.w3-logo{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:132px;height:64px;padding:0 20px;border-radius:14px;background:rgba(10,10,10,.06);font-family:var(--disp);font-weight:600;font-size:19px;letter-spacing:-.02em}
+.w3-logo{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:132px;height:64px;padding:0 20px;border-radius:14px;background:rgba(10,10,10,.06);font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:-.03em}
 .w3-logo i{position:absolute;top:6px;right:8px;font:500 8.5px/1 var(--mono);font-style:normal;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
 .w3-more{background:none;box-shadow:inset 0 0 0 1px var(--hair);color:var(--mute);font-weight:500}
 
 /* the landing and the way out */
 .w3-land,.w3-outro{position:absolute;inset:0;pointer-events:none;will-change:opacity,transform}
-.w3-head{position:absolute;left:clamp(16px,2.6vw,40px);bottom:clamp(28px,5vh,56px);font-family:var(--disp);font-weight:500;font-size:clamp(40px,5.4vw,90px);line-height:.92;letter-spacing:-.05em}
+.w3-head{position:absolute;left:clamp(16px,2.6vw,40px);bottom:clamp(28px,5vh,56px);font-family:var(--disp);font-weight:800;font-size:clamp(48px,7.2vw,128px);line-height:.86;letter-spacing:-.055em}
 .w3-head em{font-style:normal;color:var(--signal)}
 .w3-side{position:absolute;right:clamp(16px,2.6vw,40px);bottom:clamp(28px,5vh,56px);display:flex;flex-direction:column;align-items:flex-end;gap:16px;max-width:320px;text-align:right;pointer-events:auto}
-.w3-side p{font-size:15px;line-height:1.45;color:var(--mute)}
+.w3-side p{font-size:16px;line-height:1.4;color:var(--mute)}
 .w3-side div{display:flex;gap:6px}
 .w3-outro{opacity:0;visibility:hidden}
 .w3-pill{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 18px;border-radius:99px;font-weight:500;font-size:14.5px;transition:background-color .3s,color .3s,box-shadow .3s}
@@ -1267,7 +1283,7 @@ backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:non
 .w3-sec{padding:clamp(72px,10vw,140px) clamp(16px,4vw,64px);max-width:1440px;margin:0 auto;scroll-margin-top:24px}
 .w3-eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--mute);margin-bottom:22px}
 .w3-eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--signal);box-shadow:0 0 0 4px rgba(234,86,40,.2)}
-.w3-h2{font-family:var(--disp);font-weight:500;font-size:clamp(40px,5.6vw,88px);line-height:.93;letter-spacing:-.05em;text-wrap:balance;margin-bottom:22px}
+.w3-h2{font-family:var(--disp);font-weight:800;font-size:clamp(48px,7vw,112px);line-height:.88;letter-spacing:-.055em;text-wrap:balance;margin-bottom:22px}
 .w3-contact{display:grid;grid-template-columns:1fr 1.15fr;gap:clamp(32px,5vw,88px);align-items:start}
 .w3-ct-l{position:sticky;top:40px}
 .w3-next{display:flex;flex-direction:column;margin:36px 0}
@@ -1317,7 +1333,7 @@ backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:non
 .w3-btn svg{transition:translate .4s var(--ease)}
 .w3-btn:hover svg{translate:4px 0}
 .w3-thanks{display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:40px 0}
-.w3-thanks h3{font-family:var(--disp);font-weight:500;font-size:clamp(28px,3vw,40px);letter-spacing:-.04em;line-height:1}
+.w3-thanks h3{font-family:var(--disp);font-weight:700;font-size:clamp(28px,3vw,40px);letter-spacing:-.04em;line-height:1}
 .w3-thanks p{color:var(--mute);max-width:44ch;line-height:1.5}
 .w3-tick{display:grid;place-items:center;width:58px;height:58px;border-radius:50%;background:var(--signal);color:var(--ink)}
 .w3-link{text-decoration:underline;text-underline-offset:4px;color:var(--mute)}
@@ -1327,7 +1343,7 @@ backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:non
 .w3-role{border-top:1px solid var(--line)}
 .w3-role:last-of-type{border-bottom:1px solid var(--line)}
 .w3-role>button{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;column-gap:16px;row-gap:4px;width:100%;padding:22px 0;text-align:left}
-.w3-role>button b{font-family:var(--disp);font-weight:500;font-size:clamp(22px,2.2vw,30px);letter-spacing:-.03em;transition:color .3s}
+.w3-role>button b{font-family:var(--disp);font-weight:700;font-size:clamp(24px,2.5vw,34px);letter-spacing:-.035em;transition:color .3s}
 .w3-role>button:hover b{color:var(--signal)}
 .w3-role>button span{grid-row:2;font-size:14px;color:var(--mute)}
 .w3-role>button i{grid-row:1/span 2;grid-column:2;align-self:center;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);transition:rotate .4s var(--ease),background-color .3s,color .3s}
@@ -1347,7 +1363,7 @@ backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:non
 .w3-fcols>div a:hover,.w3-fcols>div button:hover{color:var(--signal)}
 .w3-fcols>div>span:not(.w3-lab){color:var(--mute)}
 .w3-fnote{justify-self:end;max-width:24ch;text-align:right;font-size:14px;line-height:1.45;color:var(--mute)}
-.w3-fword{margin:clamp(40px,6vw,80px) auto 0;max-width:1440px;font-family:var(--disp);font-weight:600;font-size:clamp(64px,17vw,260px);line-height:.8;letter-spacing:-.065em;white-space:nowrap}
+.w3-fword{margin:clamp(40px,6vw,80px) auto 0;max-width:1440px;font-family:var(--disp);font-weight:800;font-size:clamp(64px,17vw,260px);line-height:.8;letter-spacing:-.065em;white-space:nowrap}
 .w3-fword span{color:var(--signal)}
 .w3-fbase{display:flex;justify-content:space-between;gap:16px;max-width:1440px;margin:28px auto 0;font:500 11px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
 .w3-fbase button{display:inline-flex;align-items:center;gap:6px;font:inherit;letter-spacing:inherit;text-transform:inherit}
@@ -1372,14 +1388,14 @@ backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:non
 .w3-beliefs{grid-template-columns:1fr;gap:10px}.w3-beliefs li{padding-top:10px}.w3-beliefs span{font-size:13px}
 .w3-stats{grid-template-columns:1fr;gap:6px}.w3-stat{flex-direction:row;align-items:baseline;gap:14px;padding-top:10px}.w3-stat strong{font-size:44px}
 .w3-logo{min-width:0;height:48px;padding:0 14px;font-size:15px}
-.w3-svi{width:34px;height:34px}.w3-svi svg{width:16px;height:16px}.w3-svc li{column-gap:12px;padding:8px 0}.w3-svc li>span:last-child{font-size:12.5px}
+.w3-svi{width:34px;height:34px}.w3-svi svg{width:16px;height:16px}.w3-svc li{column-gap:12px;padding:8px 0}
 .w3-reels{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -20px;padding:0 20px;scroll-padding:0 20px;scrollbar-width:none}
 .w3-reel{flex:0 0 46%;scroll-snap-align:start}
 .w3-aside{display:none}
 }
 .w3-flat{display:flex;flex-direction:column;gap:14px;padding:14px}
 .w3-flatpn{position:relative;border-radius:26px;overflow:hidden;background:var(--tone);min-height:min(780px,92vh)}
-.w3-flatpn .w3-pg{position:relative;left:auto;top:auto;translate:none;width:auto;height:auto;min-height:inherit;overflow:visible}
+.w3-flatpn .w3-pg{position:relative;left:auto;top:auto;translate:none;width:auto;height:auto;min-height:inherit;overflow:visible;will-change:auto}
 @media (prefers-reduced-motion:reduce){.w3 *{transition:none!important;animation:none!important}}
 `
 
@@ -1390,7 +1406,7 @@ backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:non
 const N = PAGES.length
 const REST = 0.12 // the landing at rest
 const TURN = 1.4 // a turn of the globe from one city to the next
-const HOLD = 1.4 // a page held up front
+const HOLD = 1.6 // a page held up front
 const OUT = 0.9 // the globe again, spinning on its own, before the rest of the site
 const TILT = -16 // the globe leans towards you, so you see a little of the north
 const holdStart = (k: number) => REST + TURN + k * (HOLD + TURN)
@@ -1405,9 +1421,10 @@ type Frame = { rot: number; free: 0 | 1 | 2; lifts: number[] }
 
 /** Where the globe is turned to, and how far each page is lifted off it, at scroll u. */
 function motion(u: number, spin: number, spin2: number): Frame {
+    // A page lifts off over 0.85 of a screen with one gentle ease, so it never rushes in the middle.
     const lifts = PAGES.map((_, k) => {
-        const up = smooth((u - (holdStart(k) - 0.4)) / 0.75)
-        const down = 1 - smooth((u - (holdEnd(k) - 0.35)) / 0.75)
+        const up = glide((u - (holdStart(k) - 0.4)) / 0.85)
+        const down = 1 - glide((u - (holdEnd(k) - 0.45)) / 0.85)
         return Math.max(0, Math.min(up, down))
     })
     if (u < holdStart(0)) {
@@ -1477,6 +1494,8 @@ export default function W3Globe(props: Props) {
     const panels = React.useRef<(HTMLDivElement | null)[]>([])
     const covers = React.useRef<(HTMLDivElement | null)[]>([])
     const coverMedia = React.useRef<(HTMLDivElement | null)[]>([])
+    const coverVids = React.useRef<(HTMLVideoElement | null)[]>([])
+    const radii = React.useRef<([number, number] | undefined)[]>([])
     const bodies = React.useRef<(HTMLDivElement | null)[]>([])
     const navBtns = React.useRef<(HTMLButtonElement | null)[]>([])
     const idxBtns = React.useRef<(HTMLButtonElement | null)[]>([])
@@ -1522,7 +1541,7 @@ export default function W3Globe(props: Props) {
 
     const key = (media || NO_MEDIA).filter(Boolean).join("\n")
     const items = React.useMemo(() => (key ? key.split("\n") : NO_MEDIA), [key])
-    const srcOf = (i: number) => (items[i] ? items[i] : samples ? SAMPLE + PHOTOS[i % PHOTOS.length] + ".jpg" : "")
+    const srcOf = (i: number) => (items[i] ? items[i] : samples ? sampleClip(i) : "")
     const setShape = React.useCallback((i: number, ar: number) => {
         const v = clamp(ar, 0.4, 2.4)
         React.startTransition(() => setShapes((o) => (Math.abs(o[i] - v) < 0.01 ? o : o.map((x, j) => (j === i ? v : x)))))
@@ -1577,7 +1596,7 @@ export default function W3Globe(props: Props) {
             const vh = size.h
             const rect = track.getBoundingClientRect()
             const target = clamp(-rect.top / vh, 0, TOTAL)
-            s.cur += (target - s.cur) * (1 - Math.pow(0.9, dt / 16.7))
+            s.cur += (target - s.cur) * (1 - Math.pow(0.88, dt / 16.7))
             if (Math.abs(target - s.cur) < 0.0005) s.cur = target
             const u = s.cur
 
@@ -1638,8 +1657,9 @@ export default function W3Globe(props: Props) {
                 put(el, "opacity", up ? "0" : (smooth((f + 0.05) / 0.4) * smooth(intro * 1.6 - 0.5 - i * 0.06)).toFixed(3))
                 const v = tileVids.current[i]
                 if (v) {
-                    if (f < -0.2 && !v.paused) v.pause()
-                    else if (f > -0.1 && v.paused) v.play().catch(() => {})
+                    const rest = f < -0.2 || lift > 0.9
+                    if (rest && !v.paused) v.pause()
+                    else if (!rest && f > -0.1 && v.paused) v.play().catch(() => {})
                 }
             })
 
@@ -1681,44 +1701,71 @@ export default function W3Globe(props: Props) {
                 if (lk <= 0) {
                     put(el, "display", "none")
                     el.classList.remove("on", "live")
+                    const cv = coverVids.current[k]
+                    if (cv && !cv.paused) cv.pause()
                     return
                 }
                 const ti = PAGE_TILES[k]
                 const t = TILES[ti]
                 const sz = sizes[ti]
-                const l = easeInOut(lk)
-                const rt = R * 1.02
-                const r = rt + (-wz - rt) * l
+                const l = lk
                 const theta = wrap(rot + t.lon)
+                // The page leaves its tile's spot on the globe and comes straight to the front: every
+                // turn and the distance from the centre shrink together, so it never dips back.
+                const a = 1 - l
                 put(el, "display", "grid")
                 put(
                     el,
                     "transform",
-                    l > 0.999 && Math.abs(theta) < 0.01
+                    l > 0.999
                         ? `translateY(${dy}px)`
-                        : `translateY(${(dy * l).toFixed(1)}px) translateZ(${wz.toFixed(1)}px) rotateX(${(tilt * (1 - l)).toFixed(2)}deg) rotateY(${theta.toFixed(2)}deg) rotateX(${(t.lat * (1 - l)).toFixed(2)}deg) translateZ(${r.toFixed(1)}px)`
+                        : `translateY(${(dy * l).toFixed(1)}px) rotateX(${(tilt * a).toFixed(2)}deg) rotateY(${(theta * a).toFixed(2)}deg) rotateX(${(t.lat * a).toFixed(2)}deg) translateZ(${(R * 1.02 * a).toFixed(1)}px)`
                 )
-                // The page's window grows from the tile's size to the page's; the picture inside keeps
-                // filling it, scaled rather than redrawn.
+                // The page's window grows from the tile's size to the page's. It is scaled, not resized,
+                // and the picture and words inside are scaled back, so nothing is laid out again.
                 const bw = sz.w + (W - sz.w) * l
                 const bh = sz.h + (H - sz.h) * l
+                const sx = bw / W
+                const sy = bh / H
                 const c = covers.current[k]
                 if (c) {
-                    put(c, "width", bw.toFixed(1) + "px")
-                    put(c, "height", bh.toFixed(1) + "px")
-                    put(c, "borderRadius", (10 + 16 * l).toFixed(1) + "px")
+                    put(c, "transform", `scale(${sx.toFixed(4)},${sy.toFixed(4)})`)
+                    // Corners: 10px on the globe, 26px as a page, round however the window is stretched.
+                    // Only redrawn when they would drift by more than a pixel.
+                    const want = 10 + 16 * l
+                    const has = radii.current[k]
+                    if (!has || Math.abs(has[0] * sx - want) > 1 || Math.abs(has[1] * sy - want) > 1) {
+                        radii.current[k] = [want / sx, want / sy]
+                        put(c, "borderRadius", `${(want / sx).toFixed(1)}px / ${(want / sy).toFixed(1)}px`)
+                    }
                 }
+                // The tile's picture melts into the page's colour first; only then do the words come in.
                 const ai = natural.current[ti] || shapes[ti]
-                const show = clamp((l - 0.72) / 0.22)
+                const gone = smooth((l - 0.25) / 0.35)
+                const show = smooth((l - 0.6) / 0.32)
                 const cm = coverMedia.current[k]
-                put(cm, "opacity", (1 - show).toFixed(3))
-                put(cm, "transform", `scale(${(Math.max(bw, bh * ai) / Math.max(W, H * ai)).toFixed(4)})`)
+                // The picture keeps its own shape and always covers the window, as it did on the tile.
+                const mw = Math.max(W, H * ai)
+                const mh = mw / ai
+                const k0 = Math.max(bw, bh * ai) / mw
+                put(cm, "width", mw.toFixed(1) + "px")
+                put(cm, "height", mh.toFixed(1) + "px")
+                put(cm, "margin", `${(-mh / 2).toFixed(1)}px 0 0 ${(-mw / 2).toFixed(1)}px`)
+                put(cm, "opacity", (1 - gone).toFixed(3))
+                put(cm, "visibility", gone >= 1 ? "hidden" : "visible")
+                put(cm, "transform", `scale(${(k0 / sx).toFixed(4)},${(k0 / sy).toFixed(4)})`)
+                const cv = coverVids.current[k]
+                if (cv) {
+                    if (gone >= 1 && !cv.paused) cv.pause()
+                    else if (gone < 1 && cv.paused) cv.play().catch(() => {})
+                }
                 const b = bodies.current[k]
                 if (b) {
                     put(b, "opacity", show.toFixed(3))
                     put(b, "visibility", show > 0 ? "visible" : "hidden")
+                    put(b, "transform", `scale(${(1 / sx).toFixed(4)},${(1 / sy).toFixed(4)})`)
                 }
-                el.classList.toggle("on", l > 0.85)
+                el.classList.toggle("on", l > 0.7)
                 el.classList.toggle("live", l > 0.95)
             })
 
@@ -2007,7 +2054,13 @@ export default function W3Globe(props: Props) {
                                         coverMedia.current[k] = el
                                     }}
                                 >
-                                    <Media src={srcOf(PAGE_TILES[k])} play={!still} />
+                                    <Media
+                                        src={srcOf(PAGE_TILES[k])}
+                                        play={false}
+                                        vref={(el) => {
+                                            coverVids.current[k] = el
+                                        }}
+                                    />
                                 </div>
                                 <div
                                     className="w3-pg"
@@ -2016,7 +2069,7 @@ export default function W3Globe(props: Props) {
                                     }}
                                     style={{ opacity: 0, visibility: "hidden" }}
                                 >
-                                    <PageBody id={pg.id} samples={samples} />
+                                    <PageBody id={pg.id} samples={samples} play={!still} />
                                 </div>
                             </div>
                         </div>
@@ -2071,7 +2124,7 @@ export default function W3Globe(props: Props) {
                             <em>through people.</em>
                         </h1>
                         <div className="w3-side">
-                            <p>A creator-first media agency from New Delhi. We put brands inside the feeds people actually trust.</p>
+                            <p>Creator-first media agency. New Delhi to everywhere.</p>
                             <div>
                                 <button type="button" className="w3-pill" data-tone="signal" onClick={() => talk("brand")}>
                                     Start a campaign
@@ -2090,7 +2143,7 @@ export default function W3Globe(props: Props) {
                                 <em>next on the globe?</em>
                             </h2>
                             <div className="w3-side">
-                                <p>{rest ? "Tell us what you’re building. A real person replies within a day." : "That’s the tour. Go round again, or tell us about your brand."}</p>
+                                <p>{rest ? "A real person replies within a day." : "That’s the tour."}</p>
                                 <div>
                                     <button type="button" className="w3-pill" data-tone="signal" onClick={() => talk("brand")}>
                                         Let’s talk {rest ? <Icon name="down" size={16} /> : null}
@@ -2127,7 +2180,7 @@ export default function W3Globe(props: Props) {
                         {PAGES.map((pg) => (
                             <section key={pg.id} id={"w3-" + pg.id} className="w3-flatpn" data-tone={pg.tone} aria-label={pg.title}>
                                 <div className="w3-pg">
-                                    <PageBody id={pg.id} samples={samples} />
+                                    <PageBody id={pg.id} samples={samples} play={false} />
                                 </div>
                             </section>
                         ))}
@@ -2151,9 +2204,9 @@ addPropertyControls(W3Globe, {
         type: ControlType.Array,
         title: "Globe media",
         control: { type: ControlType.File, allowedFileTypes: ["mp4", "webm", "mov", "jpg", "jpeg", "png", "webp"] },
-        description: "Videos and photos for the globe’s fifteen tiles, in order; the first four open into the pages. Any shape works: each tile takes the shape of its video.",
+        description: "Videos and photos for the globe’s fifteen tiles, in order; the first four open into the pages. Any shape works: each tile takes the shape of its video. Empty tiles play the sample videos.",
     },
-    samples: { type: ControlType.Boolean, title: "Sample photos", defaultValue: true, enabledTitle: "Show", disabledTitle: "Hide" },
+    samples: { type: ControlType.Boolean, title: "Sample videos", defaultValue: true, enabledTitle: "Show", disabledTitle: "Hide", description: "Stock video loops in the tiles and reels until your own are added." },
     rest: { type: ControlType.Boolean, title: "Rest of site", defaultValue: true, enabledTitle: "Show", disabledTitle: "Hide", description: "Hide for a globe-only demo: no form, careers or footer." },
     email: { type: ControlType.String, title: "Email", defaultValue: "social@worldmedia.co.in" },
     phone: { type: ControlType.String, title: "Phone", defaultValue: "+91 88000 40301" },
