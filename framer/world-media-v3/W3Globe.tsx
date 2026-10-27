@@ -18,6 +18,7 @@ type Props = {
     email: string
     phone: string
     endpoint: string
+    formKey: string
     brands: string
     creators: string
     style?: React.CSSProperties
@@ -924,7 +925,10 @@ function Step(p: { n: number; label: string; children: React.ReactNode }) {
 }
 
 /** The enquiry form: a few numbered steps on one panel, for brands or for creators. */
-function Contact(p: { email: string; endpoint: string; side: "brand" | "creator"; setSide: (s: "brand" | "creator") => void }) {
+/** Web3Forms: a free form service that emails each enquiry on. Its access key is meant to sit in the page. */
+const WEB3FORMS = "https://api.web3forms.com/submit"
+
+function Contact(p: { email: string; endpoint: string; formKey: string; side: "brand" | "creator"; setSide: (s: "brand" | "creator") => void }) {
     const [services, setServices] = React.useState<string[]>([])
     const [budget, setBudget] = React.useState<string[]>([])
     const [followers, setFollowers] = React.useState<string[]>([])
@@ -940,17 +944,23 @@ function Contact(p: { email: string; endpoint: string; side: "brand" | "creator"
             fields.push(["Looking for", services.join(", ")])
             fields.push(["Monthly budget", budget.join(", ")])
         } else fields.push(["Followers", followers.join(", ")])
-        const filled = fields.filter(([, v]) => v.trim())
+        // The hidden "botcheck" box is a trap for spam robots: people never see it, robots tick it.
+        const filled = fields.filter(([k, v]) => k !== "botcheck" && v.trim())
         const subject = brand ? "New brief from the website" : "Creator application from the website"
-        if (p.endpoint) {
+        const key = p.formKey.trim()
+        const url = key ? WEB3FORMS : p.endpoint
+        if (url) {
             React.startTransition(() => setSent("sending"))
+            const from = filled.find(([k]) => /mail/i.test(k))
+            const extra = key ? { access_key: key, from_name: "World Media website", botcheck: data.has("botcheck"), ...(from ? { replyto: from[1] } : {}) } : {}
             try {
-                const res = await fetch(p.endpoint, {
+                const res = await fetch(url, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", Accept: "application/json" },
-                    body: JSON.stringify({ type: p.side, subject, ...Object.fromEntries(filled) }),
+                    body: JSON.stringify({ ...extra, subject, Type: brand ? "Brand" : "Creator", ...Object.fromEntries(filled) }),
                 })
-                if (res.ok) {
+                const reply = await res.json().catch(() => ({}))
+                if (res.ok && reply.success !== false) {
                     React.startTransition(() => setSent("done"))
                     return
                 }
@@ -990,6 +1000,7 @@ function Contact(p: { email: string; endpoint: string; side: "brand" | "creator"
                         </button>
                     </div>
                     <form className="w3-form" onSubmit={submit}>
+                        <input type="checkbox" name="botcheck" className="w3-sr" tabIndex={-1} autoComplete="off" aria-hidden="true" />
                         <div className="w3-intro">
                             <h3>{brand ? "Have a brief. Or just a feeling." : "Make great content. Meet great brands."}</h3>
                             <p>{brand ? "Tell us what you’re thinking. We’ll help figure out what it could become." : "Tell us your story, your style and what you bring to the feed."}</p>
@@ -1781,7 +1792,7 @@ function scrollBox(el: HTMLElement | null): HTMLElement | null {
  * @framerSupportedLayoutHeight auto
  */
 export default function W3Globe(props: Props) {
-    const { media = NO_MEDIA, samples = true, rest = true, email = "social@worldmedia.co.in", phone = "+91 88000 40301", endpoint = "", brands = "100+", creators = "10,000", style } = props
+    const { media = NO_MEDIA, samples = true, rest = true, email = "social@worldmedia.co.in", phone = "+91 88000 40301", endpoint = "", formKey = "", brands = "100+", creators = "10,000", style } = props
     const isStatic = useIsStaticRenderer()
     const [reduce, setReduce] = React.useState(false)
     const [mounted, setMounted] = React.useState(false)
@@ -2724,7 +2735,7 @@ export default function W3Globe(props: Props) {
             {rest ? (
                 <div className="w3-rest">
                     <Founder />
-                    <Contact email={email} endpoint={endpoint} side={side} setSide={setSide} />
+                    <Contact email={email} endpoint={endpoint} formKey={formKey} side={side} setSide={setSide} />
                     <Careers email={email} />
                     <Footer email={email} phone={phone} go={go} />
                 </div>
@@ -2756,11 +2767,18 @@ addPropertyControls(W3Globe, {
     rest: { type: ControlType.Boolean, title: "Rest of site", defaultValue: true, enabledTitle: "Show", disabledTitle: "Hide", description: "Hide for a globe-only demo: no form, careers or footer." },
     email: { type: ControlType.String, title: "Email", defaultValue: "social@worldmedia.co.in" },
     phone: { type: ControlType.String, title: "Phone", defaultValue: "+91 88000 40301" },
+    formKey: {
+        type: ControlType.String,
+        title: "Web3Forms key",
+        defaultValue: "",
+        placeholder: "Paste the access key",
+        description: "Get a free key at web3forms.com and paste it here: each enquiry then arrives by email. Empty, the form opens an email to the address above.",
+    },
     endpoint: {
         type: ControlType.String,
         title: "Form endpoint",
         defaultValue: "",
         placeholder: "https://…",
-        description: "Optional: a form service address to send enquiries to. Empty, the form opens an email to the address above.",
+        description: "Only if you use another form service instead of Web3Forms: its address.",
     },
 })
