@@ -74,7 +74,12 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
   curtain rises; a figure still in brackets (`[00]+`) stays as it is.
 - **Rest of site**: hide it for a globe-only demo (no form, careers or footer). The /globe-demo
   page uses this.
-- **Form endpoint**: optional address of a form service (Formspree works: paste its form address, `https://formspree.io/f/…`). Empty, the form opens an email to the
+- **Web3Forms key**: the access key from web3forms.com (free, 250 enquiries a month). With it, each
+  enquiry is emailed to the address the key was made for, from "World Media website", with the
+  visitor's email as the reply-to address. A hidden box catches spam robots. If Web3Forms ever
+  refuses, the form falls back to opening the visitor's email app.
+- **Form endpoint**: only for another form service instead of Web3Forms (Formspree works: paste its
+  form address, `https://formspree.io/f/…`). With neither set, the form opens an email to the
   address in **Email**, filled in with everything the visitor entered. Sending CV files needs a
   form service; until then, applicants email their CV.
 
