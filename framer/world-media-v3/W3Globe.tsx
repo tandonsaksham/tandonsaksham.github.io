@@ -1403,13 +1403,31 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-fields{grid-template-columns:1fr}
 .w3-send .w3-btn{flex:1}
 .w3-crh .w3-h2{text-align:left}
-.w3-roles a{grid-template-columns:34px 1fr 44px;row-gap:10px}
-.w3-rm{grid-column:2;grid-row:2;gap:12px}
+.w3-roles a{grid-template-columns:34px minmax(0,1fr) 44px;row-gap:10px}
+.w3-rm{grid-column:2;grid-row:2;gap:8px 12px;flex-wrap:wrap;white-space:normal}
 .w3-roles i{grid-column:3;grid-row:1/span 2;width:44px;height:44px}
-.w3-frow{flex-direction:column}
+.w3-frow{flex-direction:column;gap:12px}
+.w3-frow>*{gap:0 22px}
+.w3-frow a,.w3-frow button,.w3-fbase button{min-height:44px}
+.w3-fbase{align-items:center}
+.w3-idx{display:none}
 .w3-pp-main,.w3-pp-member{grid-template-columns:1fr}
 .w3-pol-a{width:min(100%,320px)}
 .w3-pol-b{width:min(100%,260px)}
+}
+/* tablets held upright: the phone layout, with room to breathe */
+@media (min-width:600px) and (max-width:820px){
+.w3-head{font-size:clamp(64px,10vw,96px)}
+.w3-c1 .w3-say,.w3-cur .w3-say{font-size:clamp(56px,9vw,84px)}
+.w3-c1 .w3-say{top:20vh}
+.w3-c3 .w3-say{font-size:clamp(52px,8vw,80px)}
+.w3-tenets{grid-template-columns:repeat(3,1fr);gap:20px}
+.w3-nums{grid-template-columns:repeat(2,1fr);gap:24px}
+.w3-nums div{flex-direction:column;align-items:flex-start;gap:6px;padding-top:16px}
+.w3-nums strong{font-size:clamp(56px,11vw,96px)}
+.w3-belt{--lh:clamp(30px,4.6vw,40px)}
+.w3-fields{grid-template-columns:1fr 1fr}
+.w3-pp-main,.w3-pp-member{grid-template-columns:1fr 1fr}
 }
 .w3-flat{display:flex;flex-direction:column}
 .w3-still .w3-c{position:relative;inset:auto;visibility:visible;pointer-events:auto;overflow:visible}
@@ -1566,9 +1584,10 @@ export default function W3Globe(props: Props) {
     const P = phoneW ? 1100 : 1700
     const gyF = phoneW ? 0.4 : 0.47
     // The sizes of the chapters' parts: a service column, the opening column, a reel.
-    const spw = phoneW ? Math.round(size.w * 0.82) : Math.round(clamp(size.w * 0.3, 340, 480))
+    const tabletW = phoneW && size.w >= 600
+    const spw = phoneW ? Math.round(size.w * (tabletW ? 0.6 : 0.82)) : Math.round(clamp(size.w * 0.3, 340, 480))
     const sp0w = phoneW ? size.w : Math.round(size.w * 0.52)
-    const rw = Math.round(phoneW ? Math.min(size.w * 0.34, 150) : Math.min(size.h * 0.28, 250))
+    const rw = Math.round(phoneW ? Math.min(size.w * 0.34, tabletW ? 220 : 150) : Math.min(size.h * 0.28, 250))
 
     const key = (media || NO_MEDIA).filter(Boolean).join("\n")
     const items = React.useMemo(() => (key ? key.split("\n") : NO_MEDIA), [key])
@@ -1614,6 +1633,12 @@ export default function W3Globe(props: Props) {
         const s = state.current
         const badgeAt = BADGES.map((b) => onGlobe(CITY[b.at][0], CITY[b.at][1]))
         const tileAt = TILES.map((t) => onGlobe(t.lon, t.lat))
+        // How wide each tag's label is, so a tag near the screen's edge can turn its label inwards.
+        let badgeW = BADGES.map(() => 0)
+        const measureBadges = () => {
+            badgeW = badgeEls.current.map((el) => (el && el.firstElementChild ? (el.firstElementChild as HTMLElement).offsetWidth : 0))
+        }
+        const badgeLeft = BADGES.map((b) => !!b.left)
 
         if (still) {
             drawScene(ctx, { w: size.w, h: size.h, cx, cy, R, P, rot: -PAGE_LON[0] + 18, tilt: TILT, wz: 0, lift: 0, intro: 1, time: 0 }, kit)
@@ -1647,6 +1672,8 @@ export default function W3Globe(props: Props) {
             mids = cols.map((c) => c.offsetLeft + c.offsetWidth / 2)
         }
         measure()
+        measureBadges()
+        if (document.fonts) document.fonts.ready.then(measureBadges).catch(() => {})
         const ro = strip && typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null
         if (ro && strip) ro.observe(strip)
         const playing = PAGES.map(() => false)
@@ -1768,8 +1795,16 @@ export default function W3Globe(props: Props) {
                 const z1 = p[1] * R * st + z0 * ct
                 const sc = P / (P - (z1 + wz))
                 const a = smooth((z1 / R - 0.15) / 0.3) * (1 - busy) * smooth((intro - 0.6) / 0.4)
+                const bx = gcx + x0 * sc
+                let left = !!BADGES[i].left
+                if (left && bx - badgeW[i] - 12 < 8) left = false
+                else if (!left && bx + badgeW[i] + 12 > size.w - 8) left = true
+                if (left !== badgeLeft[i]) {
+                    badgeLeft[i] = left
+                    el.toggleAttribute("data-left", left)
+                }
                 put(el, "opacity", a.toFixed(3))
-                put(el, "transform", `translate3d(${(gcx + x0 * sc).toFixed(1)}px,${(cy + y1 * sc).toFixed(1)}px,0)`)
+                put(el, "transform", `translate3d(${bx.toFixed(1)}px,${(cy + y1 * sc).toFixed(1)}px,0)`)
             })
 
             // The landing steps back as the globe starts to turn; the way out comes in at the end.
@@ -1823,7 +1858,16 @@ export default function W3Globe(props: Props) {
             if (ch[1]) {
                 const p = ph[1]
                 const tt = clamp((p.t - 0.06) / 0.88)
-                const x = size.w * (1 - p.a) - tt * Math.max(0, stripW - size.w) - p.b * size.w
+                const span = Math.max(0, stripW - size.w)
+                // The strip rests with each service in the middle of the screen, then moves on to the next.
+                const stops = mids.map((m, i) => (i === 0 ? 0 : -clamp(m - size.w / 2, 0, span)))
+                let off = -tt * span
+                if (stops.length > 1) {
+                    const seg = tt * (stops.length - 1)
+                    const i0 = Math.min(stops.length - 2, Math.floor(seg))
+                    off = stops[i0] + (stops[i0 + 1] - stops[i0]) * smooth((seg - i0 - 0.15) / 0.7)
+                }
+                const x = size.w * (1 - p.a) + off - p.b * size.w
                 put(strip, "transform", `translate3d(${x.toFixed(1)}px,0,0)`)
                 const show = smooth((on[1] - 0.7) / 0.3).toFixed(3)
                 extras2.forEach((el) => put(el, "opacity", show))
