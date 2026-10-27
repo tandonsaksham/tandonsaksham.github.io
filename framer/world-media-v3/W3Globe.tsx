@@ -976,6 +976,70 @@ function Contact(p: { email: string; endpoint: string; side: "brand" | "creator"
     )
 }
 
+/** The people behind World Media, from the portfolio deck, kept in the repository and served from one fixed commit. */
+const PEOPLE_CDN = "https://cdn.jsdelivr.net/gh/tandonsaksham/tandonsaksham.github.io@9fa01f9a222d49723c11a8fc02f528169367f0f1/framer/world-media-v3/people/"
+
+/** Meet the founder: Deepanker Mitra, then the founding member, Shabd Monga, as polaroids like in the deck. */
+function Founder() {
+    const ref = React.useRef<HTMLElement>(null)
+    // Each polaroid drops into place, like a photo put down on a table, when its part comes into view.
+    React.useEffect(() => {
+        const el = ref.current
+        if (!el || typeof IntersectionObserver === "undefined") return
+        const io = new IntersectionObserver(
+            (list) =>
+                list.forEach((e) => {
+                    if (!e.isIntersecting) return
+                    e.target.classList.add("in")
+                    io.unobserve(e.target)
+                }),
+            { threshold: 0.3 }
+        )
+        el.querySelectorAll("[data-in]").forEach((b) => io.observe(b))
+        return () => io.disconnect()
+    }, [])
+    return (
+        <section ref={ref} className="w3-sec w3-people" id="w3-founder" aria-labelledby="w3-pp-h">
+            <div className="w3-pp-main" data-in="">
+                <div className="w3-pp-text">
+                    <h2 className="w3-h2" id="w3-pp-h">
+                        Meet the <em>founder.</em>
+                    </h2>
+                    <p className="w3-pp-lead">11+ years. Hundreds of creator conversations. A front-row view of how influencer marketing became an industry.</p>
+                    <p>Deepanker brings deep experience across talent, brand partnerships and creator ecosystems, now channelled into building a creative world through World Media.</p>
+                    <p>His lens sits at the intersection of strategy, creativity and growth, with a focus on turning creator influence into work that moves brands forward.</p>
+                </div>
+                <figure className="w3-polaroid w3-pol-a">
+                    <span className="w3-pol-img">
+                        <img src={PEOPLE_CDN + "deepanker-mitra.webp"} alt="Deepanker Mitra, smiling" loading="lazy" decoding="async" draggable={false} />
+                    </span>
+                    <figcaption>
+                        <b>Deepanker Mitra</b>
+                        <span>Founder & CEO</span>
+                    </figcaption>
+                </figure>
+            </div>
+            <div className="w3-pp-member" data-in="">
+                <figure className="w3-polaroid w3-pol-b">
+                    <span className="w3-pol-img">
+                        <img src={PEOPLE_CDN + "shabd-monga.webp"} alt="Shabd Monga at work, in black and white" loading="lazy" decoding="async" draggable={false} />
+                    </span>
+                    <figcaption>
+                        <b>Shabd Monga</b>
+                        <span>Creative strategy & brand partnerships</span>
+                    </figcaption>
+                </figure>
+                <div className="w3-pp-text">
+                    <h3>
+                        Founding <em>member.</em>
+                    </h3>
+                    <p>With over 5 years of experience in creative strategy, Shabd has worked across product-led startups, global brands, and influencer marketing. His experience spans brand building, campaign strategy, and new-age content creation, with a strong understanding of how culture, creativity, and digital-first storytelling come together to build relevant brands.</p>
+                </div>
+            </div>
+        </section>
+    )
+}
+
 const ROLES = [
     { role: "Influencer Marketing Manager", team: "Brand Partnerships", years: "4–7 years" },
     { role: "Influencer Marketing Executive", team: "Brand Partnerships", years: "1–3 years" },
@@ -1033,6 +1097,9 @@ function Footer(p: { email: string; phone: string; go: (to: number | string) => 
                             {pg.nav}
                         </button>
                     ))}
+                    <button type="button" onClick={() => p.go("founder")}>
+                        Founder
+                    </button>
                     <button type="button" onClick={() => p.go("careers")}>
                         Careers
                     </button>
@@ -1221,6 +1288,31 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-sec:last-of-type{padding-bottom:clamp(80px,11vw,160px)}
 .w3-h2{font-family:var(--disp);font-weight:700;font-size:clamp(44px,6.4vw,96px);line-height:.9;letter-spacing:-.055em;text-wrap:balance;text-align:center;margin-bottom:clamp(32px,4.4vw,52px)}
 .w3-h2 em{font-style:normal;color:var(--signal)}
+.w3-people{max-width:1240px}
+.w3-pp-main{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(32px,6vw,96px);align-items:center}
+.w3-pp-text .w3-h2{text-align:left;margin-bottom:28px}
+.w3-pp-text p{font-size:17px;line-height:1.6;color:var(--mute);max-width:52ch}
+.w3-pp-text p+p{margin-top:14px}
+.w3-pp-text .w3-pp-lead{margin-bottom:22px;font-family:var(--disp);font-weight:600;font-size:clamp(22px,2.2vw,30px);line-height:1.2;letter-spacing:-.025em;color:var(--text)}
+.w3-polaroid{justify-self:center;width:min(100%,400px);margin:0;padding:14px 14px 0;border-radius:4px;background:#F6F4EF;color:var(--ink);box-shadow:0 34px 70px -30px rgba(0,0,0,.9);rotate:3deg;transition:rotate .6s var(--ease),translate .6s var(--ease)}
+.w3-pol-b{width:min(100%,320px);rotate:-4deg}
+.w3-polaroid:hover{rotate:0deg;translate:0 -6px}
+.w3-pol-img{display:block;aspect-ratio:4/5;overflow:hidden;background:#121212}
+.w3-pol-img img{display:block;width:100%;height:100%;object-fit:cover}
+.w3-pol-a img{object-fit:contain;object-position:50% 100%}
+.w3-pol-b img{object-position:50% 30%}
+.w3-polaroid figcaption{display:flex;flex-direction:column;gap:3px;padding:14px 4px 18px}
+.w3-polaroid figcaption b{font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:-.02em}
+.w3-polaroid figcaption span{font-size:14px;color:rgba(10,10,10,.62)}
+.w3-pp-member{display:grid;grid-template-columns:.85fr 1.15fr;gap:clamp(28px,5vw,80px);align-items:center;margin-top:clamp(64px,8vw,120px);padding-top:clamp(48px,6vw,80px);border-top:1px solid var(--line)}
+.w3-pp-member h3{margin-bottom:18px;font-family:var(--disp);font-weight:700;font-size:clamp(34px,4.4vw,64px);line-height:.95;letter-spacing:-.05em}
+.w3-pp-member h3 em{font-style:normal;color:var(--signal)}
+.w3:not(.w3-still) [data-in] .w3-polaroid{opacity:0;translate:0 70px;rotate:14deg;transition:opacity .9s var(--ease),translate 1.1s var(--ease),rotate 1.2s var(--ease)}
+.w3:not(.w3-still) [data-in] .w3-pp-text{opacity:0;translate:0 30px;transition:opacity .9s var(--ease),translate 1s var(--ease)}
+.w3:not(.w3-still) [data-in].in .w3-pp-text{opacity:1;translate:0 0}
+.w3:not(.w3-still) [data-in].in .w3-pol-a{opacity:1;translate:0 0;rotate:3deg;transition-delay:.12s}
+.w3:not(.w3-still) [data-in].in .w3-pol-b{opacity:1;translate:0 0;rotate:-4deg;transition-delay:.12s}
+.w3:not(.w3-still) [data-in].in .w3-polaroid:hover{rotate:0deg;translate:0 -6px;transition-delay:0s}
 .w3-contact{display:flex;flex-direction:column;align-items:stretch}
 .w3-seg{align-self:center;display:inline-flex;padding:4px;margin-bottom:24px;border-radius:99px;background:rgba(255,255,255,.06)}
 .w3-seg button{height:46px;padding:0 24px;border-radius:99px;font-weight:600;font-size:15px;color:var(--mute);transition:background-color .3s,color .3s}
@@ -1315,6 +1407,9 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-rm{grid-column:2;grid-row:2;gap:12px}
 .w3-roles i{grid-column:3;grid-row:1/span 2;width:44px;height:44px}
 .w3-frow{flex-direction:column}
+.w3-pp-main,.w3-pp-member{grid-template-columns:1fr}
+.w3-pol-a{width:min(100%,320px)}
+.w3-pol-b{width:min(100%,260px)}
 }
 .w3-flat{display:flex;flex-direction:column}
 .w3-still .w3-c{position:relative;inset:auto;visibility:visible;pointer-events:auto;overflow:visible}
@@ -2165,6 +2260,7 @@ export default function W3Globe(props: Props) {
             </div>
             {rest ? (
                 <div className="w3-rest">
+                    <Founder />
                     <Contact email={email} endpoint={endpoint} side={side} setSide={setSide} />
                     <Careers email={email} />
                     <Footer email={email} phone={phone} go={go} />

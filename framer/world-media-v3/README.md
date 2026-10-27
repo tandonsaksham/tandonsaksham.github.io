@@ -33,7 +33,9 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
     numbers count up (100+ brands, 10,000 creators), and eighteen client logos roll by on two belts
     moving in opposite directions.
 - After the last chapter the globe turns home to Delhi and asks "Your brand, next on the globe?".
-- Then the rest of the site: the enquiry form in numbered steps on one panel, with its own opening
+- Then the rest of the site: Meet the founder (Deepanker Mitra, with Shabd Monga as founding
+  member; photos and words from the portfolio deck, on polaroids that drop into place as you reach
+  them), the enquiry form in numbered steps on one panel, with its own opening
   line and button for brands ("Have a brief. Or just a feeling." / Let's build something) and for
   creators ("Make great content. Meet great brands." / Introduce yourself),
   the five open roles (each row fills with orange on hover and opens an email to apply), and the
