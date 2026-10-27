@@ -46,6 +46,9 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
   creators ("Make great content. Meet great brands." / Introduce yourself),
   the five open roles (each row fills with orange on hover and opens an email to apply), and the
   footer.
+- A small loader opens the site: the menu's globe icon turning and a thin orange line that fills
+  as the fonts, the logos and the first frame of every video on the globe arrive. It lifts after at
+  most seven seconds, whatever is still loading, and the globe fades in as it goes.
 - The menu steps aside while you scroll down, and comes back when you scroll up, when the pointer
   reaches the top of the screen, or when you tab to it.
 - On Framer's canvas, and for visitors who prefer reduced motion, the chapters simply stack under
@@ -71,7 +74,7 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
   curtain rises; a figure still in brackets (`[00]+`) stays as it is.
 - **Rest of site**: hide it for a globe-only demo (no form, careers or footer). The /globe-demo
   page uses this.
-- **Form endpoint**: optional address of a form service. Empty, the form opens an email to the
+- **Form endpoint**: optional address of a form service (Formspree works: paste its form address, `https://formspree.io/f/…`). Empty, the form opens an email to the
   address in **Email**, filled in with everything the visitor entered. Sending CV files needs a
   form service; until then, applicants email their CV.
 

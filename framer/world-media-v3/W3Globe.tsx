@@ -89,14 +89,15 @@ function Icon(p: { name: string; size?: number; width?: number }) {
     )
 }
 
-/** The small spinning globe of the menu: the meridians turn like a planet. */
-function MiniGlobe(p: { size?: number }) {
+/** The small spinning globe of the menu: the meridians turn like a planet, once every period seconds. */
+function MiniGlobe(p: { size?: number; period?: number }) {
+    const t = p.period || 9
     return (
         <svg className="w3-mg" width={p.size || 26} height={p.size || 26} viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
             <circle cx="20" cy="20" r="17" />
             <ellipse cx="20" cy="20" rx="17" ry="6.2" strokeOpacity=".55" />
             {[0, 1, 2, 3].map((k) => (
-                <ellipse key={k} className="m" cx="20" cy="20" rx="17" ry="17" style={cssVars({ "--gd": -2.25 * k + "s" })} />
+                <ellipse key={k} className="m" cx="20" cy="20" rx="17" ry="17" style={cssVars({ "--gd": (-t / 4) * k + "s", "--gp": t + "s" })} />
             ))}
         </svg>
     )
@@ -624,7 +625,7 @@ function Media(p: { src: string; poster?: string; play: boolean; onShape?: (ar: 
                 muted
                 loop
                 playsInline
-                preload="metadata"
+                preload="auto"
                 onLoadedMetadata={(e) => {
                     const v = e.currentTarget
                     if (p.onShape && v.videoWidth && v.videoHeight) p.onShape(v.videoWidth / v.videoHeight)
@@ -946,7 +947,7 @@ function Contact(p: { email: string; endpoint: string; side: "brand" | "creator"
             try {
                 const res = await fetch(p.endpoint, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", Accept: "application/json" },
                     body: JSON.stringify({ type: p.side, subject, ...Object.fromEntries(filled) }),
                 })
                 if (res.ok) {
@@ -1325,6 +1326,15 @@ position:relative;width:100%;background:var(--bg);color:var(--text);font-family:
 .w3 :where(button){font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 .w3 :focus-visible{outline:2px solid var(--signal);outline-offset:3px;border-radius:8px}
 .w3 ::selection{background:var(--signal);color:var(--ink)}
+.w3-sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* the loader: the globe of the menu turning, and a thin line that fills as the page gets ready */
+.w3-load{position:fixed;inset:0;z-index:2147482500;display:grid;place-items:center;background:var(--bg);color:var(--text);transition:opacity .6s var(--ease),visibility .6s;animation:w3fail .5s 12s forwards}
+.w3-load.out{opacity:0;visibility:hidden;pointer-events:none}
+.w3-load>div{display:flex;flex-direction:column;align-items:center;gap:22px}
+.w3-load b{display:block;width:120px;height:2px;border-radius:2px;background:rgba(255,255,255,.14);overflow:hidden}
+.w3-load b i{display:block;height:100%;background:var(--signal);transform:scaleX(0);transform-origin:0 50%}
+@keyframes w3fail{to{opacity:0;visibility:hidden}}
 .w3-lab{font-size:15px;font-weight:500;line-height:1.3}
 
 /* the stage: held in place while the track scrolls past */
@@ -1471,7 +1481,7 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-brand .ic svg.w3-prog{position:absolute;inset:-4px;width:52px;height:52px;rotate:-90deg}
 .w3-brand b{font-weight:600}
 .w3-brand b span{color:var(--signal)}
-.w3-mg .m{transform-box:fill-box;transform-origin:50% 50%;animation:w3mer 9s linear infinite;animation-delay:var(--gd,0s)}
+.w3-mg .m{transform-box:fill-box;transform-origin:50% 50%;animation:w3mer var(--gp,9s) linear infinite;animation-delay:var(--gd,0s)}
 @keyframes w3mer{0%{transform:scaleX(1)}25%{transform:scaleX(0)}50%{transform:scaleX(-1)}75%{transform:scaleX(0)}100%{transform:scaleX(1)}}
 .w3-links{display:flex;align-items:center;gap:4px;padding:4px;border-radius:99px;background:rgba(18,18,18,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);pointer-events:auto}
 .w3-links button{height:38px;padding:0 15px;border-radius:99px;font-size:14px;font-weight:500;transition:background-color .3s,color .3s}
@@ -1775,6 +1785,9 @@ export default function W3Globe(props: Props) {
     const isStatic = useIsStaticRenderer()
     const [reduce, setReduce] = React.useState(false)
     const [mounted, setMounted] = React.useState(false)
+    // The loader: 0 while the page gets ready, 1 while it lifts, 2 once it is gone.
+    const [loading, setLoading] = React.useState<0 | 1 | 2>(0)
+    const barRef = React.useRef<HTMLElement>(null)
     const [open, setOpen] = React.useState(false)
     const [side, setSide] = React.useState<"brand" | "creator">("brand")
     const [gal, setGal] = React.useState(false)
@@ -2230,6 +2243,61 @@ export default function W3Globe(props: Props) {
         }
     }, [still, mounted, size, R, P, gyF, rw, phoneW, fanCount, shapes, brands, creators, covered])
 
+    // The loader waits for the fonts, the logos and the first frame of each video on the globe, never
+    // more than seven seconds, then lifts while the globe fades in behind it.
+    React.useEffect(() => {
+        if (isStatic) return
+        const root = rootRef.current
+        if (!root) return
+        const t0 = performance.now()
+        let total = 0
+        let done = 0
+        const track = (p: Promise<unknown>) => {
+            total++
+            p.then(
+                () => done++,
+                () => done++
+            )
+        }
+        if (document.fonts) track(document.fonts.ready)
+        if (document.readyState !== "complete") track(new Promise((r) => window.addEventListener("load", r, { once: true })))
+        root.querySelectorAll<HTMLVideoElement>(".w3-tile video").forEach((v) => {
+            if (v.readyState >= 2) return
+            track(
+                new Promise((r) => {
+                    v.addEventListener("loadeddata", r, { once: true })
+                    v.addEventListener("error", r, { once: true })
+                })
+            )
+        })
+        const html = document.documentElement
+        const was = html.style.overflow
+        html.style.overflow = "hidden"
+        let shown = 0
+        let raf = 0
+        let timer = 0
+        const tick = (now: number) => {
+            const want = now - t0 > 7000 || !total ? 1 : done / total
+            shown += (want - shown) * 0.08
+            if (want === 1 && shown > 0.99) shown = 1
+            put(barRef.current, "transform", `scaleX(${shown.toFixed(3)})`)
+            if (shown === 1 && now - t0 > 800) {
+                html.style.overflow = was
+                state.current.t0 = 0
+                React.startTransition(() => setLoading(1))
+                timer = window.setTimeout(() => React.startTransition(() => setLoading(2)), 700)
+                return
+            }
+            raf = requestAnimationFrame(tick)
+        }
+        raf = requestAnimationFrame(tick)
+        return () => {
+            cancelAnimationFrame(raf)
+            clearTimeout(timer)
+            html.style.overflow = was
+        }
+    }, [isStatic])
+
     // Drag the globe sideways to spin it (up and down still scrolls the page), and lean it a
     // little towards the pointer.
     const onDown = (e: React.PointerEvent) => {
@@ -2547,6 +2615,17 @@ export default function W3Globe(props: Props) {
             <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
             <link rel="stylesheet" href={FONT_HREF} />
             <style dangerouslySetInnerHTML={{ __html: CSS }} />
+            {!isStatic && loading < 2 ? (
+                <div className={"w3-load" + (loading ? " out" : "")} role="status">
+                    <div>
+                        <MiniGlobe size={56} period={3.2} />
+                        <b>
+                            <i ref={barRef} />
+                        </b>
+                        <span className="w3-sr">Loading World Media</span>
+                    </div>
+                </div>
+            ) : null}
             <div className="w3-track" ref={trackRef} style={{ height: still ? "auto" : Math.round((TOTAL + 1) * size.h) + "px" }}>
                 <div className="w3-stage" ref={stageRef} id="w3-top" onPointerDown={onDown}>
                     <div className="w3-word" ref={wordRef} aria-hidden="true">
