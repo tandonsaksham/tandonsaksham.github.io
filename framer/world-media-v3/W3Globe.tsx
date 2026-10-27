@@ -4,8 +4,8 @@
 // Scrolling turns the globe from city to city, and at each one a chapter arrives in its own way:
 // the globe dives into India for the why, an orange strip runs sideways for what we do, reels fan
 // out of the globe for the work, and a light curtain rises for the brands. After the globe comes
-// the rest of the site: the enquiry form, careers and the footer. Place it on its own page, width
-// 100%. Videos are placeholders until the real ones are added in the Globe media field.
+// the rest of the site: the founder, the enquiry form, careers and the footer. Place it on its own
+// page, width 100%. The videos are World Media's own films; a + card on The work opens them all.
 
 import * as React from "react"
 import { createPortal } from "react-dom"
@@ -26,12 +26,12 @@ type Props = {
 const FONT_HREF = "https://fonts.googleapis.com/css2?family=Funnel+Display:wght@400;500;600;700&family=Funnel+Sans:wght@400;500;600&display=swap"
 
 const NO_MEDIA: string[] = []
-/** Sample clips (Mixkit, free licence), streamed from Mixkit until the real videos are added. */
-const CLIP = (id: number) => `https://assets.mixkit.co/videos/${id}/${id}-360.mp4`
-const POSTER = (src: string) => {
-    const m = src.match(/assets\.mixkit\.co\/videos\/(\d+)\//)
-    return m ? `https://assets.mixkit.co/videos/${m[1]}/${m[1]}-thumb-360-0.jpg` : undefined
-}
+/** World Media's films, logos and photos, kept on the repository's main branch and served by GitHub Pages. */
+const CDN = "https://tandonsaksham.github.io/framer/world-media-v3/"
+/** Each film comes three ways: a six-second silent loop for previews, the full film with sound, and a still. */
+const LOOP = (id: string) => CDN + "films/" + id + "-loop.mp4"
+const FULL = (id: string) => CDN + "films/" + id + ".mp4"
+const STILL = (id: string) => CDN + "films/" + id + ".webp"
 
 const D2R = Math.PI / 180
 const cssVars = (o: Record<string, string | number>): React.CSSProperties => o as React.CSSProperties
@@ -72,6 +72,8 @@ const ICONS: Record<string, string> = {
     film: "M4 5.5h16v13H4z M8 5.5v13 M16 5.5v13 M4 9.5h4 M4 14.5h4 M16 9.5h4 M16 14.5h4",
     eye: "M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z M12 14.8a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6z",
     arrow: "M5 12h14 M13 6l6 6-6 6",
+    back: "M19 12H5 M11 6l-6 6 6 6",
+    close: "M6 6l12 12 M18 6L6 18",
     out: "M7 17L17 7 M9 7h8v8",
     down: "M12 5v14 M6 13l6 6 6-6",
     up: "M12 19V5 M6 11l6-6 6 6",
@@ -97,6 +99,56 @@ function MiniGlobe(p: { size?: number }) {
                 <ellipse key={k} className="m" cx="20" cy="20" rx="17" ry="17" style={cssVars({ "--gd": -2.25 * k + "s" })} />
             ))}
         </svg>
+    )
+}
+
+/* ─────────────────────────────── The films ─────────────────────────────── */
+
+/** The brands the films were made for, in the order the gallery shows them. k sizes each logo so they all look about the same size. */
+const BRANDS: { name: string; logo: string; k: number; word?: boolean }[] = [
+    { name: "Coca-Cola", logo: "coca-cola.png", k: 1 },
+    { name: "Sprite", logo: "sprite.png", k: 1 },
+    { name: "Maaza", logo: "maaza.png", k: 1.12 },
+    { name: "Kinley", logo: "kinley.png", k: 1.02 },
+    { name: "Tinder", logo: "tinder.png", k: 0.74 },
+    { name: "OPPO", logo: "oppo.png", k: 0.62 },
+    // Ashiana's logo is a small mark, so its name sits beside it.
+    { name: "Ashiana", logo: "ashiana.png", k: 1.05, word: true },
+]
+type Film = { id: string; b: number; title: string; ar: number }
+const TALL = 9 / 16
+/** World Media's films. Each id names its files in the films folder; b is its brand, ar its shape. */
+const FILMS: Film[] = [
+    { id: "coca-cola-varun-sood", b: 0, title: "Trophy Tour, with Varun Sood", ar: TALL },
+    { id: "coca-cola-trophy-tour", b: 0, title: "FIFA World Cup Trophy Tour, Delhi", ar: TALL },
+    { id: "coca-cola-striker", b: 0, title: "Trophy Tour: Delhi and Guwahati", ar: TALL },
+    { id: "sprite-durga-puja", b: 1, title: "Durga Puja in Kolkata", ar: TALL },
+    { id: "sprite-ganesh-chaturthi", b: 1, title: "Ganesh Chaturthi", ar: TALL },
+    { id: "maaza-50-years", b: 2, title: "50 years of Maaza", ar: TALL },
+    { id: "maaza-mothers-day", b: 2, title: "Mother’s Day", ar: TALL },
+    { id: "kinley-teachers-day", b: 3, title: "Teacher’s Day", ar: TALL },
+    { id: "kinley-teachers-day-2", b: 3, title: "Teacher’s Day, film two", ar: TALL },
+    { id: "tinder-green-flag", b: 4, title: "You met a green flag on the first date", ar: TALL },
+    { id: "tinder-punjabi-malayali", b: 4, title: "When a Punjabi guy falls for a Malayali girl", ar: TALL },
+    { id: "tinder-first-date", b: 4, title: "A tomboy’s first Tinder date", ar: TALL },
+    { id: "tinder-single-friend", b: 4, title: "That single friend in every group", ar: TALL },
+    { id: "tinder-moms-at-25", b: 4, title: "Indian moms when their daughters turn 25", ar: TALL },
+    { id: "tinder-bestie", b: 4, title: "Treating my bhabhi’s sister like a princess", ar: TALL },
+    { id: "oppo-abhay-deol", b: 5, title: "Snap to Mind Space, with Abhay Deol", ar: 3 / 2 },
+    { id: "ashiana-dinesh-karthik", b: 6, title: "With Dinesh Karthik", ar: 4 / 3 },
+]
+const filmAt = (id: string) => Math.max(0, FILMS.findIndex((f) => f.id === id))
+/** The films on The work, from the middle out: five on a wide screen, fewer on a tablet or phone, then the card that opens them all. */
+const FAN = ["sprite-durga-puja", "tinder-first-date", "coca-cola-varun-sood", "maaza-mothers-day", "kinley-teachers-day-2"]
+
+/** A brand's logo on a small light plate, so every logo reads on the dark site. */
+function Logo(p: { b: number }) {
+    const b = BRANDS[p.b]
+    return (
+        <span className="w3-lg">
+            <img src={CDN + "logos/" + b.logo} alt={b.word ? "" : b.name} draggable={false} style={cssVars({ "--k": b.k })} />
+            {b.word ? <b>{b.name}</b> : null}
+        </span>
     )
 }
 
@@ -524,31 +576,35 @@ function drawScene(ctx: CanvasRenderingContext2D, sc: Scene, kit: Kit) {
 
 /* ─────────────────────────────── Video tiles ─────────────────────────────── */
 
-type TileDef = { lon: number; lat: number; ar: number; tag: string; page?: number; clip?: number }
+type TileDef = { lon: number; lat: number; ar: number; tag: string; page?: number; film?: string }
+
+/** A video tile on the globe, playing one of the films, in the film's shape and tagged with its brand. */
+const tile = (lon: number, lat: number, id: string): TileDef => {
+    const f = FILMS[filmAt(id)]
+    return { lon, lat, ar: f.ar, tag: BRANDS[f.b].name, film: id }
+}
 
 /**
  * What sits on the globe, spread so nothing touches. The first four mark the chapters' cities and
- * show nothing; the rest are video tiles, each with a sample clip.
+ * show nothing; the rest are video tiles, each playing a film.
  */
 const TILES: TileDef[] = [
     { lon: 77.2, lat: 28.6, ar: 1.5, tag: "", page: 0 },
     { lon: -74, lat: 40.7, ar: 1.5, tag: "", page: 1 },
     { lon: 139.7, lat: 35.7, ar: 1.5, tag: "", page: 2 },
     { lon: -0.1, lat: 51.5, ar: 1.5, tag: "", page: 3 },
-    { lon: 6, lat: 2, ar: 16 / 9, tag: "Live 0:15", clip: 14084 },
-    { lon: 150, lat: -28, ar: 9 / 16, tag: "Reel", clip: 34487 },
-    { lon: -52, lat: -16, ar: 9 / 16, tag: "UGC", clip: 40556 },
-    { lon: -116, lat: 28, ar: 16 / 9, tag: "Shorts", clip: 40369 },
-    { lon: 105, lat: -5, ar: 9 / 16, tag: "Reel 0:22", clip: 42319 },
-    { lon: 44, lat: 6, ar: 16 / 9, tag: "GRWM", clip: 52057 },
-    { lon: -36, lat: 20, ar: 16 / 9, tag: "Food", clip: 49231 },
-    { lon: -90, lat: -5, ar: 16 / 9, tag: "Vlog", clip: 46352 },
-    { lon: -160, lat: 10, ar: 16 / 9, tag: "Unboxing", clip: 4919 },
-    { lon: 60, lat: -30, ar: 16 / 9, tag: "Podcast", clip: 2960 },
-    { lon: -170, lat: 48, ar: 9 / 16, tag: "Shorts", clip: 44556 },
+    tile(6, 2, "oppo-abhay-deol"),
+    tile(150, -28, "tinder-moms-at-25"),
+    tile(-52, -16, "sprite-durga-puja"),
+    tile(-116, 28, "ashiana-dinesh-karthik"),
+    tile(105, -5, "maaza-50-years"),
+    tile(44, 6, "coca-cola-trophy-tour"),
+    tile(-36, 20, "tinder-single-friend"),
+    tile(-90, -5, "kinley-teachers-day"),
+    tile(-160, 10, "tinder-bestie"),
+    tile(60, -30, "sprite-ganesh-chaturthi"),
+    tile(-170, 48, "coca-cola-striker"),
 ]
-/** The reels on "The work", portrait sample clips until the real ones arrive. */
-const REEL_CLIPS = [34486, 2963, 10428, 44555, 41289]
 
 /** A tile's width and height for its shape, all tiles having about the same area. */
 const tileSize = (R: number, ar: number) => {
@@ -556,14 +612,14 @@ const tileSize = (R: number, ar: number) => {
     return { w: a * Math.sqrt(ar), h: a / Math.sqrt(ar) }
 }
 
-function Media(p: { src: string; play: boolean; onShape?: (ar: number) => void; vref?: (el: HTMLVideoElement | null) => void }) {
+function Media(p: { src: string; poster?: string; play: boolean; onShape?: (ar: number) => void; vref?: (el: HTMLVideoElement | null) => void }) {
     if (!p.src) return <b className="w3-blank" />
     if (isVideo(p.src))
         return (
             <video
                 ref={p.vref}
                 src={p.src}
-                poster={POSTER(p.src)}
+                poster={p.poster}
                 autoPlay={p.play}
                 muted
                 loop
@@ -600,27 +656,20 @@ const PAGES: PageDef[] = [
     { id: "brands", nav: "Brands", title: "The brands" },
 ]
 
-const ORIGINALS = [
-    "https://www.instagram.com/reel/DX3_tzGSK98/",
-    "https://www.instagram.com/reel/DZqB10SyBlc/",
-    "https://www.instagram.com/reel/DZKX-sKyx_N/",
-    "https://www.instagram.com/reel/DYMk2X6Seet/",
-    "https://www.instagram.com/reel/DaKzM9HSTlw/",
-]
 const TENETS = [
     ["Cast for trust", "Creators your buyers already believe."],
     ["Stories that stick", "Made to be watched to the end."],
     ["Measured to the rupee", "Reach, views and sales, reported."],
 ]
 const OFFER = [
-    { name: "Influencer Marketing", head: "The right people change everything.", line: "From finding the right voices to getting the campaign live, we make creator partnerships count.", core: true, clip: 14084 },
-    { name: "Production", head: "Good ideas deserve great frames.", line: "From the first concept to the final cut, we turn ideas into films, reels and branded content.", core: false, clip: 52057 },
-    { name: "Studio", head: "Your next idea. Ready for its close-up.", line: "A Delhi-based creative space for shoots, content days and everything worth putting in front of a camera.", core: false, clip: 2960 },
-    { name: "Talent Management", head: "More than the next brand deal.", line: "We build creator relationships, unlock opportunities and help talent grow beyond the feed.", core: false, clip: 42319 },
-    { name: "Social Media", head: "Don’t just fill the feed. Give it a point of view.", line: "Strategy, creative and content that make a brand’s social presence feel unmistakably its own.", core: false, clip: 46352 },
+    { name: "Influencer Marketing", head: "The right people change everything.", line: "From finding the right voices to getting the campaign live, we make creator partnerships count.", core: true, film: "tinder-green-flag" },
+    { name: "Production", head: "Good ideas deserve great frames.", line: "From the first concept to the final cut, we turn ideas into films, reels and branded content.", core: false, film: "oppo-abhay-deol" },
+    { name: "Studio", head: "Your next idea. Ready for its close-up.", line: "A Delhi-based creative space for shoots, content days and everything worth putting in front of a camera.", core: false, film: "maaza-50-years" },
+    { name: "Talent Management", head: "More than the next brand deal.", line: "We build creator relationships, unlock opportunities and help talent grow beyond the feed.", core: false, film: "ashiana-dinesh-karthik" },
+    { name: "Social Media", head: "Don’t just fill the feed. Give it a point of view.", line: "Strategy, creative and content that make a brand’s social presence feel unmistakably its own.", core: false, film: "tinder-punjabi-malayali" },
 ]
-/** The client logos from World Media's portfolio deck, kept in the repository and served from one fixed commit. */
-const LOGO_CDN = "https://cdn.jsdelivr.net/gh/tandonsaksham/tandonsaksham.github.io@f38c122178d097893a6f8ffbc095773f4199ccab/framer/world-media-v3/logos/"
+/** The client logos from World Media's portfolio deck. */
+const LOGO_CDN = CDN + "logos/"
 /** k sizes each logo so they all look about the same size: wide wordmarks shorter, tall marks taller. */
 const LOGOS = [
     { name: "NPCI", file: "npci.png", k: 0.96 },
@@ -635,6 +684,7 @@ const LOGOS = [
     { name: "Flipkart Minutes", file: "flipkart-minutes.png", k: 1.01 },
     { name: "Amazon Pay", file: "amazon-pay.png", k: 0.76 },
     { name: "Maaza", file: "maaza.png", k: 1.14 },
+    { name: "Kinley", file: "kinley.png", k: 1.02 },
     { name: "Dot & Key", file: "dot-and-key.png", k: 1.00 },
     { name: "Abu Dhabi Tourism & Culture", file: "abu-dhabi.png", k: 1.02 },
     { name: "Tinder", file: "tinder.png", k: 0.85 },
@@ -718,7 +768,7 @@ function ChapterServices(p: { samples: boolean }) {
                         <span className="w3-num" aria-hidden="true">
                             {nn(i + 1)}
                         </span>
-                        <div className="w3-spv">{p.samples ? <video src={CLIP(s.clip)} poster={POSTER(CLIP(s.clip))} muted loop playsInline preload="none" /> : null}</div>
+                        <div className="w3-spv">{p.samples ? <video src={LOOP(s.film)} poster={STILL(s.film)} muted loop playsInline preload="none" /> : <img src={STILL(s.film)} alt="" loading="lazy" draggable={false} />}</div>
                         <span className="w3-spn">
                             {s.name}
                             {s.core ? <i>Our core</i> : null}
@@ -739,8 +789,10 @@ function ChapterServices(p: { samples: boolean }) {
     )
 }
 
-/** The work: the reels fan out of the globe like a hand of cards. */
-function ChapterWork(p: { samples: boolean }) {
+/** The work: the films fan out of the globe like a hand of cards, the last card opening them all. */
+function ChapterWork(p: { samples: boolean; count: number; play: (i: number) => void; all: () => void }) {
+    const from = Math.floor((FAN.length - p.count) / 2)
+    const fan = FAN.slice(from, from + p.count)
     return (
         <>
             <div className="w3-c3h">
@@ -755,20 +807,32 @@ function ChapterWork(p: { samples: boolean }) {
                 </p>
             </div>
             <div className="w3-fan">
-                {ORIGINALS.map((href, i) => (
-                    <a key={href} className="w3-reel" data-r="" href={href} target="_blank" rel="noreferrer" aria-label={"Watch World Media original " + (i + 1) + " on Instagram"}>
-                        <span className="w3-rv">
-                            {p.samples ? <video src={CLIP(REEL_CLIPS[i])} poster={POSTER(CLIP(REEL_CLIPS[i]))} muted loop playsInline preload="none" /> : null}
-                            <span className="w3-views">
-                                <Icon name="eye" size={13} />
-                                [0.0]M
+                {fan.map((id) => {
+                    const i = filmAt(id)
+                    const f = FILMS[i]
+                    return (
+                        <button key={id} type="button" className="w3-reel" data-r="" onClick={() => p.play(i)} aria-label={"Play " + BRANDS[f.b].name + ": " + f.title}>
+                            <span className="w3-rv">
+                                {p.samples ? <video src={LOOP(id)} poster={STILL(id)} muted loop playsInline preload="none" /> : <img src={STILL(id)} alt="" loading="lazy" draggable={false} />}
+                                <span className="w3-rl">
+                                    <Logo b={f.b} />
+                                </span>
+                                <span className="w3-go">
+                                    <Icon name="play" size={15} />
+                                </span>
                             </span>
-                            <span className="w3-go">
-                                <Icon name="out" size={16} />
-                            </span>
+                        </button>
+                    )
+                })}
+                <button type="button" className="w3-reel w3-more" data-r="" onClick={p.all} aria-label={"See all " + FILMS.length + " films"}>
+                    <span className="w3-rv">
+                        <span className="w3-plus">
+                            <Icon name="plus" size={30} width={2} />
                         </span>
-                    </a>
-                ))}
+                        <b>See all</b>
+                        <span>{FILMS.length} films</span>
+                    </span>
+                </button>
             </div>
             <Mark n={3} title="The work" />
         </>
@@ -976,8 +1040,135 @@ function Contact(p: { email: string; endpoint: string; side: "brand" | "creator"
     )
 }
 
-/** The people behind World Media, from the portfolio deck, kept in the repository and served from one fixed commit. */
-const PEOPLE_CDN = "https://cdn.jsdelivr.net/gh/tandonsaksham/tandonsaksham.github.io@9fa01f9a222d49723c11a8fc02f528169367f0f1/framer/world-media-v3/people/"
+/** Every film, with the brands' logos across the top to filter by. Tapping a film plays it in the player. */
+function Gallery(p: { onClose: () => void; onPlay: (i: number) => void; paused: boolean; still: boolean }) {
+    const [brand, setBrand] = React.useState(-1)
+    const ref = React.useRef<HTMLDivElement>(null)
+    const paused = React.useRef(p.paused)
+    paused.current = p.paused
+    const list = FILMS.map((_, i) => i).filter((i) => brand < 0 || FILMS[i].b === brand)
+    const count = (b: number) => FILMS.filter((f) => f.b === b).length
+    // Each card's loop loads and plays only while the card is on screen, and rests while a film plays.
+    React.useEffect(() => {
+        const box = ref.current
+        if (!box || p.still || typeof IntersectionObserver === "undefined") return
+        const io = new IntersectionObserver(
+            (list) =>
+                list.forEach((e) => {
+                    const v = e.target.querySelector("video")
+                    if (!v) return
+                    v.toggleAttribute("data-vis", e.isIntersecting)
+                    if (!e.isIntersecting) return v.pause()
+                    if (!v.getAttribute("src")) v.src = v.dataset.src || ""
+                    if (!paused.current) v.play().catch(() => {})
+                }),
+            { root: box, threshold: 0.35 }
+        )
+        box.querySelectorAll("[data-film]").forEach((el) => io.observe(el))
+        return () => io.disconnect()
+    }, [brand, p.still])
+    React.useEffect(() => {
+        const box = ref.current
+        if (!box) return
+        box.querySelectorAll("video").forEach((v) => {
+            if (p.paused || !v.hasAttribute("data-vis")) v.pause()
+            else v.play().catch(() => {})
+        })
+    }, [p.paused])
+    const pick = (b: number) => {
+        React.startTransition(() => setBrand(b))
+        if (ref.current) ref.current.scrollTo({ top: 0, behavior: "smooth" })
+    }
+    return (
+        <div className="w3-gal" role="dialog" aria-modal="true" aria-labelledby="w3-gal-h" ref={ref}>
+            <button type="button" className="w3-x" onClick={p.onClose} aria-label="Close">
+                <Icon name="close" size={22} width={2} />
+            </button>
+            <div className="w3-gal-in">
+                <h2 className="w3-gal-h" id="w3-gal-h">
+                    Every film, <em>every brand.</em>
+                </h2>
+                <p className="w3-gal-sub">Tap a film to watch it with sound.</p>
+                <div className="w3-gal-f" role="group" aria-label="Show the films for one brand" data-on={brand >= 0 ? "" : undefined}>
+                    <button type="button" aria-pressed={brand < 0} onClick={() => pick(-1)}>
+                        All<i>{FILMS.length}</i>
+                    </button>
+                    {BRANDS.map((b, j) => (
+                        <button key={b.name} type="button" aria-pressed={brand === j} onClick={() => pick(j)}>
+                            <Logo b={j} />
+                            <i aria-hidden="true">{count(j)}</i>
+                        </button>
+                    ))}
+                </div>
+                <ul className="w3-gal-g">
+                    {list.map((i) => {
+                        const f = FILMS[i]
+                        return (
+                            <li key={f.id} data-wide={f.ar > 1 ? "" : undefined}>
+                                <button type="button" className="w3-film" data-film="" onClick={() => p.onPlay(i)}>
+                                    <span className="w3-film-v">
+                                        <video data-src={LOOP(f.id)} poster={STILL(f.id)} muted loop playsInline preload="none" />
+                                        <span className="w3-film-p" aria-hidden="true">
+                                            <Icon name="play" size={20} />
+                                        </span>
+                                    </span>
+                                    <span className="w3-film-m">
+                                        <Logo b={f.b} />
+                                        <b>{f.title}</b>
+                                    </span>
+                                </button>
+                            </li>
+                        )
+                    })}
+                </ul>
+            </div>
+        </div>
+    )
+}
+
+/** One film, full size and with sound, with the next and the previous film a tap away. */
+function Player(p: { i: number; onClose: () => void; step: (d: number) => void }) {
+    const f = FILMS[p.i]
+    const ref = React.useRef<HTMLVideoElement>(null)
+    // Plays with sound; where the browser won't allow that yet, it plays muted and the controls turn the sound on.
+    React.useEffect(() => {
+        const v = ref.current
+        if (!v) return
+        v.muted = false
+        v.play().catch(() => {
+            v.muted = true
+            v.play().catch(() => {})
+        })
+    }, [p.i])
+    return (
+        <div className="w3-pl" role="dialog" aria-modal="true" aria-label={BRANDS[f.b].name + ": " + f.title}>
+            <button type="button" className="w3-x" onClick={p.onClose} aria-label="Close the film">
+                <Icon name="close" size={22} width={2} />
+            </button>
+            <div className="w3-pl-v" style={cssVars({ "--ar": f.ar })}>
+                <video key={f.id} ref={ref} src={FULL(f.id)} poster={STILL(f.id)} controls playsInline preload="auto" />
+            </div>
+            <div className="w3-pl-m">
+                <Logo b={f.b} />
+                <b>{f.title}</b>
+                <span className="w3-pl-n">
+                    {nn(p.i + 1)} / {FILMS.length}
+                </span>
+                <span className="w3-pl-nav">
+                    <button type="button" onClick={() => p.step(-1)} aria-label="Previous film">
+                        <Icon name="back" size={20} />
+                    </button>
+                    <button type="button" onClick={() => p.step(1)} aria-label="Next film">
+                        <Icon name="arrow" size={20} />
+                    </button>
+                </span>
+            </div>
+        </div>
+    )
+}
+
+/** The people behind World Media, from the portfolio deck. */
+const PEOPLE_CDN = CDN + "people/"
 
 /** Meet the founder: Deepanker Mitra, then the founding member, Shabd Monga, as polaroids like in the deck. */
 function Founder() {
@@ -1177,7 +1368,7 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-gl{position:absolute;inset:0;pointer-events:none;will-change:transform}
 .w3-veil{position:absolute;inset:0;background:#0A0A0A;opacity:0;pointer-events:none}
 .w3-c{position:absolute;inset:0;visibility:hidden;pointer-events:none;overflow:hidden}
-.w3-c.live a{pointer-events:auto}
+.w3-c.live a,.w3-c.live button{pointer-events:auto}
 .w3-mark{position:absolute;left:clamp(16px,2.6vw,40px);bottom:clamp(18px,3.4vh,34px);display:flex;align-items:baseline;gap:10px;font-family:var(--disp);font-weight:600;font-size:18px;letter-spacing:-.02em}
 .w3-mark b{font-weight:700;color:var(--signal)}
 .w3-say{font-family:var(--disp);font-weight:700;font-size:clamp(48px,7.4vw,140px);line-height:.9;letter-spacing:-.058em;text-wrap:balance}
@@ -1199,7 +1390,7 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-hint{display:inline-flex;align-items:center;gap:8px;margin-top:28px;font-size:16px;font-weight:600}
 .w3-num{position:absolute;top:clamp(76px,11vh,110px);left:clamp(20px,2.4vw,36px);font-family:var(--disp);font-weight:700;font-size:clamp(80px,14vh,160px);line-height:.8;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:1.5px var(--ink)}
 .w3-spv{position:relative;width:100%;height:min(28vh,calc(var(--spw) * .75));margin-bottom:6px;border-radius:18px;overflow:hidden;background:rgba(10,10,10,.14)}
-.w3-spv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.w3-spv video,.w3-spv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 30%}
 .w3-spn{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600}
 .w3-spn i{font:600 12px/1 var(--sans);font-style:normal;padding:6px 10px;border-radius:99px;background:var(--ink);color:#fff}
 .w3-sp h3{font-family:var(--disp);font-weight:700;font-size:clamp(25px,2.5vw,36px);letter-spacing:-.04em;line-height:1.02;text-wrap:balance}
@@ -1215,8 +1406,19 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-reel{position:absolute;width:var(--rw);height:calc(var(--rw) * 16 / 9);left:calc(var(--rw) / -2);top:calc(var(--rw) * -8 / 9);opacity:0;will-change:transform,opacity}
 .w3-rv{position:absolute;inset:0;border-radius:calc(var(--rw) * .1);overflow:hidden;background:#1C1C1C;box-shadow:0 0 0 1px rgba(255,255,255,.16),0 30px 60px -24px rgba(0,0,0,.85);transition:translate .5s var(--ease),box-shadow .4s}
 .w3-reel:hover .w3-rv,.w3-reel:focus-visible .w3-rv{translate:0 -16px;box-shadow:0 0 0 2px var(--signal),0 40px 70px -24px rgba(0,0,0,.9)}
-.w3-rv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.w3-views{position:absolute;left:10px;bottom:10px;display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border-radius:99px;background:rgba(10,10,10,.72);font:600 12px/1 var(--sans);color:#fff}
+.w3-rv>video,.w3-rv>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.w3-lg{display:inline-flex;align-items:center;gap:7px;flex:none;height:30px;padding:0 11px;border-radius:99px;background:#F6F4EF;color:var(--ink)}
+.w3-lg img{display:block;width:auto;height:calc(15px * var(--k,1))}
+.w3-lg b{font:600 13px/1 var(--sans);letter-spacing:-.01em}
+.w3-rl{position:absolute;left:10px;bottom:10px}
+.w3-rl .w3-lg{height:26px;padding:0 9px}
+.w3-rl .w3-lg img{height:calc(12px * var(--k,1))}
+.w3-more .w3-rv{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:16px;text-align:center;background:var(--signal);color:var(--ink);box-shadow:0 30px 60px -24px rgba(0,0,0,.85)}
+.w3-plus{display:grid;place-items:center;width:clamp(52px,calc(var(--rw) * .34),72px);height:clamp(52px,calc(var(--rw) * .34),72px);margin-bottom:10px;border-radius:50%;background:var(--ink);color:#fff;transition:rotate .5s var(--ease)}
+.w3-more b{font-family:var(--disp);font-weight:700;font-size:clamp(20px,calc(var(--rw) * .12),28px);letter-spacing:-.03em;line-height:1}
+.w3-more .w3-rv>span:last-child{font-size:14px;font-weight:500;opacity:.75}
+.w3-more:hover .w3-plus,.w3-more:focus-visible .w3-plus{rotate:90deg}
+.w3-more:hover .w3-rv,.w3-more:focus-visible .w3-rv{box-shadow:0 0 0 2px #fff,0 40px 70px -24px rgba(0,0,0,.9)}
 .w3-go{position:absolute;right:10px;top:10px;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:rgba(10,10,10,.72);color:#fff;transition:background-color .3s,color .3s}
 .w3-reel:hover .w3-go{background:var(--signal);color:var(--ink)}
 .w3-cur{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:clamp(26px,5vh,56px);padding:clamp(76px,11vh,120px) 0 clamp(70px,11vh,104px);background:var(--paper);color:var(--ink);transform:translate3d(0,100%,0);will-change:transform;overflow:hidden}
@@ -1283,7 +1485,7 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-sheet button:hover{background:rgba(255,255,255,.06)}
 
 /* after the globe */
-.w3-rest{position:relative;background:var(--bg);border-top:1px solid rgba(255,255,255,.06)}
+.w3-rest{position:relative;overflow-x:hidden;overflow-x:clip;background:var(--bg);border-top:1px solid rgba(255,255,255,.06)}
 .w3-sec{padding:clamp(80px,11vw,160px) clamp(16px,4vw,64px) 0;max-width:880px;margin:0 auto;scroll-margin-top:24px}
 .w3-sec:last-of-type{padding-bottom:clamp(80px,11vw,160px)}
 .w3-h2{font-family:var(--disp);font-weight:700;font-size:clamp(44px,6.4vw,96px);line-height:.9;letter-spacing:-.055em;text-wrap:balance;text-align:center;margin-bottom:clamp(32px,4.4vw,52px)}
@@ -1385,8 +1587,62 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-fbase button{display:inline-flex;align-items:center;gap:6px;font:inherit}
 .w3-fbase button:hover{color:var(--text)}
 
+/* all the work: the gallery, and the player over it */
+.w3-layer{position:static;background:none}
+.w3-x{position:fixed;top:clamp(14px,2vw,24px);right:clamp(14px,2vw,24px);z-index:3;display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:#fff;color:var(--ink);transition:background-color .3s,rotate .4s var(--ease)}
+.w3-x:hover{background:var(--signal);rotate:90deg}
+.w3-gal{position:fixed;inset:0;z-index:2147482100;overflow-y:auto;overscroll-behavior:contain;background:#080808;animation:w3in .55s var(--ease)}
+@keyframes w3in{from{opacity:0;transform:translate3d(0,48px,0)}}
+.w3-gal-in{max-width:1440px;margin:0 auto;padding:clamp(72px,9vw,120px) clamp(16px,4vw,64px) clamp(64px,8vw,120px)}
+.w3-gal-h{font-family:var(--disp);font-weight:700;font-size:clamp(44px,6.4vw,96px);line-height:.9;letter-spacing:-.055em;text-wrap:balance}
+.w3-gal-h em{font-style:normal;color:var(--signal)}
+.w3-gal-sub{margin-top:16px;font-size:17px;color:var(--mute)}
+.w3-gal-f{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;gap:8px;margin-top:clamp(28px,4vw,44px);padding:14px 64px 14px 0;background:#080808}
+.w3-gal-f::after{content:"";position:absolute;left:0;right:0;top:100%;height:28px;background:linear-gradient(#080808,rgba(8,8,8,0));pointer-events:none}
+.w3-gal-f button{display:inline-flex;align-items:center;gap:8px;height:48px;padding:0 8px 0 9px;border-radius:99px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);font-weight:600;font-size:15px;transition:opacity .3s,background-color .3s,box-shadow .3s}
+.w3-gal-f button:first-child{padding-left:18px}
+.w3-gal-f button i{display:grid;place-items:center;min-width:26px;height:26px;padding:0 7px;border-radius:99px;background:rgba(255,255,255,.1);font:600 12.5px/1 var(--sans);font-style:normal;font-variant-numeric:tabular-nums}
+.w3-gal-f button:hover{background:rgba(255,255,255,.12)}
+.w3-gal-f button[aria-pressed="true"]{background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 2px var(--signal)}
+.w3-gal-f button[aria-pressed="true"] i{background:var(--signal);color:var(--ink)}
+.w3-gal-f[data-on] button:not([aria-pressed="true"]){opacity:.55}
+.w3-gal-f[data-on] button:hover{opacity:1}
+.w3-gal-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));grid-auto-flow:dense;gap:32px 16px;margin-top:20px}
+.w3-gal-g li[data-wide]{grid-column:span 2}
+.w3-film{display:flex;flex-direction:column;gap:12px;width:100%;height:100%;text-align:left}
+.w3-film-v{position:relative;display:block;width:100%;aspect-ratio:9/16;border-radius:16px;overflow:hidden;background:#1A1A1A;box-shadow:0 0 0 1px rgba(255,255,255,.1);transition:box-shadow .35s}
+li[data-wide] .w3-film-v{aspect-ratio:16/10;flex:1 0 auto}
+.w3-film-v video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:scale .6s var(--ease)}
+.w3-film-p{position:absolute;right:10px;top:10px;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:rgba(10,10,10,.72);color:#fff;transition:background-color .3s,color .3s}
+.w3-film:hover .w3-film-v,.w3-film:focus-visible .w3-film-v{box-shadow:0 0 0 2px var(--signal)}
+.w3-film:hover .w3-film-v video{scale:1.04}
+.w3-film:hover .w3-film-p,.w3-film:focus-visible .w3-film-p{background:var(--signal);color:var(--ink)}
+.w3-film-m{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.w3-film-m b{font-weight:500;font-size:15.5px;line-height:1.35;text-wrap:pretty}
+.w3-pl{position:fixed;inset:0;z-index:2147482200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:76px 16px 22px;background:rgba(6,6,6,.96);animation:w3fade .35s var(--ease)}
+@keyframes w3fade{from{opacity:0}}
+.w3-pl-v{height:min(calc(100vh - 200px),calc((100vw - 32px) / var(--ar)));height:min(calc(100svh - 200px),calc((100vw - 32px) / var(--ar)));aspect-ratio:var(--ar);max-width:100%;border-radius:18px;overflow:hidden;background:#000;box-shadow:0 0 0 1px rgba(255,255,255,.1)}
+.w3-pl-v video{display:block;width:100%;height:100%;object-fit:contain;background:#000}
+.w3-pl-m{display:flex;align-items:center;gap:14px;width:min(100%,720px)}
+.w3-pl-m>b{flex:1;min-width:0;font-family:var(--disp);font-weight:600;font-size:clamp(18px,1.6vw,22px);letter-spacing:-.02em;line-height:1.2}
+.w3-pl-n{font-size:14px;color:var(--mute);font-variant-numeric:tabular-nums}
+.w3-pl-nav{display:flex;gap:6px}
+.w3-pl-nav button{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);transition:background-color .3s,color .3s,box-shadow .3s}
+.w3-pl-nav button:hover{background:#fff;color:var(--ink);box-shadow:none}
+
 @media (max-width:820px){
 .w3-links{display:none}.w3-menu{display:inline-flex}
+.w3-gal-f{flex-wrap:nowrap;overflow-x:auto;margin-left:-16px;margin-right:-16px;padding:12px 76px 12px 16px;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 84px),transparent calc(100% - 20px));mask-image:linear-gradient(90deg,#000 calc(100% - 84px),transparent calc(100% - 20px))}
+.w3-gal-f::-webkit-scrollbar{display:none}
+.w3-gal-f button{flex:none}
+.w3-gal-g{grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 12px}
+.w3-film-m b{font-size:14.5px}
+.w3-film-m .w3-lg{height:26px;padding:0 9px}
+.w3-film-m .w3-lg img{height:calc(12px * var(--k,1))}
+.w3-pl{padding-top:72px}
+.w3-pl-m{flex-wrap:wrap;row-gap:12px}
+.w3-pl-m>b{order:-1;flex-basis:100%}
+.w3-pl-nav{margin-left:auto}
 .w3-head{left:16px;right:16px;bottom:96px;font-size:clamp(46px,13.5vw,76px)}
 .w3-side{left:16px;right:16px;bottom:22px;align-items:stretch;text-align:left;max-width:none}
 .w3-side p{display:none}.w3-side div>*{flex:1;justify-content:center}
@@ -1521,6 +1777,8 @@ export default function W3Globe(props: Props) {
     const [mounted, setMounted] = React.useState(false)
     const [open, setOpen] = React.useState(false)
     const [side, setSide] = React.useState<"brand" | "creator">("brand")
+    const [gal, setGal] = React.useState(false)
+    const [film, setFilm] = React.useState(-1)
     const [size, setSize] = React.useState({ w: 1440, h: 900 })
     const [shapes, setShapes] = React.useState<number[]>(() => TILES.map((t) => t.ar))
 
@@ -1594,9 +1852,13 @@ export default function W3Globe(props: Props) {
     const srcOf = (i: number) => {
         const v = VIDEO_TILES.indexOf(i)
         if (v >= 0 && items[v]) return items[v]
-        const c = TILES[i].clip
-        return samples && c ? CLIP(c) : ""
+        const id = TILES[i].film
+        return id ? (samples ? LOOP(id) : STILL(id)) : ""
     }
+    // How many films the fan has room for: two on a phone, three on an upright tablet, five on anything wider.
+    const fanCount = !phoneW ? 5 : tabletW ? 3 : 2
+    // The gallery and the player sit over the page; while either is open the globe rests.
+    const covered = gal || film >= 0
     const setShape = React.useCallback((i: number, ar: number) => {
         const v = clamp(ar, 0.4, 2.4)
         React.startTransition(() => setShapes((o) => (Math.abs(o[i] - v) < 0.01 ? o : o.map((x, j) => (j === i ? v : x)))))
@@ -1614,6 +1876,11 @@ export default function W3Globe(props: Props) {
         const stage = stageRef.current
         if (!cv || !track || !stage) return
         if (!still && !mounted) return
+        if (covered) {
+            // Nothing here shows while the gallery or a film is open, so the globe and its videos rest.
+            if (rootRef.current) rootRef.current.querySelectorAll("video").forEach((v) => v.pause())
+            return
+        }
         const ctx = cv.getContext("2d")
         if (!ctx) return
         const kit: Kit = {
@@ -1891,16 +2158,21 @@ export default function W3Globe(props: Props) {
                     put(el, "transform", `translate3d(0,${((1 - v) * 105).toFixed(1)}%,0)`)
                 })
                 put(sub3, "opacity", (smooth((q - 0.55) / 0.35) * (1 - p.b)).toFixed(3))
-                const spread = phoneW ? size.w * 0.19 : Math.min(rw * 0.86, size.w * 0.17)
-                const drop = size.h * ((phoneW ? 0.63 : 0.6) - gyF)
+                // The cards spread as far as they can while the outermost, tilted, still fits on screen.
+                const dMax = Math.max(1, (reels.length - 1) / 2)
+                const lean = ((dMax * 7 + 2) * Math.PI) / 180
+                const reach = rw * (0.5 * Math.cos(lean) + 0.89 * Math.sin(lean))
+                const spread = Math.min(phoneW ? size.w : Math.min(rw * 0.8, size.w * 0.145), (size.w / 2 - 16 - reach) / dMax)
+                const drop = size.h * ((phoneW ? 0.63 : 0.57) - gyF)
                 reels.forEach((el, i) => {
                     const d = i - (reels.length - 1) / 2
                     const x = d * spread * e
-                    const y = (d * d * rw * 0.07 + drop) * e
+                    const y = (d * d * rw * 0.04 + drop) * e
                     const r = (d * 7 + (p.t - 0.5) * 4) * e
                     put(el, "transform", `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) rotate(${r.toFixed(2)}deg) scale(${(0.12 + 0.88 * e).toFixed(4)})`)
                     put(el, "opacity", smooth(e * 5).toFixed(3))
-                    put(el, "zIndex", String(10 - Math.round(Math.abs(d) * 2)))
+                    // The card that opens all the films always sits on top, so it is never half hidden.
+                    put(el, "zIndex", String(el.classList.contains("w3-more") ? 12 : 10 - Math.round(Math.abs(d) * 2)))
                 })
             }
 
@@ -1956,7 +2228,7 @@ export default function W3Globe(props: Props) {
             if (ro) ro.disconnect()
             if (raf) cancelAnimationFrame(raf)
         }
-    }, [still, mounted, size, R, P, gyF, rw, phoneW, shapes, brands, creators])
+    }, [still, mounted, size, R, P, gyF, rw, phoneW, fanCount, shapes, brands, creators, covered])
 
     // Drag the globe sideways to spin it (up and down still scrolls the page), and lean it a
     // little towards the pointer.
@@ -2068,6 +2340,73 @@ export default function W3Globe(props: Props) {
         else window.location.href = "mailto:" + email + "?subject=" + encodeURIComponent(as === "brand" ? "New campaign" : "Creator application")
     }
 
+    // The gallery and the player each remember what opened them, so closing one puts focus back there.
+    const openers = React.useRef<(HTMLElement | null)[]>([])
+    const remember = () => {
+        openers.current.push(document.activeElement as HTMLElement | null)
+    }
+    const restore = () => {
+        const el = openers.current.pop()
+        if (el && el.isConnected) setTimeout(() => el.focus({ preventScroll: true }), 0)
+    }
+    const openAll = () => {
+        remember()
+        React.startTransition(() => setGal(true))
+    }
+    const closeAll = () => {
+        React.startTransition(() => setGal(false))
+        restore()
+    }
+    const play = (i: number) => {
+        if (film < 0) remember()
+        React.startTransition(() => setFilm(i))
+    }
+    const closeFilm = () => {
+        React.startTransition(() => setFilm(-1))
+        restore()
+    }
+    const step = (d: number) => React.startTransition(() => setFilm((i) => mod(i + d, FILMS.length)))
+    const layer = film >= 0 ? 2 : gal ? 1 : 0
+    const closeTop = React.useRef(closeAll)
+    closeTop.current = layer === 2 ? closeFilm : closeAll
+    // While one is open: Escape closes it, the arrow keys move between films, Tab stays inside, and the
+    // page underneath holds still.
+    React.useEffect(() => {
+        if (!layer) return
+        const top = document.querySelector<HTMLElement>(layer === 2 ? ".w3-pl" : ".w3-gal")
+        const x = top ? top.querySelector<HTMLElement>(".w3-x") : null
+        if (x && top && !top.contains(document.activeElement)) x.focus({ preventScroll: true })
+        const html = document.documentElement
+        const was = html.style.overflow
+        html.style.overflow = "hidden"
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                e.preventDefault()
+                closeTop.current()
+                return
+            }
+            if (layer === 2 && (e.key === "ArrowRight" || e.key === "ArrowLeft") && !(e.target instanceof HTMLVideoElement)) {
+                e.preventDefault()
+                step(e.key === "ArrowRight" ? 1 : -1)
+                return
+            }
+            if (e.key !== "Tab" || !top) return
+            const els = Array.from(top.querySelectorAll<HTMLElement>("button,video[controls]"))
+            if (!els.length) return
+            const first = els[0]
+            const last = els[els.length - 1]
+            if (!top.contains(document.activeElement) || (e.shiftKey ? document.activeElement === first : document.activeElement === last)) {
+                e.preventDefault()
+                ;(e.shiftKey ? last : first).focus()
+            }
+        }
+        document.addEventListener("keydown", onKey)
+        return () => {
+            document.removeEventListener("keydown", onKey)
+            html.style.overflow = was
+        }
+    }, [layer])
+
     const navItems: [string, number | string][] = [
         ["About", 0],
         ["Services", 1],
@@ -2154,6 +2493,7 @@ export default function W3Globe(props: Props) {
                                     >
                                         <Media
                                             src={src}
+                                            poster={t.film && src === LOOP(t.film) ? STILL(t.film) : undefined}
                                             play={!still}
                                             onShape={(ar) => setShape(i, ar)}
                                             vref={(el) => {
@@ -2184,7 +2524,7 @@ export default function W3Globe(props: Props) {
         [brands, "Brands"],
         [creators, "Creators"],
     ]
-    const bodies = [<ChapterWhy key="why" />, <ChapterServices key="services" samples={samples} />, <ChapterWork key="work" samples={samples} />, <ChapterBrands key="brands" stats={stats} />]
+    const bodies = [<ChapterWhy key="why" />, <ChapterServices key="services" samples={samples} />, <ChapterWork key="work" samples={samples} count={fanCount} play={play} all={openAll} />, <ChapterBrands key="brands" stats={stats} />]
     const chapters = PAGES.map((pg, k) => (
         <section
             key={pg.id}
@@ -2311,6 +2651,15 @@ export default function W3Globe(props: Props) {
                 </div>
             ) : null}
             {!still && mounted ? createPortal(<div className="w3">{nav}{sheet}</div>, document.body) : null}
+            {mounted && layer
+                ? createPortal(
+                      <div className="w3 w3-layer">
+                          {gal ? <Gallery onClose={closeAll} onPlay={play} paused={film >= 0} still={still} /> : null}
+                          {film >= 0 ? <Player i={film} onClose={closeFilm} step={step} /> : null}
+                      </div>,
+                      document.body
+                  )
+                : null}
         </div>
     )
 }
@@ -2322,7 +2671,7 @@ addPropertyControls(W3Globe, {
         control: { type: ControlType.File, allowedFileTypes: ["mp4", "webm", "mov", "jpg", "jpeg", "png", "webp"] },
         description: "Videos and photos for the globe’s eleven video tiles, in order. Any shape works: each tile takes the shape of its video.",
     },
-    samples: { type: ControlType.Boolean, title: "Sample videos", defaultValue: true, enabledTitle: "Show", disabledTitle: "Hide" },
+    samples: { type: ControlType.Boolean, title: "Videos", defaultValue: true, enabledTitle: "Play", disabledTitle: "Stills", description: "Stills shows a still from each film instead of playing it." },
     brands: { type: ControlType.String, title: "Brands", defaultValue: "100+", description: "The numbers on The brands. They count up as the curtain rises." },
     creators: { type: ControlType.String, title: "Creators", defaultValue: "10,000" },
     rest: { type: ControlType.Boolean, title: "Rest of site", defaultValue: true, enabledTitle: "Show", disabledTitle: "Hide", description: "Hide for a globe-only demo: no form, careers or footer." },

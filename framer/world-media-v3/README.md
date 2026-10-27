@@ -14,7 +14,8 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
   and between cities round the world, three orbit rings with small moons turn round it, and tags
   (Live, #collab, @creator…) float over cities.
 - Eleven video tiles sit on the globe and turn with it, spread so they never touch, each playing a
-  clip. Each tile takes the shape of its video: 9:16, 1:1, 16:9 or anything in between.
+  World Media film and tagged with its brand. Each tile takes the shape of its video: 9:16, 1:1,
+  16:9 or anything in between.
 - It turns on its own, can be dragged sideways, and leans a little towards the pointer.
 
 ## How it moves
@@ -23,14 +24,19 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
   - **The why** (Delhi): the globe dives into India until its dots fill the screen, and "People
     skip ads. They don't skip people." rises word by word, then the three beliefs.
   - **What we do** (New York): an orange strip pushes the globe off to the left and the five
-    services run sideways while you scroll down, each with a big number, a looping video and the
+    services run sideways while you scroll down, each with a big number, a looping film and the
     client's copy (a headline and one line each), with a 01 / 05 counter and a progress line. The
     globe comes back in from the right.
   - **The work** (Tokyo): "Reels people actually stopped for." and "Ideas don't execute
-    themselves.", then five phone-shaped reels grow out of the globe's centre and fan out like a
-    hand of cards, playing; each opens the original on Instagram.
+    themselves.", then five films (three on a tablet, two on a phone) grow out of the globe's
+    centre and fan out like a hand of cards, playing, each with its brand's logo. Tapping one plays
+    it full size with sound. The last card, "+ See all 17 films", opens the gallery.
+  - **The gallery** ("Every film, every brand."): all 17 films in a grid, each with its brand's
+    logo and title, and a row of brand logos at the top (All, Coca-Cola, Sprite, Maaza, Kinley,
+    Tinder, OPPO, Ashiana) to show one brand's films. Tapping a film opens the player: the film with
+    sound, the next and previous film a tap (or arrow key) away, and Escape or the cross to close.
   - **The brands** (London): a light curtain rises over the globe with "So far, so good.", the
-    numbers count up (100+ brands, 10,000 creators), and eighteen client logos roll by on two belts
+    numbers count up (100+ brands, 10,000 creators), and nineteen client logos roll by on two belts
     moving in opposite directions.
 - After the last chapter the globe turns home to Delhi and asks "Your brand, next on the globe?".
 - Then the rest of the site: Meet the founder (Deepanker Mitra, with Shabd Monga as founding
@@ -51,12 +57,16 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
   the canvas draws just the moving lines and dots, at no more than about 2.4 million pixels.
 - Styles are only touched when they change, nothing that moves uses a background blur, and the
   chapters only move and fade (they are never laid out again). Videos play only while their
-  chapter, or their side of the globe, is in view.
+  chapter, or their side of the globe, is in view. Previews are six-second silent loops (100 to
+  500 KB each); a full film only loads when someone opens it. While the gallery or a film is open,
+  the globe and its videos rest.
 - The globe turns between pages with a soft ease over a longer stretch of scroll.
 
 ## Settings in Framer
 
-- **Globe media**: videos and photos for the eleven video tiles, in order.
+- **Globe media**: videos and photos for the eleven video tiles, in order. Empty, the tiles play
+  World Media's films.
+- **Videos**: Play, or Stills to show a still from each film instead.
 - **Brands, Creators**: the two numbers on The brands (100+ and 10,000). They count up as the
   curtain rises; a figure still in brackets (`[00]+`) stays as it is.
 - **Rest of site**: hide it for a globe-only demo (no form, careers or footer). The /globe-demo
@@ -65,18 +75,21 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
   address in **Email**, filled in with everything the visitor entered. Sending CV files needs a
   form service; until then, applicants email their CV.
 
-## Placeholders
+## Films, logos and photos
 
-- Tiles and the reels on "The work" play free sample clips from Mixkit (free licence, no
-  attribution needed), streamed from Mixkit's own servers, until the real videos are added.
-- The numbers on The brands are World Media's own (100+ brands, 10,000 creators).
+- The films are in `films/`: each has the full film with sound (540p, H.264), a six-second silent
+  loop (`-loop.mp4`, 360p) and a still (`.webp`). The list, with brands and titles, is `FILMS` in
+  the component; titles come from each film's own on-screen text. To add a film, put its three
+  files in `films/` and add a line to `FILMS`.
 - The client logos are in `logos/`, taken from World Media's portfolio deck: the fifteen on its
-  "So far, so good" page, plus Sprite and Urban Company from their campaign pages, and Maaza
-  (from Wikimedia). Mahindra's silver logo and Urban Company's white one are drawn in dark grey so
-  they show on the light belt. They load from this repository through jsDelivr, pinned to one
-  commit.
-- The reels on "The work" link to the five World Media originals on Instagram, with `[0.0]M`
-  views until the view counts arrive.
+  "So far, so good" page, plus Sprite and Urban Company from their campaign pages, Maaza (from
+  Wikimedia) and Kinley (cut from the end card of its Teacher's Day film). Mahindra's silver logo,
+  Urban Company's white one and Kinley's white one are recoloured so they show on light plates.
+- The founder photos are in `people/`.
+- All three folders are also on the repository's `main` branch, and GitHub Pages serves them from
+  https://tandonsaksham.github.io/framer/world-media-v3/. A new file needs to be on `main` too
+  before the site can load it.
+- The numbers on The brands are World Media's own (100+ brands, 10,000 creators).
 
 ## The world map
 
