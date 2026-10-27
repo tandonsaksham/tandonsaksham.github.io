@@ -18,8 +18,7 @@ type Props = {
     email: string
     phone: string
     endpoint: string
-    views: string
-    campaigns: string
+    brands: string
     creators: string
     style?: React.CSSProperties
 }
@@ -614,23 +613,38 @@ const TENETS = [
     ["Measured to the rupee", "Reach, views and sales, reported."],
 ]
 const OFFER = [
-    { name: "Influencer Marketing", line: "The right creators, briefed well, measured properly.", core: true, clip: 14084 },
-    { name: "Production", line: "Reels, shoots and ad films by our own crew.", core: false, clip: 52057 },
-    { name: "Studio", line: "A Delhi studio, lit and ready when you are.", core: false, clip: 2960 },
-    { name: "Talent Management", line: "We look after creators and grow their careers.", core: false, clip: 42319 },
-    { name: "Social Media", line: "Calendars, posting and community, every month.", core: false, clip: 46352 },
+    { name: "Influencer Marketing", head: "The right people change everything.", line: "From finding the right voices to getting the campaign live, we make creator partnerships count.", core: true, clip: 14084 },
+    { name: "Production", head: "Good ideas deserve great frames.", line: "From the first concept to the final cut, we turn ideas into films, reels and branded content.", core: false, clip: 52057 },
+    { name: "Studio", head: "Your next idea. Ready for its close-up.", line: "A Delhi-based creative space for shoots, content days and everything worth putting in front of a camera.", core: false, clip: 2960 },
+    { name: "Talent Management", head: "More than the next brand deal.", line: "We build creator relationships, unlock opportunities and help talent grow beyond the feed.", core: false, clip: 42319 },
+    { name: "Social Media", head: "Don’t just fill the feed. Give it a point of view.", line: "Strategy, creative and content that make a brand’s social presence feel unmistakably its own.", core: false, clip: 46352 },
 ]
-/** The client logos, kept in the repository and served from one fixed commit. */
-const LOGO_CDN = "https://cdn.jsdelivr.net/gh/tandonsaksham/tandonsaksham.github.io@9296b48515c2d949a15ac2613959c53792cce4f3/framer/world-media-v3/logos/"
+/** The client logos from World Media's portfolio deck, kept in the repository and served from one fixed commit. */
+const LOGO_CDN = "https://cdn.jsdelivr.net/gh/tandonsaksham/tandonsaksham.github.io@f38c122178d097893a6f8ffbc095773f4199ccab/framer/world-media-v3/logos/"
+/** k sizes each logo so they all look about the same size: wide wordmarks shorter, tall marks taller. */
 const LOGOS = [
-    { name: "Coca-Cola", file: "coca-cola.svg" },
-    { name: "Tinder", file: "tinder.svg" },
-    { name: "OPPO", file: "oppo.svg" },
-    { name: "Maaza", file: "maaza.png" },
+    { name: "NPCI", file: "npci.png", k: 0.96 },
+    { name: "Canva", file: "canva.png", k: 0.98 },
+    { name: "Coca-Cola", file: "coca-cola.png", k: 0.99 },
+    { name: "Ashiana", file: "ashiana.png", k: 1.50 },
+    { name: "OPPO", file: "oppo.png", k: 0.85 },
+    { name: "Havells", file: "havells.png", k: 1.40 },
+    { name: "Sprite", file: "sprite.png", k: 1.07 },
+    { name: "Mahindra", file: "mahindra.png", k: 1.41 },
+    { name: "BookMyShow", file: "bookmyshow.png", k: 0.94 },
+    { name: "Flipkart Minutes", file: "flipkart-minutes.png", k: 1.01 },
+    { name: "Amazon Pay", file: "amazon-pay.png", k: 0.76 },
+    { name: "Maaza", file: "maaza.png", k: 1.14 },
+    { name: "Dot & Key", file: "dot-and-key.png", k: 1.00 },
+    { name: "Abu Dhabi Tourism & Culture", file: "abu-dhabi.png", k: 1.02 },
+    { name: "Tinder", file: "tinder.png", k: 0.85 },
+    { name: "Urban Company", file: "urban-company.png", k: 0.92 },
+    { name: "", file: "red-mark.png", k: 1.50 },
+    { name: "Bingo!", file: "bingo.png", k: 1.35 },
 ]
 const nn = (n: number) => String(n).padStart(2, "0")
 /** A figure that can count up ("120M+"), or null for a placeholder still in brackets ("[00]M+"). */
-const countable = (s: string) => (s.includes("[") ? null : s.match(/^(\D*)(\d+(?:\.\d+)?)(.*)$/))
+const countable = (s: string) => (s.includes("[") ? null : s.match(/^(\D*)(\d[\d,]*(?:\.\d+)?)(.*)$/))
 
 /** A line of words, each in its own mask so it can rise into view on its own. */
 function Words(p: { text: string }) {
@@ -705,10 +719,11 @@ function ChapterServices(p: { samples: boolean }) {
                             {nn(i + 1)}
                         </span>
                         <div className="w3-spv">{p.samples ? <video src={CLIP(s.clip)} poster={POSTER(CLIP(s.clip))} muted loop playsInline preload="none" /> : null}</div>
-                        <h3>
+                        <span className="w3-spn">
                             {s.name}
                             {s.core ? <i>Our core</i> : null}
-                        </h3>
+                        </span>
+                        <h3>{s.head}</h3>
                         <p>{s.line}</p>
                     </article>
                 ))}
@@ -728,12 +743,17 @@ function ChapterServices(p: { samples: boolean }) {
 function ChapterWork(p: { samples: boolean }) {
     return (
         <>
-            <h2 className="w3-say">
-                <Words text="Reels people" />{" "}
-                <em>
-                    <Words text="actually stopped for." />
-                </em>
-            </h2>
+            <div className="w3-c3h">
+                <h2 className="w3-say">
+                    <Words text="Reels people" />{" "}
+                    <em>
+                        <Words text="actually stopped for." />
+                    </em>
+                </h2>
+                <p className="w3-sub" data-sub="">
+                    Ideas don’t execute themselves.
+                </p>
+            </div>
             <div className="w3-fan">
                 {ORIGINALS.map((href, i) => (
                     <a key={href} className="w3-reel" data-r="" href={href} target="_blank" rel="noreferrer" aria-label={"Watch World Media original " + (i + 1) + " on Instagram"}>
@@ -760,7 +780,7 @@ function ChapterBrands(p: { stats: [string, string][] }) {
     return (
         <div className="w3-cur" data-cur="">
             <h2 className="w3-say">
-                Big names. <em>One orbit.</em>
+                So far, <em>so good.</em>
             </h2>
             <div className="w3-nums">
                 {p.stats.map(([n, l]) => (
@@ -770,10 +790,12 @@ function ChapterBrands(p: { stats: [string, string][] }) {
                     </div>
                 ))}
             </div>
-            <div className="w3-belt" role="img" aria-label={LOGOS.map((l) => l.name).join(", ") + " and more"}>
-                <div className="w3-belt-in">
-                    {[0, 1, 2].map((r) => LOGOS.map((l) => <img key={r + l.file} src={LOGO_CDN + l.file} alt="" draggable={false} data-logo={l.name} />))}
-                </div>
+            <div className="w3-belt" role="img" aria-label={"Brands we’ve worked with, including " + LOGOS.filter((l) => l.name).map((l) => l.name).join(", ")}>
+                {[LOGOS.slice(0, 9), LOGOS.slice(9)].map((row, r) => (
+                    <div key={r} className="w3-belt-in" data-rev={r ? "" : undefined}>
+                        {[0, 1].map((c) => row.map((l) => <img key={c + l.file} src={LOGO_CDN + l.file} alt="" draggable={false} style={cssVars({ "--k": l.k })} />))}
+                    </div>
+                ))}
             </div>
             <Mark n={4} title="The brands" />
         </div>
@@ -903,6 +925,10 @@ function Contact(p: { email: string; endpoint: string; side: "brand" | "creator"
                         </button>
                     </div>
                     <form className="w3-form" onSubmit={submit}>
+                        <div className="w3-intro">
+                            <h3>{brand ? "Have a brief. Or just a feeling." : "Make great content. Meet great brands."}</h3>
+                            <p>{brand ? "Tell us what you’re thinking. We’ll help figure out what it could become." : "Tell us your story, your style and what you bring to the feed."}</p>
+                        </div>
                         {brand ? (
                             <>
                                 <Step n={1} label="What do you need?">
@@ -939,7 +965,7 @@ function Contact(p: { email: string; endpoint: string; side: "brand" | "creator"
                         )}
                         <div className="w3-send">
                             <button type="submit" className="w3-btn" data-tone="signal" disabled={sent === "sending"}>
-                                {sent === "sending" ? "Sending…" : brand ? "Send brief" : "Join the roster"} <Icon name="arrow" size={18} />
+                                {sent === "sending" ? "Sending…" : brand ? "Let’s build something" : "Introduce yourself"} <Icon name="out" size={18} />
                             </button>
                             <span>A real person replies within a day.</span>
                         </div>
@@ -1104,17 +1130,20 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-sp0{width:var(--sp0w);border-left:0;justify-content:center;padding-left:clamp(16px,4vw,64px)}
 .w3-sp0 .w3-say em{color:#fff}
 .w3-hint{display:inline-flex;align-items:center;gap:8px;margin-top:28px;font-size:16px;font-weight:600}
-.w3-num{position:absolute;top:clamp(76px,11vh,110px);left:clamp(20px,2.4vw,36px);font-family:var(--disp);font-weight:700;font-size:clamp(88px,17vh,180px);line-height:.8;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:1.5px var(--ink)}
-.w3-spv{position:relative;width:100%;height:min(38vh,calc(var(--spw) * .75));border-radius:18px;overflow:hidden;background:rgba(10,10,10,.14)}
+.w3-num{position:absolute;top:clamp(76px,11vh,110px);left:clamp(20px,2.4vw,36px);font-family:var(--disp);font-weight:700;font-size:clamp(80px,14vh,160px);line-height:.8;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:1.5px var(--ink)}
+.w3-spv{position:relative;width:100%;height:min(28vh,calc(var(--spw) * .75));margin-bottom:6px;border-radius:18px;overflow:hidden;background:rgba(10,10,10,.14)}
 .w3-spv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.w3-sp h3{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--disp);font-weight:700;font-size:clamp(28px,3vw,44px);letter-spacing:-.04em;line-height:1}
-.w3-sp h3 i{font:600 12px/1 var(--sans);font-style:normal;letter-spacing:0;padding:6px 10px;border-radius:99px;background:var(--ink);color:#fff}
-.w3-sp p{font-size:16px;line-height:1.45;max-width:30ch;color:rgba(10,10,10,.76)}
+.w3-spn{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600}
+.w3-spn i{font:600 12px/1 var(--sans);font-style:normal;padding:6px 10px;border-radius:99px;background:var(--ink);color:#fff}
+.w3-sp h3{font-family:var(--disp);font-weight:700;font-size:clamp(25px,2.5vw,36px);letter-spacing:-.04em;line-height:1.02;text-wrap:balance}
+.w3-sp p{font-size:15.5px;line-height:1.45;max-width:34ch;color:rgba(10,10,10,.76)}
 .w3-prog2{position:absolute;right:clamp(16px,2.6vw,40px);bottom:clamp(18px,3.4vh,34px);display:flex;align-items:center;gap:14px;font-family:var(--disp);font-weight:600;font-size:16px;font-variant-numeric:tabular-nums}
 .w3-prog2 b{display:block;width:clamp(120px,16vw,240px);height:2px;background:rgba(10,10,10,.22);overflow:hidden}
 .w3-prog2 i{display:block;height:100%;background:var(--ink);transform-origin:0 50%;transform:scaleX(0)}
 .w3-c2 .w3-mark b{color:#fff}
-.w3-c3 .w3-say{position:absolute;left:16px;right:16px;top:clamp(76px,11vh,110px);text-align:center;font-size:clamp(44px,6.4vw,112px)}
+.w3-c3h{position:absolute;left:16px;right:16px;top:clamp(76px,11vh,110px);text-align:center}
+.w3-c3 .w3-say{font-size:clamp(44px,6.4vw,112px)}
+.w3-sub{margin-top:clamp(10px,1.6vh,18px);font-family:var(--disp);font-weight:600;font-size:clamp(18px,1.7vw,24px);letter-spacing:-.02em;color:var(--mute);opacity:0}
 .w3-fan{position:absolute;left:50%;top:var(--gy);width:0;height:0}
 .w3-reel{position:absolute;width:var(--rw);height:calc(var(--rw) * 16 / 9);left:calc(var(--rw) / -2);top:calc(var(--rw) * -8 / 9);opacity:0;will-change:transform,opacity}
 .w3-rv{position:absolute;inset:0;border-radius:calc(var(--rw) * .1);overflow:hidden;background:#1C1C1C;box-shadow:0 0 0 1px rgba(255,255,255,.16),0 30px 60px -24px rgba(0,0,0,.85);transition:translate .5s var(--ease),box-shadow .4s}
@@ -1125,19 +1154,16 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-reel:hover .w3-go{background:var(--signal);color:var(--ink)}
 .w3-cur{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:clamp(26px,5vh,56px);padding:clamp(76px,11vh,120px) 0 clamp(70px,11vh,104px);background:var(--paper);color:var(--ink);transform:translate3d(0,100%,0);will-change:transform;overflow:hidden}
 .w3-cur .w3-say,.w3-nums{padding:0 clamp(16px,4vw,64px)}
-.w3-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2.4vw,40px)}
+.w3-nums{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(16px,2.4vw,40px)}
 .w3-nums div{display:flex;flex-direction:column;gap:6px;padding-top:16px;border-top:1px solid rgba(10,10,10,.16)}
-.w3-nums strong{font-family:var(--disp);font-weight:700;font-size:clamp(48px,7vw,120px);line-height:.9;letter-spacing:-.06em;font-variant-numeric:tabular-nums}
+.w3-nums strong{font-family:var(--disp);font-weight:700;font-size:clamp(52px,8vw,140px);line-height:.9;letter-spacing:-.06em;font-variant-numeric:tabular-nums}
 .w3-nums span{font-size:16px;color:rgba(10,10,10,.6)}
-.w3-belt{overflow:hidden;padding:clamp(18px,3vh,32px) 0;border-top:1px solid rgba(10,10,10,.12);border-bottom:1px solid rgba(10,10,10,.12);-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
-.w3-belt-in{display:flex;align-items:center;width:max-content;animation:w3belt 26s linear infinite;animation-play-state:paused}
+.w3-belt{--lh:clamp(26px,2.9vw,42px);display:flex;flex-direction:column;gap:clamp(14px,2.4vh,26px);overflow:hidden;padding:clamp(16px,2.6vh,28px) 0;border-top:1px solid rgba(10,10,10,.12);border-bottom:1px solid rgba(10,10,10,.12);-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.w3-belt-in{display:flex;align-items:center;width:max-content;height:calc(var(--lh) * 1.9);animation:w3belt 48s linear infinite;animation-play-state:paused}
+.w3-belt-in[data-rev]{animation-direction:reverse;animation-duration:54s}
 .w3-c4.on .w3-belt-in{animation-play-state:running}
-.w3-belt img{display:block;width:auto;margin-right:clamp(56px,8vw,128px);flex:none}
-.w3-belt img[data-logo="Coca-Cola"]{height:clamp(40px,4.6vw,64px)}
-.w3-belt img[data-logo="Tinder"]{height:clamp(30px,3.4vw,46px)}
-.w3-belt img[data-logo="OPPO"]{height:clamp(20px,2.3vw,32px)}
-.w3-belt img[data-logo="Maaza"]{height:clamp(46px,5.2vw,74px)}
-@keyframes w3belt{to{transform:translateX(-33.3333%)}}
+.w3-belt img{display:block;flex:none;width:auto;height:calc(var(--lh) * var(--k));margin-right:clamp(48px,6.4vw,104px)}
+@keyframes w3belt{to{transform:translateX(-50%)}}
 .w3-c4 .w3-mark b{color:var(--signal)}
 
 /* the landing and the way out */
@@ -1200,6 +1226,9 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-seg button{height:46px;padding:0 24px;border-radius:99px;font-weight:600;font-size:15px;color:var(--mute);transition:background-color .3s,color .3s}
 .w3-seg button[aria-pressed="true"]{background:#fff;color:var(--ink)}
 .w3-form{display:flex;flex-direction:column;gap:34px;padding:clamp(22px,3.6vw,48px);border-radius:28px;background:#111;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.w3-intro{padding-bottom:28px;border-bottom:1px solid rgba(255,255,255,.08)}
+.w3-intro h3{font-family:var(--disp);font-weight:700;font-size:clamp(26px,3vw,40px);letter-spacing:-.04em;line-height:1.02;text-wrap:balance}
+.w3-intro p{margin-top:10px;font-size:16px;line-height:1.5;color:var(--mute)}
 .w3-q{display:flex;flex-direction:column;gap:14px}
 .w3-lab{display:flex;align-items:center;gap:10px;color:var(--text)}
 .w3-lab b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--signal);color:var(--ink);font:700 13px/1 var(--sans)}
@@ -1290,7 +1319,7 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-flat{display:flex;flex-direction:column}
 .w3-still .w3-c{position:relative;inset:auto;visibility:visible;pointer-events:auto;overflow:visible}
 .w3-still .w3-c1,.w3-still .w3-c3{padding:96px clamp(16px,4vw,64px)}
-.w3-still .w3-c1 .w3-say,.w3-still .w3-c3 .w3-say,.w3-still .w3-tenets,.w3-still .w3-mark,.w3-still .w3-prog2{position:static}
+.w3-still .w3-c1 .w3-say,.w3-still .w3-c3h,.w3-still .w3-tenets,.w3-still .w3-mark,.w3-still .w3-prog2{position:static}
 .w3-still .w3-tenets{margin-top:56px}
 .w3-still .w3-mark{margin-top:40px}
 .w3-still .w3-prog2{display:none}
@@ -1298,6 +1327,7 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-still .w3-fan{position:static;display:flex;gap:14px;width:auto;height:auto;margin-top:48px;overflow-x:auto}
 .w3-still .w3-reel{position:relative;left:auto;top:auto;flex:none;opacity:1}
 .w3-still .w3-cur{position:relative;transform:none}
+.w3-still .w3-sub{opacity:1}
 .w3-still .w3-c2 .w3-mark{color:var(--text);padding:0 clamp(16px,4vw,64px)}
 @media (prefers-reduced-motion:reduce){.w3 *{transition:none!important;animation:none!important}}
 `
@@ -1372,7 +1402,7 @@ function scrollBox(el: HTMLElement | null): HTMLElement | null {
  * @framerSupportedLayoutHeight auto
  */
 export default function W3Globe(props: Props) {
-    const { media = NO_MEDIA, samples = true, rest = true, email = "social@worldmedia.co.in", phone = "+91 88000 40301", endpoint = "", views = "[00]M+", campaigns = "[000]+", creators = "[00]+", style } = props
+    const { media = NO_MEDIA, samples = true, rest = true, email = "social@worldmedia.co.in", phone = "+91 88000 40301", endpoint = "", brands = "100+", creators = "10,000", style } = props
     const isStatic = useIsStaticRenderer()
     const [reduce, setReduce] = React.useState(false)
     const [mounted, setMounted] = React.useState(false)
@@ -1510,6 +1540,7 @@ export default function W3Globe(props: Props) {
         const extras2 = all(1, ".w3-prog2,.w3-mark")
         const words3 = all(2, "[data-w]")
         const reels = all(2, "[data-r]")
+        const sub3 = all(2, "[data-sub]")[0] || null
         const curtain = all(3, "[data-cur]")[0] || null
         const nums = all(3, "[data-b]")
         const counters = all(3, "[data-to]").map((el) => ({ el, m: countable(el.dataset.to || "") }))
@@ -1720,6 +1751,7 @@ export default function W3Globe(props: Props) {
                     const v = smooth((q - (0.5 * i) / words3.length) / 0.2) * (1 - p.b)
                     put(el, "transform", `translate3d(0,${((1 - v) * 105).toFixed(1)}%,0)`)
                 })
+                put(sub3, "opacity", (smooth((q - 0.55) / 0.35) * (1 - p.b)).toFixed(3))
                 const spread = phoneW ? size.w * 0.19 : Math.min(rw * 0.86, size.w * 0.17)
                 const drop = size.h * ((phoneW ? 0.63 : 0.6) - gyF)
                 reels.forEach((el, i) => {
@@ -1746,7 +1778,8 @@ export default function W3Globe(props: Props) {
                 counters.forEach(({ el, m }) => {
                     if (!m) return
                     const dec = (m[2].split(".")[1] || "").length
-                    const text = m[1] + (parseFloat(m[2]) * smooth(q * 1.1)).toFixed(dec) + m[3]
+                    const v = parseFloat(m[2].replace(/,/g, "")) * smooth(q * 1.1)
+                    const text = m[1] + (m[2].includes(",") ? Math.round(v).toLocaleString("en-US") : v.toFixed(dec)) + m[3]
                     if (el.textContent !== text) el.textContent = text
                 })
                 ch[3].classList.toggle("on", on[3] > 0.01)
@@ -1784,7 +1817,7 @@ export default function W3Globe(props: Props) {
             if (ro) ro.disconnect()
             if (raf) cancelAnimationFrame(raf)
         }
-    }, [still, mounted, size, R, P, gyF, rw, phoneW, shapes, views, campaigns, creators])
+    }, [still, mounted, size, R, P, gyF, rw, phoneW, shapes, brands, creators])
 
     // Drag the globe sideways to spin it (up and down still scrolls the page), and lean it a
     // little towards the pointer.
@@ -2009,8 +2042,7 @@ export default function W3Globe(props: Props) {
     )
 
     const stats: [string, string][] = [
-        [views, "Views"],
-        [campaigns, "Campaigns"],
+        [brands, "Brands"],
         [creators, "Creators"],
     ]
     const bodies = [<ChapterWhy key="why" />, <ChapterServices key="services" samples={samples} />, <ChapterWork key="work" samples={samples} />, <ChapterBrands key="brands" stats={stats} />]
@@ -2151,9 +2183,8 @@ addPropertyControls(W3Globe, {
         description: "Videos and photos for the globe’s eleven video tiles, in order. Any shape works: each tile takes the shape of its video.",
     },
     samples: { type: ControlType.Boolean, title: "Sample videos", defaultValue: true, enabledTitle: "Show", disabledTitle: "Hide" },
-    views: { type: ControlType.String, title: "Views", defaultValue: "[00]M+", description: "For The brands. Type the real figure, like 120M+, and it counts up." },
-    campaigns: { type: ControlType.String, title: "Campaigns", defaultValue: "[000]+" },
-    creators: { type: ControlType.String, title: "Creators", defaultValue: "[00]+" },
+    brands: { type: ControlType.String, title: "Brands", defaultValue: "100+", description: "The numbers on The brands. They count up as the curtain rises." },
+    creators: { type: ControlType.String, title: "Creators", defaultValue: "10,000" },
     rest: { type: ControlType.Boolean, title: "Rest of site", defaultValue: true, enabledTitle: "Show", disabledTitle: "Hide", description: "Hide for a globe-only demo: no form, careers or footer." },
     email: { type: ControlType.String, title: "Email", defaultValue: "social@worldmedia.co.in" },
     phone: { type: ControlType.String, title: "Phone", defaultValue: "+91 88000 40301" },

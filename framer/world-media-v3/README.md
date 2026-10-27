@@ -23,14 +23,19 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
   - **The why** (Delhi): the globe dives into India until its dots fill the screen, and "People
     skip ads. They don't skip people." rises word by word, then the three beliefs.
   - **What we do** (New York): an orange strip pushes the globe off to the left and the five
-    services run sideways while you scroll down, each with a big number and a looping video, with
-    a 01 / 05 counter and a progress line. The globe comes back in from the right.
-  - **The work** (Tokyo): five phone-shaped reels grow out of the globe's centre and fan out like a
+    services run sideways while you scroll down, each with a big number, a looping video and the
+    client's copy (a headline and one line each), with a 01 / 05 counter and a progress line. The
+    globe comes back in from the right.
+  - **The work** (Tokyo): "Reels people actually stopped for." and "Ideas don't execute
+    themselves.", then five phone-shaped reels grow out of the globe's centre and fan out like a
     hand of cards, playing; each opens the original on Instagram.
-  - **The brands** (London): a light curtain rises over the globe, the three numbers come up (and
-    count up once they are real figures), and the client logos roll by on an endless belt.
+  - **The brands** (London): a light curtain rises over the globe with "So far, so good.", the
+    numbers count up (100+ brands, 10,000 creators), and eighteen client logos roll by on two belts
+    moving in opposite directions.
 - After the last chapter the globe turns home to Delhi and asks "Your brand, next on the globe?".
-- Then the rest of the site: the enquiry form in numbered steps on one panel (brands or creators),
+- Then the rest of the site: the enquiry form in numbered steps on one panel, with its own opening
+  line and button for brands ("Have a brief. Or just a feeling." / Let's build something) and for
+  creators ("Make great content. Meet great brands." / Introduce yourself),
   the five open roles (each row fills with orange on hover and opens an email to apply), and the
   footer.
 - The menu steps aside while you scroll down, and comes back when you scroll up, when the pointer
@@ -50,8 +55,8 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
 ## Settings in Framer
 
 - **Globe media**: videos and photos for the eleven video tiles, in order.
-- **Views, Campaigns, Creators**: the three numbers on The brands. Type the real figure (like
-  `120M+`) and it counts up as the curtain rises.
+- **Brands, Creators**: the two numbers on The brands (100+ and 10,000). They count up as the
+  curtain rises; a figure still in brackets (`[00]+`) stays as it is.
 - **Rest of site**: hide it for a globe-only demo (no form, careers or footer). The /globe-demo
   page uses this.
 - **Form endpoint**: optional address of a form service. Empty, the form opens an email to the
@@ -62,10 +67,12 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
 
 - Tiles and the reels on "The work" play free sample clips from Mixkit (free licence, no
   attribution needed), streamed from Mixkit's own servers, until the real videos are added.
-- Numbers are in brackets (`[00]M+`) until World Media confirms them.
-- The client logos (Coca-Cola, Tinder, OPPO, Maaza) are in `logos/`: Coca-Cola and OPPO from
-  Simple Icons, Tinder's and Maaza's from Wikimedia. They load from this repository through
-  jsDelivr, pinned to one commit.
+- The numbers on The brands are World Media's own (100+ brands, 10,000 creators).
+- The client logos are in `logos/`, taken from World Media's portfolio deck: the fifteen on its
+  "So far, so good" page, plus Sprite and Urban Company from their campaign pages, and Maaza
+  (from Wikimedia). Mahindra's silver logo and Urban Company's white one are drawn in dark grey so
+  they show on the light belt. They load from this repository through jsDelivr, pinned to one
+  commit.
 - The reels on "The work" link to the five World Media originals on Instagram, with `[0.0]M`
   views until the view counts arrive.
 
