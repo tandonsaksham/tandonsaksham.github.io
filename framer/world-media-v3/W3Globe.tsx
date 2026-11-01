@@ -649,27 +649,30 @@ function Media(p: { src: string; poster?: string; play: boolean; onShape?: (ar: 
 
 /* ─────────────────────────────── The chapters ─────────────────────────────── */
 
-type PageDef = { id: string; nav: string; title: string }
+type PageDef = { id: string; title: string }
 
 const PAGES: PageDef[] = [
-    { id: "why", nav: "About", title: "The why" },
-    { id: "services", nav: "Services", title: "What we do" },
-    { id: "work", nav: "Work", title: "The work" },
-    { id: "brands", nav: "Brands", title: "The brands" },
+    { id: "why", title: "The why" },
+    { id: "services", title: "What we do" },
+    { id: "work", title: "The work" },
+    { id: "brands", title: "The brands" },
 ]
 
 const TENETS = [
-    ["Cast for trust", "Creators your buyers already believe."],
-    ["Stories that stick", "Made to be watched to the end."],
-    ["Measured to the rupee", "Reach, views and sales, reported."],
+    ["The right kind of influence.", "People over popularity."],
+    ["Made to mean something.", "Creative that connects, resonates and stays with people."],
+    ["From thought to out there.", "The entire journey, handled."],
 ]
+/** The five services, each with its film playing in its frame; Talent Management shows its talent instead. */
 const OFFER = [
-    { name: "Influencer Marketing", head: "The right people change everything.", line: "From finding the right voices to getting the campaign live, we make creator partnerships count.", core: true, film: "tinder-green-flag" },
-    { name: "Production", head: "Good ideas deserve great frames.", line: "From the first concept to the final cut, we turn ideas into films, reels and branded content.", core: false, film: "oppo-abhay-deol" },
-    { name: "Studio", head: "Your next idea. Ready for its close-up.", line: "A Delhi-based creative space for shoots, content days and everything worth putting in front of a camera.", core: false, film: "maaza-50-years" },
-    { name: "Talent Management", head: "More than the next brand deal.", line: "We build creator relationships, unlock opportunities and help talent grow beyond the feed.", core: false, film: "ashiana-dinesh-karthik" },
-    { name: "Social Media", head: "Don’t just fill the feed. Give it a point of view.", line: "Strategy, creative and content that make a brand’s social presence feel unmistakably its own.", core: false, film: "tinder-punjabi-malayali" },
+    { name: "Influencer Marketing", core: true, film: "coca-cola-trophy-tour", ar: 9 / 16 },
+    { name: "Production", core: false, film: "ashiana-dinesh-karthik", ar: 4 / 3 },
+    { name: "Celebrity Endorsements", core: false, film: "oppo-abhay-deol", ar: 3 / 2 },
+    { name: "Talent Management", core: false, film: "", ar: 4 / 5 },
+    { name: "Creator IPs", core: false, film: "creator-ip-bhai-bhen", ar: 9 / 16 },
 ]
+/** The talent on Talent Management, one after another, each photo cropped around the face. */
+const TALENT = [1, 2, 3, 4, 5].map((n) => CDN + "talent/talent-" + n + ".webp")
 /** The client logos from World Media's portfolio deck. */
 const LOGO_CDN = CDN + "logos/"
 /** k sizes each logo so they all look about the same size: wide wordmarks shorter, tall marks taller. */
@@ -730,10 +733,10 @@ function ChapterWhy() {
         <>
             <h2 className="w3-say">
                 <span className="w3-ln">
-                    <Words text="People skip ads." />
+                    <Words text="THINKING IT UP IS ONE THING." />
                 </span>
                 <span className="w3-ln w3-em">
-                    <Words text="They don’t skip people." />
+                    <Words text="PULLING IT OFF IS OUR THING." />
                 </span>
             </h2>
             <ol className="w3-tenets">
@@ -770,13 +773,23 @@ function ChapterServices(p: { samples: boolean }) {
                         <span className="w3-num" aria-hidden="true">
                             {nn(i + 1)}
                         </span>
-                        <div className="w3-spv">{p.samples ? <video src={LOOP(s.film)} poster={STILL(s.film)} muted loop playsInline preload="none" /> : <img src={STILL(s.film)} alt="" loading="lazy" draggable={false} />}</div>
-                        <span className="w3-spn">
+                        <h3 className="w3-spn">
                             {s.name}
                             {s.core ? <i>Our core</i> : null}
-                        </span>
-                        <h3>{s.head}</h3>
-                        <p>{s.line}</p>
+                        </h3>
+                        <div className="w3-spf">
+                            {s.film ? (
+                                <div className="w3-spv" style={cssVars({ "--ar": s.ar })}>
+                                    {p.samples ? <video src={FULL(s.film)} poster={STILL(s.film)} muted loop playsInline preload="none" /> : <img src={STILL(s.film)} alt="" loading="lazy" draggable={false} />}
+                                </div>
+                            ) : (
+                                <div className="w3-spv w3-show" style={cssVars({ "--ar": s.ar })}>
+                                    {TALENT.map((src, j) => (
+                                        <img key={src} src={src} alt="" loading="lazy" draggable={false} style={cssVars({ "--i": j })} />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </article>
                 ))}
             </div>
@@ -799,13 +812,13 @@ function ChapterWork(p: { samples: boolean; count: number; play: (i: number) => 
         <>
             <div className="w3-c3h">
                 <h2 className="w3-say">
-                    <Words text="Reels people" />{" "}
+                    <Words text="Ideas don’t" />{" "}
                     <em>
-                        <Words text="actually stopped for." />
+                        <Words text="execute themselves." />
                     </em>
                 </h2>
                 <p className="w3-sub" data-sub="">
-                    Ideas don’t execute themselves.
+                    We help them find their way into the world.
                 </p>
             </div>
             <div className="w3-fan">
@@ -976,7 +989,7 @@ function Contact(p: { email: string; endpoint: string; formKey: string; side: "b
     return (
         <section className="w3-sec w3-contact" id="w3-contact" aria-labelledby="w3-ct-h">
             <h2 className="w3-h2" id="w3-ct-h">
-                Got a brand <em>worth talking about?</em>
+                Let’s connect <em>over the phone.</em>
             </h2>
             {sent === "done" || sent === "mail" ? (
                 <div className="w3-form w3-thanks" role="status">
@@ -1013,7 +1026,8 @@ function Contact(p: { email: string; endpoint: string; formKey: string; side: "b
                                 <Step n={2} label="About you">
                                     <div className="w3-fields">
                                         <Field name="Brand name" label="Brand name" need auto="organization" />
-                                        <Field name="Work email" label="Work email" type="email" need auto="email" />
+                                        <Field name="Phone" label="Phone number" type="tel" need auto="tel" />
+                                        <Field name="Work email" label="Work email" type="email" need wide auto="email" />
                                     </div>
                                 </Step>
                                 <Step n={3} label="Monthly budget">
@@ -1030,6 +1044,7 @@ function Contact(p: { email: string; endpoint: string; formKey: string; side: "b
                                 <Step n={1} label="About you">
                                     <div className="w3-fields">
                                         <Field name="Name" label="Your name" need auto="name" />
+                                        <Field name="Phone" label="Phone number" type="tel" need auto="tel" />
                                         <Field name="Email" label="Email" type="email" need auto="email" />
                                         <Field name="Handle" label="Instagram or YouTube handle" need wide hint="@" />
                                     </div>
@@ -1118,7 +1133,7 @@ function Gallery(p: { onClose: () => void; onPlay: (i: number) => void; paused: 
                         return (
                             <li key={f.id} data-wide={f.ar > 1 ? "" : undefined}>
                                 <button type="button" className="w3-film" data-film="" onClick={() => p.onPlay(i)}>
-                                    <span className="w3-film-v">
+                                    <span className="w3-film-v" style={cssVars({ "--ar": f.ar })}>
                                         <video data-src={LOOP(f.id)} poster={STILL(f.id)} muted loop playsInline preload="none" />
                                         <span className="w3-film-p" aria-hidden="true">
                                             <Icon name="play" size={20} />
@@ -1182,7 +1197,7 @@ function Player(p: { i: number; onClose: () => void; step: (d: number) => void }
 /** The people behind World Media, from the portfolio deck. */
 const PEOPLE_CDN = CDN + "people/"
 
-/** Meet the founder: Deepanker Mitra, then the founding member, Shabd Monga, as polaroids like in the deck. */
+/** Meet the founder: Deepanker Mitra, on a polaroid like in the deck. */
 function Founder() {
     const ref = React.useRef<HTMLElement>(null)
     // Each polaroid drops into place, like a photo put down on a table, when its part comes into view.
@@ -1221,23 +1236,6 @@ function Founder() {
                         <span>Founder & CEO</span>
                     </figcaption>
                 </figure>
-            </div>
-            <div className="w3-pp-member" data-in="">
-                <figure className="w3-polaroid w3-pol-b">
-                    <span className="w3-pol-img">
-                        <img src={PEOPLE_CDN + "shabd-monga.webp"} alt="Shabd Monga at work, in black and white" loading="lazy" decoding="async" draggable={false} />
-                    </span>
-                    <figcaption>
-                        <b>Shabd Monga</b>
-                        <span>Creative strategy & brand partnerships</span>
-                    </figcaption>
-                </figure>
-                <div className="w3-pp-text">
-                    <h3>
-                        Founding <em>member.</em>
-                    </h3>
-                    <p>With over 5 years of experience in creative strategy, Shabd has worked across product-led startups, global brands, and influencer marketing. His experience spans brand building, campaign strategy, and new-age content creation, with a strong understanding of how culture, creativity, and digital-first storytelling come together to build relevant brands.</p>
-                </div>
             </div>
         </section>
     )
@@ -1287,7 +1285,7 @@ function Careers(p: { email: string }) {
     )
 }
 
-function Footer(p: { email: string; phone: string; go: (to: number | string) => void }) {
+function Footer(p: { email: string; phone: string; items: [string, number | string][]; go: (to: number | string) => void }) {
     return (
         <footer className="w3-foot">
             <div className="w3-fword" aria-hidden="true">
@@ -1295,17 +1293,11 @@ function Footer(p: { email: string; phone: string; go: (to: number | string) => 
             </div>
             <div className="w3-frow">
                 <nav aria-label="Footer">
-                    {PAGES.map((pg, i) => (
-                        <button key={pg.id} type="button" onClick={() => p.go(i)}>
-                            {pg.nav}
+                    {p.items.map(([l, to]) => (
+                        <button key={l} type="button" onClick={() => p.go(to)}>
+                            {l}
                         </button>
                     ))}
-                    <button type="button" onClick={() => p.go("founder")}>
-                        Founder
-                    </button>
-                    <button type="button" onClick={() => p.go("careers")}>
-                        Careers
-                    </button>
                 </nav>
                 <div>
                     <a href={"mailto:" + p.email}>{p.email}</a>
@@ -1397,25 +1389,28 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-ln{display:block}
 .w3-wd{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.1em;margin-bottom:-.1em}
 .w3-wd>span{display:inline-block;will-change:transform}
-.w3-c1 .w3-say{position:absolute;left:clamp(16px,4vw,64px);right:clamp(16px,4vw,64px);top:22vh}
+.w3-c1 .w3-say{position:absolute;left:clamp(16px,4vw,64px);right:clamp(16px,4vw,64px);top:22vh;font-size:clamp(36px,5.2vw,96px);letter-spacing:-.035em}
 .w3-tenets{position:absolute;left:clamp(16px,4vw,64px);right:clamp(16px,4vw,64px);bottom:clamp(76px,12vh,124px);display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2.4vw,40px)}
-.w3-tenets li{display:grid;grid-template-columns:auto 1fr;column-gap:16px;row-gap:6px;padding-top:18px;border-top:1px solid rgba(255,255,255,.2)}
-.w3-tenets i{grid-row:1/span 2;font-family:var(--disp);font-style:normal;font-weight:700;font-size:clamp(28px,3vw,46px);line-height:.85;letter-spacing:-.04em;color:var(--signal)}
+.w3-tenets li{display:flex;flex-direction:column;gap:8px;padding-top:18px;border-top:1px solid rgba(255,255,255,.2)}
+.w3-tenets i{font-family:var(--disp);font-style:normal;font-weight:700;font-size:clamp(22px,2.2vw,34px);line-height:.9;letter-spacing:-.03em;color:var(--signal)}
 .w3-tenets b{font-family:var(--disp);font-weight:600;font-size:clamp(21px,2.1vw,32px);letter-spacing:-.03em;line-height:1.05}
 .w3-tenets span{font-size:15px;line-height:1.4;color:var(--mute)}
 .w3-c2{color:var(--ink)}
 .w3-strip{position:absolute;left:0;top:0;bottom:0;display:flex;background:var(--signal);will-change:transform}
-.w3-sp{position:relative;flex:none;width:var(--spw);height:100%;padding:clamp(84px,12vh,120px) clamp(20px,2.4vw,36px) clamp(70px,11vh,104px);display:flex;flex-direction:column;justify-content:flex-end;gap:14px;border-left:1px solid rgba(10,10,10,.18)}
+.w3-sp{position:relative;flex:none;width:var(--spw);height:100%;padding:clamp(76px,11vh,110px) clamp(20px,2.4vw,36px) clamp(70px,11vh,104px);display:flex;flex-direction:column;justify-content:flex-start;gap:clamp(12px,2vh,20px);border-left:1px solid rgba(10,10,10,.18)}
 .w3-sp0{width:var(--sp0w);border-left:0;justify-content:center;padding-left:clamp(16px,4vw,64px)}
 .w3-sp0 .w3-say em{color:#fff}
 .w3-hint{display:inline-flex;align-items:center;gap:8px;margin-top:28px;font-size:16px;font-weight:600}
-.w3-num{position:absolute;top:clamp(76px,11vh,110px);left:clamp(20px,2.4vw,36px);font-family:var(--disp);font-weight:700;font-size:clamp(80px,14vh,160px);line-height:.8;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:1.5px var(--ink)}
-.w3-spv{position:relative;width:100%;height:min(28vh,calc(var(--spw) * .75));margin-bottom:6px;border-radius:18px;overflow:hidden;background:rgba(10,10,10,.14)}
+.w3-num{font-family:var(--disp);font-weight:700;font-size:clamp(60px,11vh,132px);line-height:.8;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:1.5px var(--ink)}
+.w3-spf{flex:1 1 auto;min-height:0;container-type:size;display:flex;align-items:center}
+.w3-spv{position:relative;width:100%;height:100%;border-radius:18px;overflow:hidden;background:rgba(10,10,10,.14)}
+@supports (width:1cqh){.w3-spv{height:auto;width:min(100cqw,100cqh * var(--ar,1));aspect-ratio:var(--ar,1)}}
+.w3-show img{opacity:0;animation:w3show 15s infinite;animation-delay:calc(var(--i) * 3s)}
+.w3-show img:first-child{opacity:1}
+@keyframes w3show{0%{opacity:0;scale:1.07}5%{opacity:1}20%{opacity:1}25%{opacity:0;scale:1}100%{opacity:0;scale:1}}
 .w3-spv video,.w3-spv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 30%}
-.w3-spn{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600}
+.w3-spn{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;font-family:var(--disp);font-weight:700;font-size:clamp(26px,2.5vw,40px);letter-spacing:-.035em;line-height:1}
 .w3-spn i{font:600 12px/1 var(--sans);font-style:normal;padding:6px 10px;border-radius:99px;background:var(--ink);color:#fff}
-.w3-sp h3{font-family:var(--disp);font-weight:700;font-size:clamp(25px,2.5vw,36px);letter-spacing:-.04em;line-height:1.02;text-wrap:balance}
-.w3-sp p{font-size:15.5px;line-height:1.45;max-width:34ch;color:rgba(10,10,10,.76)}
 .w3-prog2{position:absolute;right:clamp(16px,2.6vw,40px);bottom:clamp(18px,3.4vh,34px);display:flex;align-items:center;gap:14px;font-family:var(--disp);font-weight:600;font-size:16px;font-variant-numeric:tabular-nums}
 .w3-prog2 b{display:block;width:clamp(120px,16vw,240px);height:2px;background:rgba(10,10,10,.22);overflow:hidden}
 .w3-prog2 i{display:block;height:100%;background:var(--ink);transform-origin:0 50%;transform:scaleX(0)}
@@ -1444,8 +1439,8 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-reel:hover .w3-go{background:var(--signal);color:var(--ink)}
 .w3-cur{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:clamp(26px,5vh,56px);padding:clamp(76px,11vh,120px) 0 clamp(70px,11vh,104px);background:var(--paper);color:var(--ink);transform:translate3d(0,100%,0);will-change:transform;overflow:hidden}
 .w3-cur .w3-say,.w3-nums{padding:0 clamp(16px,4vw,64px)}
-.w3-nums{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(16px,2.4vw,40px)}
-.w3-nums div{display:flex;flex-direction:column;gap:6px;padding-top:16px;border-top:1px solid rgba(10,10,10,.16)}
+.w3-nums{display:flex;flex-wrap:wrap;gap:16px clamp(40px,7vw,128px)}
+.w3-nums div{display:flex;flex-direction:column;gap:8px}
 .w3-nums strong{font-family:var(--disp);font-weight:700;font-size:clamp(52px,8vw,140px);line-height:.9;letter-spacing:-.06em;font-variant-numeric:tabular-nums}
 .w3-nums span{font-size:16px;color:rgba(10,10,10,.6)}
 .w3-belt{--lh:clamp(26px,2.9vw,42px);display:flex;flex-direction:column;gap:clamp(14px,2.4vh,26px);overflow:hidden;padding:clamp(16px,2.6vh,28px) 0;border-top:1px solid rgba(10,10,10,.12);border-bottom:1px solid rgba(10,10,10,.12);-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
@@ -1457,13 +1452,14 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-c4 .w3-mark b{color:var(--signal)}
 
 /* the landing and the way out */
-.w3-land,.w3-outro{position:absolute;inset:0;pointer-events:none;will-change:opacity,transform}
-.w3-head{position:absolute;left:clamp(16px,2.6vw,40px);bottom:clamp(24px,4.5vh,52px);font-family:var(--disp);font-weight:700;font-size:clamp(48px,7.4vw,132px);line-height:.86;letter-spacing:-.055em}
+.w3-land{position:absolute;inset:0;pointer-events:none;will-change:opacity,transform}
+.w3-hero{position:absolute;left:clamp(16px,2.6vw,40px);bottom:clamp(24px,4.5vh,52px);max-width:62vw}
+.w3-head{font-family:var(--disp);font-weight:700;font-size:clamp(44px,6.2vw,112px);line-height:.9;letter-spacing:-.035em}
+.w3-sl{margin-top:clamp(14px,2vh,22px);font-size:clamp(16px,1.4vw,20px);line-height:1.4;color:var(--mute);max-width:48ch}
 .w3-head em{font-style:normal;color:var(--signal)}
 .w3-side{position:absolute;right:clamp(16px,2.6vw,40px);bottom:clamp(28px,5vh,56px);display:flex;flex-direction:column;align-items:flex-end;gap:16px;max-width:320px;text-align:right;pointer-events:auto}
 .w3-side p{font-size:15px;line-height:1.45;color:var(--mute)}
 .w3-side div{display:flex;gap:6px}
-.w3-outro{opacity:0;visibility:hidden}
 .w3-pill{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 18px;border-radius:99px;font-weight:500;font-size:14.5px;transition:background-color .3s,color .3s,box-shadow .3s}
 .w3-pill[data-tone="signal"]{background:var(--signal);color:var(--ink)}
 .w3-pill[data-tone="signal"]:hover{background:#fff}
@@ -1507,7 +1503,7 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 
 /* after the globe */
 .w3-rest{position:relative;overflow-x:hidden;overflow-x:clip;background:var(--bg);border-top:1px solid rgba(255,255,255,.06)}
-.w3-sec{padding:clamp(80px,11vw,160px) clamp(16px,4vw,64px) 0;max-width:880px;margin:0 auto;scroll-margin-top:24px}
+.w3-sec{padding:clamp(64px,11vw,160px) clamp(16px,4vw,64px) 0;max-width:880px;margin:0 auto;scroll-margin-top:24px}
 .w3-sec:last-of-type{padding-bottom:clamp(80px,11vw,160px)}
 .w3-h2{font-family:var(--disp);font-weight:700;font-size:clamp(44px,6.4vw,96px);line-height:.9;letter-spacing:-.055em;text-wrap:balance;text-align:center;margin-bottom:clamp(32px,4.4vw,52px)}
 .w3-h2 em{font-style:normal;color:var(--signal)}
@@ -1518,23 +1514,17 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-pp-text p+p{margin-top:14px}
 .w3-pp-text .w3-pp-lead{margin-bottom:22px;font-family:var(--disp);font-weight:600;font-size:clamp(22px,2.2vw,30px);line-height:1.2;letter-spacing:-.025em;color:var(--text)}
 .w3-polaroid{justify-self:center;width:min(100%,400px);margin:0;padding:14px 14px 0;border-radius:4px;background:#F6F4EF;color:var(--ink);box-shadow:0 34px 70px -30px rgba(0,0,0,.9);rotate:3deg;transition:rotate .6s var(--ease),translate .6s var(--ease)}
-.w3-pol-b{width:min(100%,320px);rotate:-4deg}
 .w3-polaroid:hover{rotate:0deg;translate:0 -6px}
 .w3-pol-img{display:block;aspect-ratio:4/5;overflow:hidden;background:#121212}
 .w3-pol-img img{display:block;width:100%;height:100%;object-fit:cover}
 .w3-pol-a img{object-fit:contain;object-position:50% 100%}
-.w3-pol-b img{object-position:50% 30%}
 .w3-polaroid figcaption{display:flex;flex-direction:column;gap:3px;padding:14px 4px 18px}
 .w3-polaroid figcaption b{font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:-.02em}
 .w3-polaroid figcaption span{font-size:14px;color:rgba(10,10,10,.62)}
-.w3-pp-member{display:grid;grid-template-columns:.85fr 1.15fr;gap:clamp(28px,5vw,80px);align-items:center;margin-top:clamp(64px,8vw,120px);padding-top:clamp(48px,6vw,80px);border-top:1px solid var(--line)}
-.w3-pp-member h3{margin-bottom:18px;font-family:var(--disp);font-weight:700;font-size:clamp(34px,4.4vw,64px);line-height:.95;letter-spacing:-.05em}
-.w3-pp-member h3 em{font-style:normal;color:var(--signal)}
 .w3:not(.w3-still) [data-in] .w3-polaroid{opacity:0;translate:0 70px;rotate:14deg;transition:opacity .9s var(--ease),translate 1.1s var(--ease),rotate 1.2s var(--ease)}
 .w3:not(.w3-still) [data-in] .w3-pp-text{opacity:0;translate:0 30px;transition:opacity .9s var(--ease),translate 1s var(--ease)}
 .w3:not(.w3-still) [data-in].in .w3-pp-text{opacity:1;translate:0 0}
 .w3:not(.w3-still) [data-in].in .w3-pol-a{opacity:1;translate:0 0;rotate:3deg;transition-delay:.12s}
-.w3:not(.w3-still) [data-in].in .w3-pol-b{opacity:1;translate:0 0;rotate:-4deg;transition-delay:.12s}
 .w3:not(.w3-still) [data-in].in .w3-polaroid:hover{rotate:0deg;translate:0 -6px;transition-delay:0s}
 .w3-contact{display:flex;flex-direction:column;align-items:stretch}
 .w3-seg{align-self:center;display:inline-flex;padding:4px;margin-bottom:24px;border-radius:99px;background:rgba(255,255,255,.06)}
@@ -1628,11 +1618,11 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-gal-f button[aria-pressed="true"] i{background:var(--signal);color:var(--ink)}
 .w3-gal-f[data-on] button:not([aria-pressed="true"]){opacity:.55}
 .w3-gal-f[data-on] button:hover{opacity:1}
-.w3-gal-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));grid-auto-flow:dense;gap:32px 16px;margin-top:20px}
+.w3-gal-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));grid-auto-flow:dense;align-items:start;gap:32px 16px;margin-top:20px}
 .w3-gal-g li[data-wide]{grid-column:span 2}
 .w3-film{display:flex;flex-direction:column;gap:12px;width:100%;height:100%;text-align:left}
 .w3-film-v{position:relative;display:block;width:100%;aspect-ratio:9/16;border-radius:16px;overflow:hidden;background:#1A1A1A;box-shadow:0 0 0 1px rgba(255,255,255,.1);transition:box-shadow .35s}
-li[data-wide] .w3-film-v{aspect-ratio:16/10;flex:1 0 auto}
+li[data-wide] .w3-film-v{aspect-ratio:var(--ar)}
 .w3-film-v video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:scale .6s var(--ease)}
 .w3-film-p{position:absolute;right:10px;top:10px;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:rgba(10,10,10,.72);color:#fff;transition:background-color .3s,color .3s}
 .w3-film:hover .w3-film-v,.w3-film:focus-visible .w3-film-v{box-shadow:0 0 0 2px var(--signal)}
@@ -1664,19 +1654,22 @@ li[data-wide] .w3-film-v{aspect-ratio:16/10;flex:1 0 auto}
 .w3-pl-m{flex-wrap:wrap;row-gap:12px}
 .w3-pl-m>b{order:-1;flex-basis:100%}
 .w3-pl-nav{margin-left:auto}
-.w3-head{left:16px;right:16px;bottom:96px;font-size:clamp(46px,13.5vw,76px)}
+.w3-hero{left:16px;right:16px;bottom:96px;max-width:none}
+.w3-head{font-size:clamp(38px,11vw,64px)}
+.w3-sl{font-size:15px}
 .w3-side{left:16px;right:16px;bottom:22px;align-items:stretch;text-align:left;max-width:none}
 .w3-side p{display:none}.w3-side div>*{flex:1;justify-content:center}
 .w3-idx button span{display:none}
 .w3-bd span{font-size:11.5px;padding:5px 8px}
 .w3-c1 .w3-say{top:17vh}
 .w3-tenets{grid-template-columns:1fr;gap:12px;bottom:72px}
-.w3-tenets li{padding-top:12px}.w3-tenets span{font-size:14px}
-.w3-num{font-size:clamp(80px,13vh,120px)}
+.w3-tenets li{gap:5px;padding-top:12px}.w3-tenets b{font-size:20px}.w3-tenets span{font-size:14px}
+.w3-num{font-size:clamp(56px,9vh,96px)}
+.w3-spn{font-size:clamp(22px,6.4vw,30px)}
 .w3-prog2 b{width:72px}
-.w3-nums{grid-template-columns:1fr;gap:4px}
-.w3-nums div{flex-direction:row;align-items:baseline;gap:14px;padding-top:10px}
-.w3-nums strong{font-size:46px}
+.w3-nums{column-gap:40px}
+.w3-nums strong{font-size:clamp(44px,13vw,56px)}
+.w3-nums span{font-size:14px}
 .w3-fields{grid-template-columns:1fr}
 .w3-send .w3-btn{flex:1}
 .w3-crh .w3-h2{text-align:left}
@@ -1688,23 +1681,22 @@ li[data-wide] .w3-film-v{aspect-ratio:16/10;flex:1 0 auto}
 .w3-frow a,.w3-frow button,.w3-fbase button{min-height:44px}
 .w3-fbase{align-items:center}
 .w3-idx{display:none}
-.w3-pp-main,.w3-pp-member{grid-template-columns:1fr}
+.w3-pp-main{grid-template-columns:1fr}
 .w3-pol-a{width:min(100%,320px)}
-.w3-pol-b{width:min(100%,260px)}
 }
 /* tablets held upright: the phone layout, with room to breathe */
 @media (min-width:600px) and (max-width:820px){
-.w3-head{font-size:clamp(64px,10vw,96px)}
-.w3-c1 .w3-say,.w3-cur .w3-say{font-size:clamp(56px,9vw,84px)}
+.w3-head{font-size:clamp(56px,9vw,84px)}
+.w3-c1 .w3-say{font-size:clamp(44px,7vw,64px)}
+.w3-cur .w3-say{font-size:clamp(56px,9vw,84px)}
 .w3-c1 .w3-say{top:20vh}
 .w3-c3 .w3-say{font-size:clamp(52px,8vw,80px)}
 .w3-tenets{grid-template-columns:repeat(3,1fr);gap:20px}
-.w3-nums{grid-template-columns:repeat(2,1fr);gap:24px}
-.w3-nums div{flex-direction:column;align-items:flex-start;gap:6px;padding-top:16px}
+.w3-nums{column-gap:64px}
 .w3-nums strong{font-size:clamp(56px,11vw,96px)}
 .w3-belt{--lh:clamp(30px,4.6vw,40px)}
 .w3-fields{grid-template-columns:1fr 1fr}
-.w3-pp-main,.w3-pp-member{grid-template-columns:1fr 1fr}
+.w3-pp-main{grid-template-columns:1fr 1fr}
 }
 .w3-flat{display:flex;flex-direction:column}
 .w3-still .w3-c{position:relative;inset:auto;visibility:visible;pointer-events:auto;overflow:visible}
@@ -1725,18 +1717,27 @@ li[data-wide] .w3-film-v{aspect-ratio:16/10;flex:1 0 auto}
 /* ─────────────────────────────── The motion ─────────────────────────────── */
 
 // The scroll, in screens: a moment on the landing, then for each page a turn of the globe and
-// a hold with the page up front, then a last turn back to the globe before the rest of the site.
+// a hold with the page up front; the last one, the brands, leads straight into the rest of the site.
 const N = PAGES.length
 const REST = 0.12 // the landing at rest
-const TURN = 1.5 // a turn of the globe from one city to the next
-/** How long each chapter stays, in screens: What we do is longer, as it scrolls sideways. */
-const HOLDS = [1.6, 3.4, 1.8, 1.8]
-const OUT = 0.9 // the globe again, spinning on its own, before the rest of the site
 const TILT = -16 // the globe leans towards you, so you see a little of the north
-const ENTER = 0.9 // how long a chapter takes to come in, or to go
+// The pace, in screens: a turn of the globe from one city to the next, how long each chapter stays
+// (What we do longer, as it scrolls sideways), and how long a chapter takes to come in or go.
+// Phones get a quicker pace, so the page never drags under a thumb.
+let TURN = 1.5
+let HOLDS = [1.6, 3.4, 1.8, 1.8]
+let ENTER = 0.9
+let TOTAL = 0
 const holdStart = (k: number) => REST + TURN + HOLDS.slice(0, k).reduce((a, b) => a + b, 0) + k * TURN
 const holdEnd = (k: number) => holdStart(k) + HOLDS[k]
-const TOTAL = holdEnd(N - 1) + TURN + OUT
+const pace = (phone: boolean) => {
+    TURN = phone ? 1 : 1.5
+    HOLDS = phone ? [1.3, 2.8, 1.4, 1.4] : [1.6, 3.4, 1.8, 1.8]
+    ENTER = phone ? 0.7 : 0.9
+    // The scroll ends while the brands are still up, so the page carries straight on into Meet the founder.
+    TOTAL = holdEnd(N - 1) - ENTER * 0.4
+}
+pace(false)
 const PAGE_TILES = PAGES.map((_, k) => TILES.findIndex((t) => t.page === k))
 const VIDEO_TILES = TILES.map((t, i) => (t.page === undefined ? i : -1)).filter((i) => i >= 0)
 const PAGE_LON = PAGE_TILES.map((i) => TILES[i].lon)
@@ -1820,7 +1821,6 @@ export default function W3Globe(props: Props) {
     const spinRef = React.useRef<HTMLDivElement>(null)
     const veilRef = React.useRef<HTMLDivElement>(null)
     const landRef = React.useRef<HTMLDivElement>(null)
-    const outroRef = React.useRef<HTMLDivElement>(null)
     const wordRef = React.useRef<HTMLDivElement>(null)
     const idxRef = React.useRef<HTMLDivElement>(null)
     const navRef = React.useRef<HTMLElement>(null)
@@ -1862,6 +1862,7 @@ export default function W3Globe(props: Props) {
     }, [])
 
     const phoneW = size.w <= 820
+    pace(phoneW)
     const R = Math.round(phoneW ? Math.min(size.w * 0.4, size.h * 0.27) : Math.min(size.h * 0.33, size.w * 0.26))
     const P = phoneW ? 1100 : 1700
     const gyF = phoneW ? 0.4 : 0.47
@@ -2098,18 +2099,12 @@ export default function W3Globe(props: Props) {
                 put(el, "transform", `translate3d(${bx.toFixed(1)}px,${(cy + y1 * sc).toFixed(1)}px,0)`)
             })
 
-            // The landing steps back as the globe starts to turn; the way out comes in at the end.
+            // The landing steps back as the globe starts to turn.
             const fade = smooth((u - 0.04) / 0.4)
             if (landRef.current) {
                 put(landRef.current, "opacity", (1 - fade).toFixed(3))
                 put(landRef.current, "transform", `translateY(${(fade * 30).toFixed(1)}px)`)
                 put(landRef.current, "visibility", fade > 0.99 ? "hidden" : "visible")
-            }
-            const out = smooth((u - (holdEnd(N - 1) + TURN * 0.55)) / 0.5)
-            if (outroRef.current) {
-                put(outroRef.current, "opacity", out.toFixed(3))
-                put(outroRef.current, "transform", `translateY(${((1 - out) * 30).toFixed(1)}px)`)
-                put(outroRef.current, "visibility", out < 0.01 ? "hidden" : "visible")
             }
             put(wordRef.current, "opacity", (1 - busy).toFixed(3))
 
@@ -2486,11 +2481,12 @@ export default function W3Globe(props: Props) {
         }
     }, [layer])
 
+    // About Us opens on the brands; Meet the founder follows straight after them.
     const navItems: [string, number | string][] = [
-        ["About", 0],
+        ["Home", -1],
         ["Services", 1],
         ["Work", 2],
-        ["Brands", 3],
+        ["About Us", 3],
     ]
     if (rest) navItems.push(["Careers", "careers"])
 
@@ -2513,7 +2509,7 @@ export default function W3Globe(props: Props) {
                         key={l}
                         type="button"
                         ref={(el) => {
-                            if (typeof to === "number") navBtns.current[to] = el
+                            if (typeof to === "number" && to >= 0) navBtns.current[to] = el
                         }}
                         onClick={() => go(to)}
                     >
@@ -2675,11 +2671,14 @@ export default function W3Globe(props: Props) {
                         </>
                     )}
                     <div className="w3-land" ref={landRef}>
-                        <h1 className="w3-head">
-                            Culture moves
-                            <br />
-                            <em>through people.</em>
-                        </h1>
+                        <div className="w3-hero">
+                            <h1 className="w3-head">
+                                A CREATIVE KIND
+                                <br />
+                                <em>OF WORLD.</em>
+                            </h1>
+                            <p className="w3-sl">Ideas, creators, production and everything in between.</p>
+                        </div>
                         <div className="w3-side">
                             <div>
                                 <button type="button" className="w3-pill" data-tone="signal" onClick={() => talk("brand")}>
@@ -2691,25 +2690,6 @@ export default function W3Globe(props: Props) {
                             </div>
                         </div>
                     </div>
-                    {still ? null : (
-                        <div className="w3-outro" ref={outroRef}>
-                            <h2 className="w3-head">
-                                Your brand,
-                                <br />
-                                <em>next on the globe?</em>
-                            </h2>
-                            <div className="w3-side">
-                                <div>
-                                    <button type="button" className="w3-pill" data-tone="signal" onClick={() => talk("brand")}>
-                                        Let’s talk {rest ? <Icon name="down" size={16} /> : null}
-                                    </button>
-                                    <button type="button" className="w3-pill" data-tone="line" onClick={() => (rest ? go("careers") : go(-1))}>
-                                        {rest ? "Join the crew" : "Go round again"}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                     <div className="w3-idx" ref={idxRef}>
                         {PAGES.map((pg, i) => (
                             <button
@@ -2737,7 +2717,7 @@ export default function W3Globe(props: Props) {
                     <Founder />
                     <Contact email={email} endpoint={endpoint} formKey={formKey} side={side} setSide={setSide} />
                     <Careers email={email} />
-                    <Footer email={email} phone={phone} go={go} />
+                    <Footer email={email} phone={phone} items={navItems} go={go} />
                 </div>
             ) : null}
             {!still && mounted ? createPortal(<div className="w3">{nav}{sheet}</div>, document.body) : null}

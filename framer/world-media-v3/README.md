@@ -20,32 +20,41 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
 
 ## How it moves
 
+- The landing: "A CREATIVE KIND OF WORLD." with "Ideas, creators, production and everything in
+  between." beneath it (the update brief of 29 October 2026 sets all copy below).
 - Scrolling turns the globe from city to city, and at each city a chapter arrives in its own way:
-  - **The why** (Delhi): the globe dives into India until its dots fill the screen, and "People
-    skip ads. They don't skip people." rises word by word, then the three beliefs.
+  - **The why** (Delhi): the globe dives into India until its dots fill the screen, and "THINKING
+    IT UP IS ONE THING. PULLING IT OFF IS OUR THING." rises word by word, then the three pillars,
+    each number above its title with its line beneath.
   - **What we do** (New York): an orange strip pushes the globe off to the left and the five
-    services run sideways while you scroll down, each with a big number, a looping film and the
-    client's copy (a headline and one line each), with a 01 / 05 counter and a progress line. The
-    globe comes back in from the right.
-  - **The work** (Tokyo): "Reels people actually stopped for." and "Ideas don't execute
-    themselves.", then five films (three on a tablet, two on a phone) grow out of the globe's
+    services run sideways while you scroll down, resting on each in turn: its number, its name,
+    then its video in the video's own shape (Influencer Marketing: Coca-Cola; Production: Ashiana;
+    Celebrity Endorsements: OPPO; Talent Management: a slideshow of five talent photos; Creator
+    IPs: its own reel), with a 01 / 05 counter and a progress line. The globe comes back from the
+    right.
+  - **The work** (Tokyo): "Ideas don't execute themselves." and "We help them find their way into
+    the world.", then five films (three on a tablet, two on a phone) grow out of the globe's
     centre and fan out like a hand of cards, playing, each with its brand's logo. Tapping one plays
     it full size with sound. The last card, "+ See all 17 films", opens the gallery.
-  - **The gallery** ("Every film, every brand."): all 17 films in a grid, each with its brand's
-    logo and title, and a row of brand logos at the top (All, Coca-Cola, Sprite, Maaza, Kinley,
-    Tinder, OPPO, Ashiana) to show one brand's films. Tapping a film opens the player: the film with
-    sound, the next and previous film a tap (or arrow key) away, and Escape or the cross to close.
-  - **The brands** (London): a light curtain rises over the globe with "So far, so good.", the
-    numbers count up (100+ brands, 10,000 creators), and nineteen client logos roll by on two belts
-    moving in opposite directions.
-- After the last chapter the globe turns home to Delhi and asks "Your brand, next on the globe?".
-- Then the rest of the site: Meet the founder (Deepanker Mitra, with Shabd Monga as founding
-  member; photos and words from the portfolio deck, on polaroids that drop into place as you reach
-  them), the enquiry form in numbered steps on one panel, with its own opening
-  line and button for brands ("Have a brief. Or just a feeling." / Let's build something) and for
-  creators ("Make great content. Meet great brands." / Introduce yourself),
-  the five open roles (each row fills with orange on hover and opens an email to apply), and the
-  footer.
+  - **The gallery** ("Every film, every brand."): all 17 films in a grid, each in its own shape
+    with its brand's logo and title, and a row of brand logos at the top (All, Coca-Cola, Sprite,
+    Maaza, Kinley, Tinder, OPPO, Ashiana) to show one brand's films. Tapping a film opens the
+    player: the film with sound, the next and previous film a tap (or arrow key) away, and Escape
+    or the cross to close.
+  - **The brands** (London), the start of About Us: a light curtain rises over the globe with "So
+    far, so good.", the two numbers side by side count up (100+ brands, 10,000 creators), and
+    nineteen client logos roll by on two belts moving in opposite directions.
+- The brands lead straight into the rest of the site: Meet the founder (Deepanker Mitra; photo and
+  words from the portfolio deck, on a polaroid that drops into place), the enquiry form ("Let's
+  connect over the phone.") in numbered steps on one panel, with its own opening line and button
+  for brands ("Have a brief. Or just a feeling." / Let's build something) and for creators ("Make
+  great content. Meet great brands." / Introduce yourself), and a phone number every enquiry must
+  give, then the five open roles (each row fills with orange on hover and opens an email to
+  apply), and the footer.
+- The menu: Home, Services, Work, About Us (the brands, then the founder) and Careers, plus
+  "Let's talk"; the footer repeats it.
+- Phones scroll at a quicker pace (shorter turns and stays), so the whole page is about 16 screens
+  tall on a phone.
 - A small loader opens the site: the menu's globe icon turning and a thin orange line that fills
   as the fonts, the logos and the first frame of every video on the globe arrive. It lifts after at
   most seven seconds, whatever is still loading, and the globe fades in as it goes.
@@ -93,7 +102,8 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
   "So far, so good" page, plus Sprite and Urban Company from their campaign pages, Maaza (from
   Wikimedia) and Kinley (cut from the end card of its Teacher's Day film). Mahindra's silver logo,
   Urban Company's white one and Kinley's white one are recoloured so they show on light plates.
-- The founder photos are in `people/`.
+- The founder photo is in `people/`, and the five Talent Management photos (cropped 4:5 around each
+  face) in `talent/`.
 - All three folders are also on the repository's `main` branch, and GitHub Pages serves them from
   https://tandonsaksham.github.io/framer/world-media-v3/. A new file needs to be on `main` too
   before the site can load it.
