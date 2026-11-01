@@ -663,14 +663,15 @@ const TENETS = [
     ["Made to mean something.", "Creative that connects, resonates and stays with people."],
     ["From thought to out there.", "The entire journey, handled."],
 ]
-/** The five services, each with its film playing in its frame; Talent Management shows its talent instead. */
+/** The five services, each with its film playing in its frame; Talent Management shows its talent instead.
+ *  ar is the frame's shape: every frame shares one height, so the tall reels are trimmed a little (9:16 to 3:4). */
 // Celebrity Endorsements and Creator IPs carry draft lines until the client approves their own.
 const OFFER = [
-    { name: "Influencer Marketing", head: "The right people change everything.", line: "From finding the right voices to getting the campaign live, we make creator partnerships count.", core: true, film: "coca-cola-trophy-tour", ar: 9 / 16 },
+    { name: "Influencer Marketing", head: "The right people change everything.", line: "From finding the right voices to getting the campaign live, we make creator partnerships count.", core: true, film: "coca-cola-trophy-tour", ar: 3 / 4 },
     { name: "Production", head: "Good ideas deserve great frames.", line: "From the first concept to the final cut, we turn ideas into films, reels and branded content.", core: false, film: "ashiana-dinesh-karthik", ar: 4 / 3 },
     { name: "Celebrity Endorsements", head: "The right face for the right story.", line: "We pair brands with stars whose audience, voice and story genuinely fit, so the work feels natural.", core: false, film: "oppo-abhay-deol", ar: 3 / 2 },
-    { name: "Talent Management", head: "More than the next brand deal.", line: "We build creator relationships, unlock opportunities and help talent grow beyond the feed.", core: false, film: "", ar: 4 / 5 },
-    { name: "Creator IPs", head: "Shows people come back for.", line: "Original formats and series built around creators, made to grow audiences that keep watching.", core: false, film: "creator-ip-bhai-bhen", ar: 9 / 16 },
+    { name: "Talent Management", head: "More than the next brand deal.", line: "We build creator relationships, unlock opportunities and help talent grow beyond the feed.", core: false, film: "", ar: 3 / 4 },
+    { name: "Creator IPs", head: "Shows people come back for.", line: "Original formats and series built around creators, made to grow audiences that keep watching.", core: false, film: "creator-ip-bhai-bhen", ar: 3 / 4 },
 ]
 /** The talent on Talent Management, one after another, each photo cropped around the face. */
 const TALENT = [1, 2, 3, 4, 5].map((n) => CDN + "talent/talent-" + n + ".webp")
@@ -1400,21 +1401,22 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-tenets span{font-size:15px;line-height:1.4;color:var(--mute)}
 .w3-c2{color:var(--ink)}
 .w3-strip{position:absolute;left:0;top:0;bottom:0;display:flex;background:var(--signal);will-change:transform}
-.w3-sp{position:relative;flex:none;width:var(--spw);height:100%;padding:clamp(76px,11vh,110px) clamp(20px,2.4vw,36px) clamp(70px,11vh,104px);display:flex;flex-direction:column;justify-content:flex-start;gap:clamp(12px,2vh,20px);border-left:1px solid rgba(10,10,10,.18)}
+.w3-sp{position:relative;flex:none;width:var(--spw);height:100%;padding:clamp(76px,11vh,110px) clamp(20px,2.4vw,36px) clamp(70px,11vh,104px);display:flex;flex-direction:column;justify-content:center;gap:clamp(12px,2vh,20px);border-left:1px solid rgba(10,10,10,.18)}
 .w3-sp0{width:var(--sp0w);border-left:0;justify-content:center;padding-left:clamp(16px,4vw,64px)}
 .w3-sp0 .w3-say em{color:#fff}
 .w3-hint{display:inline-flex;align-items:center;gap:8px;margin-top:28px;font-size:16px;font-weight:600}
 .w3-num{font-family:var(--disp);font-weight:700;font-size:clamp(60px,11vh,132px);line-height:.8;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:1.5px var(--ink)}
-.w3-spf{flex:1 1 auto;min-height:0;container-type:size;display:flex;align-items:flex-end}
-.w3-sph{margin-top:4px;font-family:var(--disp);font-weight:700;font-size:clamp(20px,1.8vw,28px);letter-spacing:-.035em;line-height:1.08;text-wrap:balance}
-.w3-spl{margin-top:-4px;font-size:15px;line-height:1.45;max-width:36ch;color:rgba(10,10,10,.76)}
+.w3-spf{flex:0 1 auto;height:calc((var(--spw) - 2 * clamp(20px,2.4vw,36px)) / 1.5);min-height:0;container-type:size;display:flex;align-items:center;justify-content:center}
+.w3-sph{min-height:2.16em;margin-top:4px;font-family:var(--disp);font-weight:700;font-size:clamp(20px,1.8vw,28px);letter-spacing:-.035em;line-height:1.08;text-wrap:balance}
+.w3-spl{min-height:4.35em;margin-top:-4px;font-size:15px;line-height:1.45;max-width:36ch;color:rgba(10,10,10,.76)}
 .w3-spv{position:relative;width:100%;height:100%;border-radius:18px;overflow:hidden;background:rgba(10,10,10,.14)}
-@supports (width:1cqh){.w3-spv{height:auto;width:min(100cqw,100cqh * var(--ar,1));aspect-ratio:var(--ar,1)}}
+@supports (width:1cqh){.w3-spv{flex:none;width:auto;height:min(100cqh,100cqw / 1.5);aspect-ratio:var(--ar,1)}}
 .w3-show img{opacity:0;animation:w3show 15s infinite;animation-delay:calc(var(--i) * 3s)}
 .w3-show img:first-child{opacity:1}
 @keyframes w3show{0%{opacity:0;scale:1.07}5%{opacity:1}20%{opacity:1}25%{opacity:0;scale:1}100%{opacity:0;scale:1}}
-.w3-spv video,.w3-spv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 30%}
-.w3-spn{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;font-family:var(--disp);font-weight:700;font-size:clamp(26px,2.5vw,40px);letter-spacing:-.035em;line-height:1}
+.w3-spv video,.w3-spv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%}
+.w3-show img{object-position:50% 30%}
+.w3-spn{min-height:2em;display:flex;align-items:center;align-content:flex-start;flex-wrap:wrap;gap:8px 12px;font-family:var(--disp);font-weight:700;font-size:clamp(26px,2.5vw,40px);letter-spacing:-.035em;line-height:1}
 .w3-spn i{font:600 12px/1 var(--sans);font-style:normal;padding:6px 10px;border-radius:99px;background:var(--ink);color:#fff}
 .w3-prog2{position:absolute;right:clamp(16px,2.6vw,40px);bottom:clamp(18px,3.4vh,34px);display:flex;align-items:center;gap:14px;font-family:var(--disp);font-weight:600;font-size:16px;font-variant-numeric:tabular-nums}
 .w3-prog2 b{display:block;width:clamp(120px,16vw,240px);height:2px;background:rgba(10,10,10,.22);overflow:hidden}

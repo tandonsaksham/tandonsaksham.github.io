@@ -28,11 +28,13 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
     each number above its title with its line beneath.
   - **What we do** (New York): an orange strip pushes the globe off to the left and the five
     services run sideways while you scroll down, resting on each in turn: its number, its name,
-    then its video in the video's own shape (Influencer Marketing: Coca-Cola; Production: Ashiana;
+    then its video (Influencer Marketing: Coca-Cola; Production: Ashiana;
     Celebrity Endorsements: OPPO; Talent Management: a slideshow of five talent photos; Creator
     IPs: its own reel), then a headline and a line beneath (the two new services carry draft
-    lines until the client approves them), with a 01 / 05 counter and a progress line. The globe comes back from the
-    right.
+    lines until the client approves them), with a 01 / 05 counter and a progress line. All five
+    videos share one height and sit centred in their column, on the same line from panel to panel;
+    the wide films keep their shape and the tall reels are trimmed a little (9:16 to 3:4). The globe
+    comes back from the right.
   - **The work** (Tokyo): "Ideas don't execute themselves." and "We help them find their way into
     the world.", then five films (three on a tablet, two on a phone) grow out of the globe's
     centre and fan out like a hand of cards, playing, each with its brand's logo. Tapping one plays
