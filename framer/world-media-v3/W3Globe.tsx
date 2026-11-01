@@ -664,12 +664,13 @@ const TENETS = [
     ["From thought to out there.", "The entire journey, handled."],
 ]
 /** The five services, each with its film playing in its frame; Talent Management shows its talent instead. */
+// Celebrity Endorsements and Creator IPs carry draft lines until the client approves their own.
 const OFFER = [
-    { name: "Influencer Marketing", core: true, film: "coca-cola-trophy-tour", ar: 9 / 16 },
-    { name: "Production", core: false, film: "ashiana-dinesh-karthik", ar: 4 / 3 },
-    { name: "Celebrity Endorsements", core: false, film: "oppo-abhay-deol", ar: 3 / 2 },
-    { name: "Talent Management", core: false, film: "", ar: 4 / 5 },
-    { name: "Creator IPs", core: false, film: "creator-ip-bhai-bhen", ar: 9 / 16 },
+    { name: "Influencer Marketing", head: "The right people change everything.", line: "From finding the right voices to getting the campaign live, we make creator partnerships count.", core: true, film: "coca-cola-trophy-tour", ar: 9 / 16 },
+    { name: "Production", head: "Good ideas deserve great frames.", line: "From the first concept to the final cut, we turn ideas into films, reels and branded content.", core: false, film: "ashiana-dinesh-karthik", ar: 4 / 3 },
+    { name: "Celebrity Endorsements", head: "The right face for the right story.", line: "We pair brands with stars whose audience, voice and story genuinely fit, so the work feels natural.", core: false, film: "oppo-abhay-deol", ar: 3 / 2 },
+    { name: "Talent Management", head: "More than the next brand deal.", line: "We build creator relationships, unlock opportunities and help talent grow beyond the feed.", core: false, film: "", ar: 4 / 5 },
+    { name: "Creator IPs", head: "Shows people come back for.", line: "Original formats and series built around creators, made to grow audiences that keep watching.", core: false, film: "creator-ip-bhai-bhen", ar: 9 / 16 },
 ]
 /** The talent on Talent Management, one after another, each photo cropped around the face. */
 const TALENT = [1, 2, 3, 4, 5].map((n) => CDN + "talent/talent-" + n + ".webp")
@@ -790,6 +791,8 @@ function ChapterServices(p: { samples: boolean }) {
                                 </div>
                             )}
                         </div>
+                        <p className="w3-sph">{s.head}</p>
+                        <p className="w3-spl">{s.line}</p>
                     </article>
                 ))}
             </div>
@@ -1402,7 +1405,9 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-sp0 .w3-say em{color:#fff}
 .w3-hint{display:inline-flex;align-items:center;gap:8px;margin-top:28px;font-size:16px;font-weight:600}
 .w3-num{font-family:var(--disp);font-weight:700;font-size:clamp(60px,11vh,132px);line-height:.8;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:1.5px var(--ink)}
-.w3-spf{flex:1 1 auto;min-height:0;container-type:size;display:flex;align-items:center}
+.w3-spf{flex:1 1 auto;min-height:0;container-type:size;display:flex;align-items:flex-end}
+.w3-sph{margin-top:4px;font-family:var(--disp);font-weight:700;font-size:clamp(20px,1.8vw,28px);letter-spacing:-.035em;line-height:1.08;text-wrap:balance}
+.w3-spl{margin-top:-4px;font-size:15px;line-height:1.45;max-width:36ch;color:rgba(10,10,10,.76)}
 .w3-spv{position:relative;width:100%;height:100%;border-radius:18px;overflow:hidden;background:rgba(10,10,10,.14)}
 @supports (width:1cqh){.w3-spv{height:auto;width:min(100cqw,100cqh * var(--ar,1));aspect-ratio:var(--ar,1)}}
 .w3-show img{opacity:0;animation:w3show 15s infinite;animation-delay:calc(var(--i) * 3s)}
@@ -1457,9 +1462,6 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-head{font-family:var(--disp);font-weight:700;font-size:clamp(44px,6.2vw,112px);line-height:.9;letter-spacing:-.035em}
 .w3-sl{margin-top:clamp(14px,2vh,22px);font-size:clamp(16px,1.4vw,20px);line-height:1.4;color:var(--mute);max-width:48ch}
 .w3-head em{font-style:normal;color:var(--signal)}
-.w3-side{position:absolute;right:clamp(16px,2.6vw,40px);bottom:clamp(28px,5vh,56px);display:flex;flex-direction:column;align-items:flex-end;gap:16px;max-width:320px;text-align:right;pointer-events:auto}
-.w3-side p{font-size:15px;line-height:1.45;color:var(--mute)}
-.w3-side div{display:flex;gap:6px}
 .w3-pill{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 18px;border-radius:99px;font-weight:500;font-size:14.5px;transition:background-color .3s,color .3s,box-shadow .3s}
 .w3-pill[data-tone="signal"]{background:var(--signal);color:var(--ink)}
 .w3-pill[data-tone="signal"]:hover{background:#fff}
@@ -1654,11 +1656,9 @@ li[data-wide] .w3-film-v{aspect-ratio:var(--ar)}
 .w3-pl-m{flex-wrap:wrap;row-gap:12px}
 .w3-pl-m>b{order:-1;flex-basis:100%}
 .w3-pl-nav{margin-left:auto}
-.w3-hero{left:16px;right:16px;bottom:96px;max-width:none}
+.w3-hero{left:16px;right:16px;bottom:32px;max-width:none}
 .w3-head{font-size:clamp(38px,11vw,64px)}
 .w3-sl{font-size:15px}
-.w3-side{left:16px;right:16px;bottom:22px;align-items:stretch;text-align:left;max-width:none}
-.w3-side p{display:none}.w3-side div>*{flex:1;justify-content:center}
 .w3-idx button span{display:none}
 .w3-bd span{font-size:11.5px;padding:5px 8px}
 .w3-c1 .w3-say{top:17vh}
@@ -2678,16 +2678,6 @@ export default function W3Globe(props: Props) {
                                 <em>OF WORLD.</em>
                             </h1>
                             <p className="w3-sl">Ideas, creators, production and everything in between.</p>
-                        </div>
-                        <div className="w3-side">
-                            <div>
-                                <button type="button" className="w3-pill" data-tone="signal" onClick={() => talk("brand")}>
-                                    Start a campaign
-                                </button>
-                                <button type="button" className="w3-pill" data-tone="line" onClick={() => talk("creator")}>
-                                    I’m a creator
-                                </button>
-                            </div>
                         </div>
                     </div>
                     <div className="w3-idx" ref={idxRef}>

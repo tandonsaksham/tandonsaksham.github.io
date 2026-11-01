@@ -21,7 +21,7 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
 ## How it moves
 
 - The landing: "A CREATIVE KIND OF WORLD." with "Ideas, creators, production and everything in
-  between." beneath it (the update brief of 29 October 2026 sets all copy below).
+  between." beneath it, and no buttons (the update brief of 29 October 2026 sets all copy below).
 - Scrolling turns the globe from city to city, and at each city a chapter arrives in its own way:
   - **The why** (Delhi): the globe dives into India until its dots fill the screen, and "THINKING
     IT UP IS ONE THING. PULLING IT OFF IS OUR THING." rises word by word, then the three pillars,
@@ -30,7 +30,8 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
     services run sideways while you scroll down, resting on each in turn: its number, its name,
     then its video in the video's own shape (Influencer Marketing: Coca-Cola; Production: Ashiana;
     Celebrity Endorsements: OPPO; Talent Management: a slideshow of five talent photos; Creator
-    IPs: its own reel), with a 01 / 05 counter and a progress line. The globe comes back from the
+    IPs: its own reel), then a headline and a line beneath (the two new services carry draft
+    lines until the client approves them), with a 01 / 05 counter and a progress line. The globe comes back from the
     right.
   - **The work** (Tokyo): "Ideas don't execute themselves." and "We help them find their way into
     the world.", then five films (three on a tablet, two on a phone) grow out of the globe's
