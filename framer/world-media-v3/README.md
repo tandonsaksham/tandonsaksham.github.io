@@ -59,7 +59,7 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
   "Let's talk"; the footer repeats it. On a phone or tablet the bar shows the logo, "Let's talk" and
   a round menu button (two lines that turn into a cross). The menu fills the screen, opening down
   from the top: the five links in large type, each numbered, rising in one after another, then the
-  email, the phone number and a button for creators. The page holds still while it is open, and
+  email and the phone number. The page holds still while it is open, and
   Escape closes it.
 - Phones scroll at a quicker pace (shorter turns and stays), so the whole page is about 16 screens
   tall on a phone.

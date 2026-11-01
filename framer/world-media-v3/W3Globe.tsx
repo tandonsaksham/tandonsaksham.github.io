@@ -1523,7 +1523,6 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-sh-f small{margin-bottom:8px;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
 .w3-sh-f a{font-family:var(--disp);font-weight:500;font-size:20px;letter-spacing:-.02em;line-height:1.35}
 .w3-sh-f a:hover{color:var(--signal)}
-.w3-sh-f button{margin-top:18px}
 
 /* after the globe */
 .w3-rest{position:relative;overflow-x:hidden;overflow-x:clip;background:var(--bg);border-top:1px solid rgba(255,255,255,.06)}
@@ -2602,11 +2601,6 @@ export default function W3Globe(props: Props) {
                 <small>Say hello</small>
                 <a href={"mailto:" + email}>{email}</a>
                 <a href={"tel:" + phone.replace(/[^\d+]/g, "")}>{phone}</a>
-                {rest ? (
-                    <button type="button" className="w3-pill" data-tone="line" onClick={() => talk("creator")}>
-                        Creators, introduce yourself <Icon name="arrow" size={18} />
-                    </button>
-                ) : null}
             </div>
         </div>
     ) : null
