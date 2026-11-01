@@ -25,7 +25,8 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
 - Scrolling turns the globe from city to city, and at each city a chapter arrives in its own way:
   - **The why** (Delhi): the globe dives into India until its dots fill the screen, and "THINKING
     IT UP IS ONE THING. PULLING IT OFF IS OUR THING." rises word by word, then the three pillars,
-    each number above its title with its line beneath.
+    each outlined number above its title with its line beneath. On a phone the statement and the
+    pillars sit together as one block in the middle of the screen, over a darker veil.
   - **What we do** (New York): an orange strip pushes the globe off to the left and the five
     services run sideways while you scroll down, resting on each in turn: its number, its name,
     then its video (Influencer Marketing: Coca-Cola; Production: Ashiana;

@@ -1396,9 +1396,9 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-c1 .w3-say{position:absolute;left:clamp(16px,4vw,64px);right:clamp(16px,4vw,64px);top:22vh;font-size:clamp(36px,5.2vw,96px);letter-spacing:-.035em}
 .w3-tenets{position:absolute;left:clamp(16px,4vw,64px);right:clamp(16px,4vw,64px);bottom:clamp(76px,12vh,124px);display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2.4vw,40px)}
 .w3-tenets li{display:flex;flex-direction:column;gap:8px;padding-top:18px;border-top:1px solid rgba(255,255,255,.2)}
-.w3-tenets i{font-family:var(--disp);font-style:normal;font-weight:700;font-size:clamp(22px,2.2vw,34px);line-height:.9;letter-spacing:-.03em;color:var(--signal)}
+.w3-tenets i{font-family:var(--disp);font-style:normal;font-weight:700;font-size:clamp(32px,3vw,48px);line-height:.8;letter-spacing:-.05em;color:transparent;-webkit-text-stroke:1.2px rgba(255,255,255,.7)}
 .w3-tenets b{font-family:var(--disp);font-weight:600;font-size:clamp(21px,2.1vw,32px);letter-spacing:-.03em;line-height:1.05}
-.w3-tenets span{font-size:15px;line-height:1.4;color:var(--mute)}
+.w3-tenets span{font-size:15px;line-height:1.4;color:var(--mute);text-wrap:pretty}
 .w3-c2{color:var(--ink)}
 .w3-strip{position:absolute;left:0;top:0;bottom:0;display:flex;background:var(--signal);will-change:transform}
 .w3-sp{position:relative;flex:none;width:var(--spw);height:100%;padding:clamp(76px,11vh,110px) clamp(20px,2.4vw,36px) clamp(70px,11vh,104px);display:flex;flex-direction:column;justify-content:center;gap:clamp(12px,2vh,20px);border-left:1px solid rgba(10,10,10,.18)}
@@ -1663,9 +1663,12 @@ li[data-wide] .w3-film-v{aspect-ratio:var(--ar)}
 .w3-sl{font-size:15px}
 .w3-idx button span{display:none}
 .w3-bd span{font-size:11.5px;padding:5px 8px}
-.w3-c1 .w3-say{top:17vh}
-.w3-tenets{grid-template-columns:1fr;gap:12px;bottom:72px}
-.w3-tenets li{gap:5px;padding-top:12px}.w3-tenets b{font-size:20px}.w3-tenets span{font-size:14px}
+/* The why on a phone: the statement and the three beliefs as one block in the middle of the screen, on a darker veil so they read over the dots */
+.w3-c1{display:flex;flex-direction:column;justify-content:center;gap:clamp(32px,6vh,56px);padding:72px 16px 84px;isolation:isolate}
+.w3-c1::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(10,10,10,.25),rgba(10,10,10,.72) 45%,rgba(10,10,10,.8))}
+.w3-c1 .w3-say,.w3-c1 .w3-tenets{position:static}
+.w3-tenets{grid-template-columns:1fr;gap:clamp(18px,3vh,28px)}
+.w3-tenets li{gap:6px;padding-top:0;border-top:0}.w3-tenets i{font-size:30px;margin-bottom:4px}.w3-tenets b{font-size:21px}.w3-tenets span{font-size:15px}
 .w3-num{font-size:clamp(56px,9vh,96px)}
 .w3-spn{font-size:clamp(22px,6.4vw,30px)}
 .w3-prog2 b{width:72px}
@@ -1691,7 +1694,6 @@ li[data-wide] .w3-film-v{aspect-ratio:var(--ar)}
 .w3-head{font-size:clamp(56px,9vw,84px)}
 .w3-c1 .w3-say{font-size:clamp(44px,7vw,64px)}
 .w3-cur .w3-say{font-size:clamp(56px,9vw,84px)}
-.w3-c1 .w3-say{top:20vh}
 .w3-c3 .w3-say{font-size:clamp(52px,8vw,80px)}
 .w3-tenets{grid-template-columns:repeat(3,1fr);gap:20px}
 .w3-nums{column-gap:64px}
