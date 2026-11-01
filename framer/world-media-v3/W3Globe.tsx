@@ -1490,7 +1490,7 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-brand{display:inline-flex;align-items:center;gap:10px;padding:4px 16px 4px 4px;border-radius:99px;background:rgba(18,18,18,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);pointer-events:auto;font-family:var(--disp);font-weight:600;font-size:21px;letter-spacing:-.04em}
 .w3-brand .ic{position:relative;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#fff;color:var(--ink)}
 .w3-brand .ic svg.w3-prog{position:absolute;inset:-4px;width:52px;height:52px;rotate:-90deg}
-.w3-brand b{font-weight:600}
+.w3-brand b{font-weight:600;white-space:nowrap}
 .w3-brand b span{color:var(--signal)}
 .w3-mg .m{transform-box:fill-box;transform-origin:50% 50%;animation:w3mer var(--gp,9s) linear infinite;animation-delay:var(--gd,0s)}
 @keyframes w3mer{0%{transform:scaleX(1)}25%{transform:scaleX(0)}50%{transform:scaleX(-1)}75%{transform:scaleX(0)}100%{transform:scaleX(1)}}
@@ -1500,10 +1500,30 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-links button[aria-current]{background:#fff;color:var(--ink)}
 .w3-links button.cta{background:var(--signal);color:var(--ink)}
 .w3-links button.cta:hover{background:#fff}
-.w3-menu{display:none;pointer-events:auto}
-.w3-sheet{position:fixed;top:72px;left:12px;right:12px;z-index:2147482001;display:flex;flex-direction:column;padding:8px;border-radius:22px;background:#151515;color:var(--text);box-shadow:0 30px 80px -30px rgba(0,0,0,.8),inset 0 0 0 1px rgba(255,255,255,.08)}
-.w3-sheet button{display:flex;justify-content:space-between;align-items:center;height:54px;padding:0 16px;border-radius:14px;font-family:var(--disp);font-weight:500;font-size:22px;letter-spacing:-.03em}
-.w3-sheet button:hover{background:rgba(255,255,255,.06)}
+/* On a phone: Let's talk and the menu button, side by side on the right */
+.w3-nr{display:none;align-items:center;gap:8px;pointer-events:auto}
+.w3-ptalk{height:44px;padding:0 16px;white-space:nowrap}
+.w3-burger{position:relative;flex:none;width:44px;height:44px;border-radius:50%;background:#fff;color:var(--ink);transition:background-color .3s}
+.w3-burger i{position:absolute;left:14px;right:14px;height:2px;border-radius:2px;background:currentColor;transition:transform .45s var(--ease),top .45s var(--ease)}
+.w3-burger i:first-child{top:17px}.w3-burger i:last-child{top:25px}
+.w3-burger[aria-expanded="true"] i:first-child{top:21px;transform:rotate(45deg)}
+.w3-burger[aria-expanded="true"] i:last-child{top:21px;transform:rotate(-45deg)}
+/* The phone menu: the whole screen, opening down from the top, the links rising in one after another */
+.w3-sheet{position:fixed;inset:0;z-index:2147481999;display:flex;flex-direction:column;justify-content:space-between;gap:36px;padding:calc(env(safe-area-inset-top,0px) + 92px) 16px calc(env(safe-area-inset-bottom,0px) + 28px);background:radial-gradient(circle at 105% 105%,rgba(234,86,40,.2),rgba(234,86,40,0) 55%),#0a0a0a;color:var(--text);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;animation:w3shIn .6s var(--ease) both}
+@keyframes w3shIn{from{clip-path:inset(0 0 100% 0 round 0 0 32px 32px)}to{clip-path:inset(0 0 0 0 round 0)}}
+@keyframes w3shUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+.w3-sh-l{position:relative;display:flex;flex-direction:column}
+.w3-sh-l button{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.1);text-align:left;font-family:var(--disp);font-weight:600;font-size:clamp(34px,10vw,52px);letter-spacing:-.045em;line-height:1;animation:w3shUp .6s var(--ease) both;animation-delay:calc(.12s + var(--i) * .05s)}
+.w3-sh-l button:first-child{border-top:1px solid rgba(255,255,255,.1)}
+.w3-sh-l i{align-self:start;margin-top:3px;font:500 12px/1 var(--sans);font-style:normal;letter-spacing:.02em;color:var(--mute)}
+.w3-sh-l svg{opacity:.4;transition:transform .35s var(--ease),opacity .3s,color .3s}
+.w3-sh-l button:hover svg,.w3-sh-l button:focus-visible svg{opacity:1;color:var(--signal);transform:translateX(4px)}
+.w3-sh-l button:active span{color:var(--signal)}
+.w3-sh-f{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;animation:w3shUp .6s var(--ease) both;animation-delay:calc(.12s + var(--i) * .05s)}
+.w3-sh-f small{margin-bottom:8px;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.w3-sh-f a{font-family:var(--disp);font-weight:500;font-size:20px;letter-spacing:-.02em;line-height:1.35}
+.w3-sh-f a:hover{color:var(--signal)}
+.w3-sh-f button{margin-top:18px}
 
 /* after the globe */
 .w3-rest{position:relative;overflow-x:hidden;overflow-x:clip;background:var(--bg);border-top:1px solid rgba(255,255,255,.06)}
@@ -1646,7 +1666,9 @@ li[data-wide] .w3-film-v{aspect-ratio:var(--ar)}
 .w3-pl-nav button:hover{background:#fff;color:var(--ink);box-shadow:none}
 
 @media (max-width:820px){
-.w3-links{display:none}.w3-menu{display:inline-flex}
+.w3-links{display:none}.w3-nr{display:flex}
+.w3-brand{gap:8px;padding-right:14px;font-size:19px}.w3-brand .ic{width:40px;height:40px}.w3-brand .ic svg.w3-prog{width:48px;height:48px}
+@media (max-width:374px){.w3-brand{font-size:17px;padding-right:12px}.w3-ptalk{padding:0 14px}}
 .w3-gal-f{flex-wrap:nowrap;overflow-x:auto;margin-left:-16px;margin-right:-16px;padding:12px 76px 12px 16px;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 84px),transparent calc(100% - 20px));mask-image:linear-gradient(90deg,#000 calc(100% - 84px),transparent calc(100% - 20px))}
 .w3-gal-f::-webkit-scrollbar{display:none}
 .w3-gal-f button{flex:none}
@@ -1805,6 +1827,9 @@ export default function W3Globe(props: Props) {
     const [loading, setLoading] = React.useState<0 | 1 | 2>(0)
     const barRef = React.useRef<HTMLElement>(null)
     const [open, setOpen] = React.useState(false)
+    // The phone menu: its button (focus goes back there on close) and the page's scroll, held while it is open.
+    const burgerRef = React.useRef<HTMLButtonElement>(null)
+    const menuWas = React.useRef<string | null>(null)
     const [side, setSide] = React.useState<"brand" | "creator">("brand")
     const [gal, setGal] = React.useState(false)
     const [film, setFilm] = React.useState(-1)
@@ -1872,6 +1897,28 @@ export default function W3Globe(props: Props) {
     const gyF = phoneW ? 0.4 : 0.47
     // The sizes of the chapters' parts: a service column, the opening column, a reel.
     const tabletW = phoneW && size.w >= 600
+    // While the phone menu is open the page holds still, and Escape closes it; on a wider screen it closes.
+    React.useEffect(() => {
+        if (!open) return
+        if (!phoneW) {
+            React.startTransition(() => setOpen(false))
+            return
+        }
+        const html = document.documentElement
+        menuWas.current = html.style.overflow
+        html.style.overflow = "hidden"
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key !== "Escape") return
+            React.startTransition(() => setOpen(false))
+            if (burgerRef.current) burgerRef.current.focus()
+        }
+        window.addEventListener("keydown", onKey)
+        return () => {
+            window.removeEventListener("keydown", onKey)
+            if (menuWas.current !== null) html.style.overflow = menuWas.current
+            menuWas.current = null
+        }
+    }, [open, phoneW])
     const spw = phoneW ? Math.round(size.w * (tabletW ? 0.6 : 0.82)) : Math.round(clamp(size.w * 0.3, 340, 480))
     const sp0w = phoneW ? size.w : Math.round(size.w * 0.52)
     const rw = Math.round(phoneW ? Math.min(size.w * 0.34, tabletW ? 220 : 150) : Math.min(size.h * 0.28, 250))
@@ -2388,6 +2435,11 @@ export default function W3Globe(props: Props) {
     const go = React.useCallback(
         (to: number | string) => {
             React.startTransition(() => setOpen(false))
+            // The menu holds the page still; let go first, so the page can scroll to where it is going.
+            if (menuWas.current !== null) {
+                document.documentElement.style.overflow = menuWas.current
+                menuWas.current = null
+            }
             const root = rootRef.current
             const track = trackRef.current
             if (!root || !track) return
@@ -2524,23 +2576,38 @@ export default function W3Globe(props: Props) {
                     Let’s talk
                 </button>
             </div>
-            <button type="button" className="w3-menu w3-pill" data-tone="paper" onClick={() => setOpen(!open)} aria-expanded={open}>
-                {open ? "Close" : "Menu"}
-            </button>
+            <div className="w3-nr">
+                <button type="button" className="w3-pill w3-ptalk" data-tone="signal" onClick={() => talk("brand")}>
+                    Let’s talk
+                </button>
+                <button type="button" className="w3-burger" ref={burgerRef} onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="w3-menu" aria-label={open ? "Close menu" : "Open menu"}>
+                    <i />
+                    <i />
+                </button>
+            </div>
         </nav>
     )
     const sheet = open ? (
-        <div className="w3 w3-sheet" role="dialog" aria-label="Menu">
-            {navItems.map(([l, to]) => (
-                <button key={l} type="button" onClick={() => go(to)}>
-                    {l}
-                    <Icon name="arrow" size={20} />
-                </button>
-            ))}
-            <button type="button" onClick={() => talk("brand")}>
-                Let’s talk
-                <Icon name="arrow" size={20} />
-            </button>
+        <div className="w3 w3-sheet" id="w3-menu" role="dialog" aria-modal="true" aria-label="Menu">
+            <div className="w3-sh-l">
+                {navItems.map(([l, to], i) => (
+                    <button key={l} type="button" onClick={() => go(to)} style={cssVars({ "--i": i })}>
+                        <i>{nn(i + 1)}</i>
+                        <span>{l}</span>
+                        <Icon name="arrow" size={24} />
+                    </button>
+                ))}
+            </div>
+            <div className="w3-sh-f" style={cssVars({ "--i": navItems.length })}>
+                <small>Say hello</small>
+                <a href={"mailto:" + email}>{email}</a>
+                <a href={"tel:" + phone.replace(/[^\d+]/g, "")}>{phone}</a>
+                {rest ? (
+                    <button type="button" className="w3-pill" data-tone="line" onClick={() => talk("creator")}>
+                        Creators, introduce yourself <Icon name="arrow" size={18} />
+                    </button>
+                ) : null}
+            </div>
         </div>
     ) : null
 

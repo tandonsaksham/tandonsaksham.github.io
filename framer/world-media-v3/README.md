@@ -56,7 +56,11 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
   give, then the five open roles (each row fills with orange on hover and opens an email to
   apply), and the footer.
 - The menu: Home, Services, Work, About Us (the brands, then the founder) and Careers, plus
-  "Let's talk"; the footer repeats it.
+  "Let's talk"; the footer repeats it. On a phone or tablet the bar shows the logo, "Let's talk" and
+  a round menu button (two lines that turn into a cross). The menu fills the screen, opening down
+  from the top: the five links in large type, each numbered, rising in one after another, then the
+  email, the phone number and a button for creators. The page holds still while it is open, and
+  Escape closes it.
 - Phones scroll at a quicker pace (shorter turns and stays), so the whole page is about 16 screens
   tall on a phone.
 - A small loader opens the site: the menu's globe icon turning and a thin orange line that fills
