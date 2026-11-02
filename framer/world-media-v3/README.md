@@ -33,8 +33,9 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
     Celebrity Endorsements: OPPO; Talent Management: a slideshow of five talent photos; Creator
     IPs: its own reel), then a headline and a line beneath (the two new services carry draft
     lines until the client approves them), with a 01 / 05 counter and a progress line. All five
-    videos share one height and sit centred in their column, on the same line from panel to panel;
-    the wide films keep their shape and the tall reels are trimmed a little (9:16 to 3:4). The globe
+    videos are the same size, the full width of their column at 3:2, left aligned like the text
+    and on the same line from panel to panel; the tall reels and the talent photos are trimmed to
+    fit. The globe
     comes back from the right.
   - **The work** (Tokyo): "Ideas don't execute themselves." and "We help them find their way into
     the world.", then five films (three on a tablet, two on a phone) grow out of the globe's
@@ -49,10 +50,10 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
     far, so good.", the two numbers side by side count up (100+ brands, 10,000 creators), and
     nineteen client logos roll by on two belts moving in opposite directions.
 - The brands lead straight into the rest of the site: Meet the founder (Deepanker Mitra; photo and
-  words from the portfolio deck, on a polaroid that drops into place), the enquiry form ("Let's
-  connect over the phone.") in numbered steps on one panel, with its own opening line and button
-  for brands ("Have a brief. Or just a feeling." / Let's build something) and for creators ("Make
-  great content. Meet great brands." / Introduce yourself), and a phone number every enquiry must
+  words from the portfolio deck, on a polaroid that drops into place), the enquiry form in numbered steps on one panel. Its big heading follows the
+  switch: "Have a brief. Or just a feeling." for brands, "Make great content. Meet great brands."
+  for creators; the panel opens with that side's line in headline size, and ends with its own
+  button (Let's build something / Introduce yourself), and a phone number every enquiry must
   give, then the five open roles (each row fills with orange on hover and opens an email to
   apply), and the footer.
 - The menu: Home, Services, Work, About Us (the brands, then the founder) and Careers, plus

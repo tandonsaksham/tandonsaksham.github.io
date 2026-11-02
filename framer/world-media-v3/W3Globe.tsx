@@ -664,14 +664,15 @@ const TENETS = [
     ["From thought to out there.", "The entire journey, handled."],
 ]
 /** The five services, each with its film playing in its frame; Talent Management shows its talent instead.
- *  ar is the frame's shape: every frame shares one height, so the tall reels are trimmed a little (9:16 to 3:4). */
+ *  ar is the frame's shape: every frame is the same size, the full width of its column at 3:2, so the tall
+ *  reels and the talent photos are trimmed to fit. */
 // Celebrity Endorsements and Creator IPs carry draft lines until the client approves their own.
 const OFFER = [
-    { name: "Influencer Marketing", head: "The right people change everything.", line: "From finding the right voices to getting the campaign live, we make creator partnerships count.", core: true, film: "coca-cola-trophy-tour", ar: 3 / 4 },
-    { name: "Production", head: "Good ideas deserve great frames.", line: "From the first concept to the final cut, we turn ideas into films, reels and branded content.", core: false, film: "ashiana-dinesh-karthik", ar: 4 / 3 },
+    { name: "Influencer Marketing", head: "The right people change everything.", line: "From finding the right voices to getting the campaign live, we make creator partnerships count.", core: true, film: "coca-cola-trophy-tour", ar: 3 / 2 },
+    { name: "Production", head: "Good ideas deserve great frames.", line: "From the first concept to the final cut, we turn ideas into films, reels and branded content.", core: false, film: "ashiana-dinesh-karthik", ar: 3 / 2 },
     { name: "Celebrity Endorsements", head: "The right face for the right story.", line: "We pair brands with stars whose audience, voice and story genuinely fit, so the work feels natural.", core: false, film: "oppo-abhay-deol", ar: 3 / 2 },
-    { name: "Talent Management", head: "More than the next brand deal.", line: "We build creator relationships, unlock opportunities and help talent grow beyond the feed.", core: false, film: "", ar: 3 / 4 },
-    { name: "Creator IPs", head: "Shows people come back for.", line: "Original formats and series built around creators, made to grow audiences that keep watching.", core: false, film: "creator-ip-bhai-bhen", ar: 3 / 4 },
+    { name: "Talent Management", head: "More than the next brand deal.", line: "We build creator relationships, unlock opportunities and help talent grow beyond the feed.", core: false, film: "", ar: 3 / 2 },
+    { name: "Creator IPs", head: "Shows people come back for.", line: "Original formats and series built around creators, made to grow audiences that keep watching.", core: false, film: "creator-ip-bhai-bhen", ar: 3 / 2 },
 ]
 /** The talent on Talent Management, one after another, each photo cropped around the face. */
 const TALENT = [1, 2, 3, 4, 5].map((n) => CDN + "talent/talent-" + n + ".webp")
@@ -993,7 +994,15 @@ function Contact(p: { email: string; endpoint: string; formKey: string; side: "b
     return (
         <section className="w3-sec w3-contact" id="w3-contact" aria-labelledby="w3-ct-h">
             <h2 className="w3-h2" id="w3-ct-h">
-                Let’s connect <em>over the phone.</em>
+                {brand ? (
+                    <>
+                        <span className="w3-ln">Have a brief.</span> <em className="w3-ln">Or just a feeling.</em>
+                    </>
+                ) : (
+                    <>
+                        <span className="w3-ln">Make great content.</span> <em className="w3-ln">Meet great brands.</em>
+                    </>
+                )}
             </h2>
             {sent === "done" || sent === "mail" ? (
                 <div className="w3-form w3-thanks" role="status">
@@ -1019,8 +1028,7 @@ function Contact(p: { email: string; endpoint: string; formKey: string; side: "b
                     <form className="w3-form" onSubmit={submit}>
                         <input type="checkbox" name="botcheck" className="w3-sr" tabIndex={-1} autoComplete="off" aria-hidden="true" />
                         <div className="w3-intro">
-                            <h3>{brand ? "Have a brief. Or just a feeling." : "Make great content. Meet great brands."}</h3>
-                            <p>{brand ? "Tell us what you’re thinking. We’ll help figure out what it could become." : "Tell us your story, your style and what you bring to the feed."}</p>
+                            <h3>{brand ? "Tell us what you’re thinking. We’ll help figure out what it could become." : "Tell us your story, your style and what you bring to the feed."}</h3>
                         </div>
                         {brand ? (
                             <>
@@ -1406,7 +1414,7 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-sp0 .w3-say em{color:#fff}
 .w3-hint{display:inline-flex;align-items:center;gap:8px;margin-top:28px;font-size:16px;font-weight:600}
 .w3-num{font-family:var(--disp);font-weight:700;font-size:clamp(60px,11vh,132px);line-height:.8;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:1.5px var(--ink)}
-.w3-spf{flex:0 1 auto;height:calc((var(--spw) - 2 * clamp(20px,2.4vw,36px)) / 1.5);min-height:0;container-type:size;display:flex;align-items:center;justify-content:center}
+.w3-spf{flex:0 1 auto;height:calc((var(--spw) - 2 * clamp(20px,2.4vw,36px)) / 1.5);min-height:0;container-type:size;display:flex;align-items:center;justify-content:flex-start}
 .w3-sph{min-height:2.16em;margin-top:4px;font-family:var(--disp);font-weight:700;font-size:clamp(20px,1.8vw,28px);letter-spacing:-.035em;line-height:1.08;text-wrap:balance}
 .w3-spl{min-height:4.35em;margin-top:-4px;font-size:15px;line-height:1.45;max-width:36ch;color:rgba(10,10,10,.76)}
 .w3-spv{position:relative;width:100%;height:100%;border-radius:18px;overflow:hidden;background:rgba(10,10,10,.14)}
