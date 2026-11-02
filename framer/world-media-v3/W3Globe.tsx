@@ -1401,8 +1401,8 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-ln{display:block}
 .w3-wd{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.1em;margin-bottom:-.1em}
 .w3-wd>span{display:inline-block;will-change:transform}
-.w3-c1 .w3-say{position:absolute;left:clamp(16px,4vw,64px);right:clamp(16px,4vw,64px);top:22vh;font-size:clamp(36px,5.2vw,96px);letter-spacing:-.035em}
-.w3-tenets{position:absolute;left:clamp(16px,4vw,64px);right:clamp(16px,4vw,64px);bottom:clamp(76px,12vh,124px);display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2.4vw,40px)}
+.w3-c1 .w3-say{position:absolute;left:clamp(16px,2.6vw,40px);right:clamp(16px,2.6vw,40px);top:22vh;font-size:clamp(36px,5.2vw,96px);letter-spacing:-.035em}
+.w3-tenets{position:absolute;left:clamp(16px,2.6vw,40px);right:clamp(16px,2.6vw,40px);bottom:clamp(76px,12vh,124px);display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2.4vw,40px)}
 .w3-tenets li{display:flex;flex-direction:column;gap:8px;padding-top:18px;border-top:1px solid rgba(255,255,255,.2)}
 .w3-tenets i{font-family:var(--disp);font-style:normal;font-weight:700;font-size:clamp(32px,3vw,48px);line-height:.8;letter-spacing:-.05em;color:transparent;-webkit-text-stroke:1.2px rgba(255,255,255,.7)}
 .w3-tenets b{font-family:var(--disp);font-weight:600;font-size:clamp(21px,2.1vw,32px);letter-spacing:-.03em;line-height:1.05}
@@ -1410,7 +1410,7 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-c2{color:var(--ink)}
 .w3-strip{position:absolute;left:0;top:0;bottom:0;display:flex;background:var(--signal);will-change:transform}
 .w3-sp{position:relative;flex:none;width:var(--spw);height:100%;padding:clamp(76px,11vh,110px) clamp(20px,2.4vw,36px) clamp(70px,11vh,104px);display:flex;flex-direction:column;justify-content:center;gap:clamp(12px,2vh,20px);border-left:1px solid rgba(10,10,10,.18)}
-.w3-sp0{width:var(--sp0w);border-left:0;justify-content:center;padding-left:clamp(16px,4vw,64px)}
+.w3-sp0{width:var(--sp0w);border-left:0;justify-content:center;padding-left:clamp(16px,2.6vw,40px)}
 .w3-sp0 .w3-say em{color:#fff}
 .w3-hint{display:inline-flex;align-items:center;gap:8px;margin-top:28px;font-size:16px;font-weight:600}
 .w3-num{font-family:var(--disp);font-weight:700;font-size:clamp(60px,11vh,132px);line-height:.8;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:1.5px var(--ink)}
@@ -1618,7 +1618,7 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-note{margin-top:24px;font-size:14.5px;line-height:1.5;color:var(--mute)}
 .w3-note a{color:var(--text);text-decoration:underline;text-underline-offset:4px;text-decoration-color:rgba(255,255,255,.3)}
 .w3-note a:hover{text-decoration-color:currentColor}
-.w3-foot{position:relative;overflow:hidden;padding:clamp(48px,6vw,80px) clamp(16px,4vw,64px) 28px;background:#060606;border-top:1px solid rgba(255,255,255,.06)}
+.w3-foot{position:relative;overflow:hidden;padding:clamp(48px,6vw,80px) clamp(16px,2.6vw,40px) 28px;background:#060606;border-top:1px solid rgba(255,255,255,.06)}
 .w3-fword{max-width:1440px;margin:0 auto;font-family:var(--disp);font-weight:700;font-size:clamp(60px,15.5vw,236px);line-height:.8;letter-spacing:-.065em;white-space:nowrap}
 .w3-fword span{color:var(--signal)}
 .w3-frow{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px 40px;max-width:1440px;margin:clamp(32px,4vw,52px) auto 0;padding-top:24px;border-top:1px solid var(--line)}
