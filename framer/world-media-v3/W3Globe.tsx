@@ -974,7 +974,7 @@ function Contact(p: { email: string; endpoint: string; formKey: string; side: "b
     const [services, setServices] = React.useState<string[]>([])
     const [budget, setBudget] = React.useState<string[]>([])
     const [followers, setFollowers] = React.useState<string[]>([])
-    const [sent, setSent] = React.useState<"" | "sending" | "done" | "mail">("")
+    const [sent, setSent] = React.useState<"" | "sending" | "done" | "mail" | "error">("")
     const brand = p.side === "brand"
     const { t } = useSite()
 
@@ -1008,9 +1008,14 @@ function Contact(p: { email: string; endpoint: string; formKey: string; side: "b
                     return
                 }
             } catch {
-                // fall through to email
+                // reported below
             }
+            // With a form service set up the enquiry never goes through the visitor's email app: if
+            // sending fails, the form says so and keeps everything they typed, so they can try again.
+            React.startTransition(() => setSent("error"))
+            return
         }
+        // Only before a form service is set up: the visitor's email app opens with everything filled in.
         const body = filled.map(([k, v]) => k + ": " + v).join("\n")
         window.location.href = "mailto:" + p.email + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body)
         React.startTransition(() => setSent("mail"))
@@ -1089,6 +1094,11 @@ function Contact(p: { email: string; endpoint: string; formKey: string; side: "b
                             </button>
                             <span>A real person replies within a day.</span>
                         </div>
+                        {sent === "error" ? (
+                            <p className="w3-err" role="alert">
+                                That didn’t go through. Please check your connection and try again, or write to <a href={"mailto:" + p.email}>{p.email}</a>.
+                            </p>
+                        ) : null}
                     </form>
                 </>
             )}
@@ -1609,6 +1619,8 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-field ::placeholder{color:rgba(243,241,236,.3)}
 .w3-send{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding-top:22px;border-top:1px solid rgba(255,255,255,.08)}
 .w3-send span{font-size:13.5px;color:var(--mute)}
+.w3-err{margin-top:14px;font-size:14.5px;line-height:1.5;color:#FF8A65}
+.w3-err a{color:inherit;text-decoration:underline;text-underline-offset:3px}
 .w3-btn{display:inline-flex;align-items:center;justify-content:space-between;gap:24px;height:58px;padding:0 22px 0 26px;border-radius:99px;font-family:var(--disp);font-weight:600;font-size:18px;letter-spacing:-.02em;transition:background-color .3s,color .3s}
 .w3-btn[data-tone="signal"]{background:var(--signal);color:var(--ink)}
 .w3-btn[data-tone="signal"]:hover{background:#fff}

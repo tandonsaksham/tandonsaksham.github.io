@@ -112,8 +112,9 @@ starts with what the site says now, so nothing changes until you edit it.
   page uses this.
 - **Web3Forms key**: the access key from web3forms.com (free, 250 enquiries a month). With it, each
   enquiry is emailed to the address the key was made for, from "World Media website", with the
-  visitor's email as the reply-to address. A hidden box catches spam robots. If Web3Forms ever
-  refuses, the form falls back to opening the visitor's email app.
+  visitor's email as the reply-to address. A hidden box catches spam robots. If sending ever fails,
+  the form says so, keeps what the visitor typed and offers the email address; it never opens their
+  email app once a key is set.
 - **Form endpoint**: only for another form service instead of Web3Forms (Formspree works: paste its
   form address, `https://formspree.io/f/…`). With neither set, the form opens an email to the
   address in **Email**, filled in with everything the visitor entered. Sending CV files needs a
