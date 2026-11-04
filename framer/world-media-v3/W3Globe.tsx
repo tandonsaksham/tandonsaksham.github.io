@@ -3050,8 +3050,11 @@ export function W3After(props: AfterProps) {
 }
 
 /** A text field that starts with what the site says. */
-const text = (title: string, key: CopyKey, area = false) => ({ type: ControlType.String, title, defaultValue: COPY[key], displayTextArea: area })
-const group = (title: string, controls: Record<string, unknown>) => ({ type: ControlType.Object, title, controls })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const text = (title: string, key: CopyKey, area = false): any => ({ type: ControlType.String, title, defaultValue: COPY[key], displayTextArea: area })
+// Typed loosely: Framer's own types for nested fields are stricter than this file needs.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const group = (title: string, controls: Record<string, any>): any => ({ type: ControlType.Object, title, controls })
 
 addPropertyControls(W3Globe, {
     formMode: {
