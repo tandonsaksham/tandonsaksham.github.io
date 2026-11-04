@@ -33,6 +33,7 @@ type Props = {
     founder?: Group
     contact?: Group
     careers?: Group
+    formMode?: string
     style?: React.CSSProperties
 }
 
@@ -1567,6 +1568,7 @@ background:rgba(16,16,16,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);fo
 .w3-sh-f a:hover{color:var(--signal)}
 
 /* after the globe */
+.w3-anchor{height:1px;scroll-margin-top:0}
 .w3-rest{position:relative;overflow-x:hidden;overflow-x:clip;background:var(--bg);border-top:1px solid rgba(255,255,255,.06)}
 .w3-sec{padding:clamp(64px,11vw,160px) clamp(16px,4vw,64px) 0;max-width:880px;margin:0 auto;scroll-margin-top:24px}
 .w3-sec:last-of-type{padding-bottom:clamp(80px,11vw,160px)}
@@ -2015,6 +2017,8 @@ function Slides(p: { photos: string[] }) {
 
 export default function W3Globe(props: Props) {
     const { media = NO_MEDIA, samples = true, rest = true, email = "social@worldmedia.co.in", phone = "+91 88000 40301", endpoint = "", formKey = "", brands = "100+", creators = "10,000", style } = props
+    // "framer": the page stops after the founder, for a Framer form and then the Careers & footer component.
+    const split = props.formMode === "framer"
     // Everything the owner can change in Framer's panel, read once per change.
     const site = React.useMemo(
         () => buildSite(props),
@@ -2664,6 +2668,12 @@ export default function W3Globe(props: Props) {
         },
         [still]
     )
+    // The Careers & footer component, placed further down the page, sends its links here.
+    React.useEffect(() => {
+        const on = (e: Event) => go((e as CustomEvent<number | string>).detail)
+        window.addEventListener("w3go", on)
+        return () => window.removeEventListener("w3go", on)
+    }, [go])
     // "Let's talk" and "Start a campaign" go to the form, on the right side; on the demo, to an email.
     const talk = (as: "brand" | "creator") => {
         React.startTransition(() => setSide(as))
@@ -2973,9 +2983,16 @@ export default function W3Globe(props: Props) {
             {rest ? (
                 <div className="w3-rest">
                     <Founder />
-                    <Contact email={email} endpoint={endpoint} formKey={formKey} side={side} setSide={setSide} />
-                    <Careers email={email} />
-                    <Footer email={email} phone={phone} items={navItems} go={go} />
+                    {split ? (
+                        // Where "Let's talk" lands: the top of the Framer form placed under this component.
+                        <div id="w3-contact" className="w3-anchor" />
+                    ) : (
+                        <>
+                            <Contact email={email} endpoint={endpoint} formKey={formKey} side={side} setSide={setSide} />
+                            <Careers email={email} />
+                            <Footer email={email} phone={phone} items={navItems} go={go} />
+                        </>
+                    )}
                 </div>
             ) : null}
             {!still && mounted ? createPortal(<div className="w3">{nav}{sheet}</div>, document.body) : null}
@@ -2993,11 +3010,59 @@ export default function W3Globe(props: Props) {
     )
 }
 
+type AfterProps = { email: string; phone: string; careers?: Group; roles?: RoleItem[]; style?: React.CSSProperties }
+
+/**
+ * Careers and the footer, on their own: for a page whose enquiry form is a Framer form. Place it
+ * under the Framer form, which sits under the globe component (set to "Framer form below").
+ */
+export function W3After(props: AfterProps) {
+    const { email = "social@worldmedia.co.in", phone = "+91 88000 40301", style } = props
+    const site = React.useMemo(() => buildSite({ careers: props.careers, roles: props.roles }), [props.careers, props.roles])
+    const items: [string, number | string][] = [
+        ["Home", -1],
+        ["Services", 1],
+        ["Work", 2],
+        ["About Us", 3],
+        ["Careers", "careers"],
+    ]
+    // Careers is here; everything else lives in the globe component above, which takes the link from here.
+    const go = (to: number | string) => {
+        if (to === "careers") {
+            const el = document.getElementById("w3-careers")
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
+            return
+        }
+        window.dispatchEvent(new CustomEvent("w3go", { detail: to }))
+    }
+    return (
+        <SiteCtx.Provider value={site}>
+            <div className="w3" style={style}>
+                <link rel="stylesheet" href={FONT_HREF} />
+                <style dangerouslySetInnerHTML={{ __html: CSS }} />
+                <div className="w3-rest">
+                    <Careers email={email} />
+                    <Footer email={email} phone={phone} items={items} go={go} />
+                </div>
+            </div>
+        </SiteCtx.Provider>
+    )
+}
+
 /** A text field that starts with what the site says. */
 const text = (title: string, key: CopyKey, area = false) => ({ type: ControlType.String, title, defaultValue: COPY[key], displayTextArea: area })
 const group = (title: string, controls: Record<string, unknown>) => ({ type: ControlType.Object, title, controls })
 
 addPropertyControls(W3Globe, {
+    formMode: {
+        type: ControlType.Enum,
+        title: "Enquiry form",
+        options: ["built-in", "framer"],
+        optionTitles: ["Built in", "Framer form"],
+        defaultValue: "built-in",
+        displaySegmentedControl: true,
+        description: "Framer form: the page ends after the founder. Place a Framer form under it, then the W3After component (careers and footer).",
+    },
     landing: group("Landing", {
         heroTop: text("Headline", "heroTop"),
         heroBottom: text("Headline, orange", "heroBottom"),
@@ -3135,4 +3200,25 @@ addPropertyControls(W3Globe, {
         placeholder: "https://…",
         description: "Only if you use another form service instead of Web3Forms: its address.",
     },
+})
+
+addPropertyControls(W3After, {
+    careers: group("Careers", {
+        crTop: text("Heading", "crTop"),
+        crBottom: text("Heading, orange", "crBottom"),
+        crPlace: text("Place", "crPlace"),
+    }),
+    roles: {
+        type: ControlType.Array,
+        title: "Open roles",
+        description: "Each row opens an email to apply. Remove them all to show “No open roles right now”.",
+        control: group("Role", {
+            role: { type: ControlType.String, title: "Role", defaultValue: "" },
+            team: { type: ControlType.String, title: "Team", defaultValue: "" },
+            years: { type: ControlType.String, title: "Experience", defaultValue: "" },
+        }),
+        defaultValue: ROLES,
+    },
+    email: { type: ControlType.String, title: "Email", defaultValue: "social@worldmedia.co.in" },
+    phone: { type: ControlType.String, title: "Phone", defaultValue: "+91 88000 40301" },
 })
