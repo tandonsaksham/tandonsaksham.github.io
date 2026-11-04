@@ -21,6 +21,18 @@ type Props = {
     formKey: string
     brands: string
     creators: string
+    films?: FilmItem[]
+    services?: ServiceItem[]
+    logos?: LogoItem[]
+    roles?: RoleItem[]
+    landing?: Group
+    why?: Group
+    whatWeDo?: Group
+    work?: Group
+    about?: Group
+    founder?: Group
+    contact?: Group
+    careers?: Group
     style?: React.CSSProperties
 }
 
@@ -145,11 +157,13 @@ const FAN = ["sprite-durga-puja", "tinder-first-date", "coca-cola-varun-sood", "
 
 /** A brand's logo on a small light plate, so every logo reads on the dark site. */
 function Logo(p: { b: number }) {
-    const b = BRANDS[p.b]
+    const b = useSite().brands[p.b]
+    if (!b) return null
+    // A brand with no logo shows its name instead.
     return (
         <span className="w3-lg">
-            <img src={CDN + "logos/" + b.logo} alt={b.word ? "" : b.name} draggable={false} style={cssVars({ "--k": b.k })} />
-            {b.word ? <b>{b.name}</b> : null}
+            {b.logo ? <img src={b.logo} alt={b.word ? "" : b.name} draggable={false} style={cssVars({ "--k": b.k })} /> : null}
+            {b.word || !b.logo ? <b>{b.name}</b> : null}
         </span>
     )
 }
@@ -732,18 +746,24 @@ function Mark(p: { n: number; title: string }) {
 
 /** The why: the globe dives into India and the words build up out of the dark. */
 function ChapterWhy() {
+    const { t } = useSite()
+    const tenets = [
+        [t.p1, t.p1Line],
+        [t.p2, t.p2Line],
+        [t.p3, t.p3Line],
+    ].filter(([h]) => h)
     return (
         <>
             <h2 className="w3-say">
                 <span className="w3-ln">
-                    <Words text="THINKING IT UP IS ONE THING." />
+                    <Words text={t.whyTop} />
                 </span>
                 <span className="w3-ln w3-em">
-                    <Words text="PULLING IT OFF IS OUR THING." />
+                    <Words text={t.whyBottom} />
                 </span>
             </h2>
             <ol className="w3-tenets">
-                {TENETS.map(([h, d], i) => (
+                {tenets.map(([h, d], i) => (
                     <li key={h} data-b="">
                         <i>{nn(i + 1)}</i>
                         <b>{h}</b>
@@ -758,21 +778,22 @@ function ChapterWhy() {
 
 /** What we do: the five services pass by sideways while you scroll down. */
 function ChapterServices(p: { samples: boolean }) {
+    const { t, offer } = useSite()
     return (
         <>
             <div className="w3-strip" data-strip="">
                 <div className="w3-sp w3-sp0">
                     <h2 className="w3-say">
-                        Five things.
+                        {t.svcTop}
                         <br />
-                        <em>Done properly.</em>
+                        <em>{t.svcBottom}</em>
                     </h2>
                     <p className="w3-hint">
                         Keep scrolling <Icon name="arrow" size={18} />
                     </p>
                 </div>
-                {OFFER.map((s, i) => (
-                    <article key={s.name} className="w3-sp">
+                {offer.map((s, i) => (
+                    <article key={i} className="w3-sp">
                         <span className="w3-num" aria-hidden="true">
                             {nn(i + 1)}
                         </span>
@@ -781,16 +802,12 @@ function ChapterServices(p: { samples: boolean }) {
                             {s.core ? <i>Our core</i> : null}
                         </h3>
                         <div className="w3-spf">
-                            {s.film ? (
-                                <div className="w3-spv" style={cssVars({ "--ar": s.ar })}>
-                                    {p.samples ? <video src={FULL(s.film)} poster={STILL(s.film)} muted loop playsInline preload="none" /> : <img src={STILL(s.film)} alt="" loading="lazy" draggable={false} />}
+                            {s.video ? (
+                                <div className="w3-spv" style={cssVars({ "--ar": 1.5 })}>
+                                    <Clip src={s.video} still={s.still} play={p.samples} preload="none" />
                                 </div>
                             ) : (
-                                <div className="w3-spv w3-show" style={cssVars({ "--ar": s.ar })}>
-                                    {TALENT.map((src, j) => (
-                                        <img key={src} src={src} alt="" loading="lazy" draggable={false} style={cssVars({ "--i": j })} />
-                                    ))}
-                                </div>
+                                <Slides photos={s.photos} />
                             )}
                         </div>
                         <p className="w3-sph">{s.head}</p>
@@ -811,29 +828,32 @@ function ChapterServices(p: { samples: boolean }) {
 
 /** The work: the films fan out of the globe like a hand of cards, the last card opening them all. */
 function ChapterWork(p: { samples: boolean; count: number; play: (i: number) => void; all: () => void }) {
-    const from = Math.floor((FAN.length - p.count) / 2)
-    const fan = FAN.slice(from, from + p.count)
+    const { t, films, brands } = useSite()
+    // The films marked "On The work", from the middle out; none marked, the first ones.
+    const marked = films.map((_, i) => i).filter((i) => films[i].fan)
+    const pool = marked.length ? marked : films.map((_, i) => i).slice(0, 5)
+    const from = Math.max(0, Math.floor((pool.length - p.count) / 2))
+    const fan = pool.slice(from, from + p.count)
     return (
         <>
             <div className="w3-c3h">
                 <h2 className="w3-say">
-                    <Words text="Ideas don’t" />{" "}
+                    <Words text={t.workTop} />{" "}
                     <em>
-                        <Words text="execute themselves." />
+                        <Words text={t.workBottom} />
                     </em>
                 </h2>
                 <p className="w3-sub" data-sub="">
-                    We help them find their way into the world.
+                    {t.workSub}
                 </p>
             </div>
             <div className="w3-fan">
-                {fan.map((id) => {
-                    const i = filmAt(id)
-                    const f = FILMS[i]
+                {fan.map((i) => {
+                    const f = films[i]
                     return (
-                        <button key={id} type="button" className="w3-reel" data-r="" onClick={() => p.play(i)} aria-label={"Play " + BRANDS[f.b].name + ": " + f.title}>
+                        <button key={f.key} type="button" className="w3-reel" data-r="" onClick={() => p.play(i)} aria-label={"Play " + brands[f.b].name + ": " + f.title}>
                             <span className="w3-rv">
-                                {p.samples ? <video src={LOOP(id)} poster={STILL(id)} muted loop playsInline preload="none" /> : <img src={STILL(id)} alt="" loading="lazy" draggable={false} />}
+                                <Clip src={f.loop} still={f.still} play={p.samples} preload="none" />
                                 <span className="w3-rl">
                                     <Logo b={f.b} />
                                 </span>
@@ -844,13 +864,13 @@ function ChapterWork(p: { samples: boolean; count: number; play: (i: number) => 
                         </button>
                     )
                 })}
-                <button type="button" className="w3-reel w3-more" data-r="" onClick={p.all} aria-label={"See all " + FILMS.length + " films"}>
+                <button type="button" className="w3-reel w3-more" data-r="" onClick={p.all} aria-label={"See all " + films.length + " films"}>
                     <span className="w3-rv">
                         <span className="w3-plus">
                             <Icon name="plus" size={30} width={2} />
                         </span>
                         <b>See all</b>
-                        <span>{FILMS.length} films</span>
+                        <span>{films.length} films</span>
                     </span>
                 </button>
             </div>
@@ -861,10 +881,12 @@ function ChapterWork(p: { samples: boolean; count: number; play: (i: number) => 
 
 /** The brands: a light curtain rises over the globe, the numbers count up and the logos roll by. */
 function ChapterBrands(p: { stats: [string, string][] }) {
+    const { t, logos } = useSite()
+    const half = Math.floor(logos.length / 2)
     return (
         <div className="w3-cur" data-cur="">
             <h2 className="w3-say">
-                So far, <em>so good.</em>
+                {t.brTop} <em>{t.brBottom}</em>
             </h2>
             <div className="w3-nums">
                 {p.stats.map(([n, l]) => (
@@ -874,12 +896,14 @@ function ChapterBrands(p: { stats: [string, string][] }) {
                     </div>
                 ))}
             </div>
-            <div className="w3-belt" role="img" aria-label={"Brands we’ve worked with, including " + LOGOS.filter((l) => l.name).map((l) => l.name).join(", ")}>
-                {[LOGOS.slice(0, 9), LOGOS.slice(9)].map((row, r) => (
-                    <div key={r} className="w3-belt-in" data-rev={r ? "" : undefined}>
-                        {[0, 1].map((c) => row.map((l) => <img key={c + l.file} src={LOGO_CDN + l.file} alt="" draggable={false} style={cssVars({ "--k": l.k })} />))}
-                    </div>
-                ))}
+            <div className="w3-belt" role="img" aria-label={"Brands we’ve worked with, including " + logos.filter((l) => l.name).map((l) => l.name).join(", ")}>
+                {[logos.slice(0, half), logos.slice(half)].map((row, r) =>
+                    row.length ? (
+                        <div key={r} className="w3-belt-in" data-rev={r ? "" : undefined}>
+                            {[0, 1].map((c) => row.map((l, j) => <img key={c + "-" + j} src={l.src} alt="" draggable={false} style={cssVars({ "--k": l.k })} />))}
+                        </div>
+                    ) : null
+                )}
             </div>
             <Mark n={4} title="The brands" />
         </div>
@@ -952,6 +976,7 @@ function Contact(p: { email: string; endpoint: string; formKey: string; side: "b
     const [followers, setFollowers] = React.useState<string[]>([])
     const [sent, setSent] = React.useState<"" | "sending" | "done" | "mail">("")
     const brand = p.side === "brand"
+    const { t } = useSite()
 
     const submit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -994,15 +1019,7 @@ function Contact(p: { email: string; endpoint: string; formKey: string; side: "b
     return (
         <section className="w3-sec w3-contact" id="w3-contact" aria-labelledby="w3-ct-h">
             <h2 className="w3-h2" id="w3-ct-h">
-                {brand ? (
-                    <>
-                        <span className="w3-ln">Have a brief.</span> <em className="w3-ln">Or just a feeling.</em>
-                    </>
-                ) : (
-                    <>
-                        <span className="w3-ln">Make great content.</span> <em className="w3-ln">Meet great brands.</em>
-                    </>
-                )}
+                <span className="w3-ln">{brand ? t.cBrandTop : t.cCreatorTop}</span> <em className="w3-ln">{brand ? t.cBrandBottom : t.cCreatorBottom}</em>
             </h2>
             {sent === "done" || sent === "mail" ? (
                 <div className="w3-form w3-thanks" role="status">
@@ -1028,7 +1045,7 @@ function Contact(p: { email: string; endpoint: string; formKey: string; side: "b
                     <form className="w3-form" onSubmit={submit}>
                         <input type="checkbox" name="botcheck" className="w3-sr" tabIndex={-1} autoComplete="off" aria-hidden="true" />
                         <div className="w3-intro">
-                            <h3>{brand ? "Tell us what you’re thinking. We’ll help figure out what it could become." : "Tell us your story, your style and what you bring to the feed."}</h3>
+                            <h3>{brand ? t.cBrandLine : t.cCreatorLine}</h3>
                         </div>
                         {brand ? (
                             <>
@@ -1081,12 +1098,13 @@ function Contact(p: { email: string; endpoint: string; formKey: string; side: "b
 
 /** Every film, with the brands' logos across the top to filter by. Tapping a film plays it in the player. */
 function Gallery(p: { onClose: () => void; onPlay: (i: number) => void; paused: boolean; still: boolean }) {
+    const { films, brands } = useSite()
     const [brand, setBrand] = React.useState(-1)
     const ref = React.useRef<HTMLDivElement>(null)
     const paused = React.useRef(p.paused)
     paused.current = p.paused
-    const list = FILMS.map((_, i) => i).filter((i) => brand < 0 || FILMS[i].b === brand)
-    const count = (b: number) => FILMS.filter((f) => f.b === b).length
+    const list = films.map((_, i) => i).filter((i) => brand < 0 || films[i].b === brand)
+    const count = (b: number) => films.filter((f) => f.b === b).length
     // Each card's loop loads and plays only while the card is on screen, and rests while a film plays.
     React.useEffect(() => {
         const box = ref.current
@@ -1130,9 +1148,9 @@ function Gallery(p: { onClose: () => void; onPlay: (i: number) => void; paused: 
                 <p className="w3-gal-sub">Tap a film to watch it with sound.</p>
                 <div className="w3-gal-f" role="group" aria-label="Show the films for one brand" data-on={brand >= 0 ? "" : undefined}>
                     <button type="button" aria-pressed={brand < 0} onClick={() => pick(-1)}>
-                        All<i>{FILMS.length}</i>
+                        All<i>{films.length}</i>
                     </button>
-                    {BRANDS.map((b, j) => (
+                    {brands.map((b, j) => (
                         <button key={b.name} type="button" aria-pressed={brand === j} onClick={() => pick(j)}>
                             <Logo b={j} />
                             <i aria-hidden="true">{count(j)}</i>
@@ -1141,12 +1159,12 @@ function Gallery(p: { onClose: () => void; onPlay: (i: number) => void; paused: 
                 </div>
                 <ul className="w3-gal-g">
                     {list.map((i) => {
-                        const f = FILMS[i]
+                        const f = films[i]
                         return (
-                            <li key={f.id} data-wide={f.ar > 1 ? "" : undefined}>
+                            <li key={f.key} data-wide={f.ar > 1 ? "" : undefined}>
                                 <button type="button" className="w3-film" data-film="" onClick={() => p.onPlay(i)}>
                                     <span className="w3-film-v" style={cssVars({ "--ar": f.ar })}>
-                                        <video data-src={LOOP(f.id)} poster={STILL(f.id)} muted loop playsInline preload="none" />
+                                        <video data-src={f.loop} poster={f.still || undefined} muted loop playsInline preload="none" />
                                         <span className="w3-film-p" aria-hidden="true">
                                             <Icon name="play" size={20} />
                                         </span>
@@ -1167,7 +1185,8 @@ function Gallery(p: { onClose: () => void; onPlay: (i: number) => void; paused: 
 
 /** One film, full size and with sound, with the next and the previous film a tap away. */
 function Player(p: { i: number; onClose: () => void; step: (d: number) => void }) {
-    const f = FILMS[p.i]
+    const { films, brands } = useSite()
+    const f = films[p.i]
     const ref = React.useRef<HTMLVideoElement>(null)
     // Plays with sound; where the browser won't allow that yet, it plays muted and the controls turn the sound on.
     React.useEffect(() => {
@@ -1179,19 +1198,20 @@ function Player(p: { i: number; onClose: () => void; step: (d: number) => void }
             v.play().catch(() => {})
         })
     }, [p.i])
+    if (!f) return null
     return (
-        <div className="w3-pl" role="dialog" aria-modal="true" aria-label={BRANDS[f.b].name + ": " + f.title}>
+        <div className="w3-pl" role="dialog" aria-modal="true" aria-label={brands[f.b].name + ": " + f.title}>
             <button type="button" className="w3-x" onClick={p.onClose} aria-label="Close the film">
                 <Icon name="close" size={22} width={2} />
             </button>
             <div className="w3-pl-v" style={cssVars({ "--ar": f.ar })}>
-                <video key={f.id} ref={ref} src={FULL(f.id)} poster={STILL(f.id)} controls playsInline preload="auto" />
+                <video key={f.key} ref={ref} src={f.full} poster={f.still || undefined} controls playsInline preload="auto" />
             </div>
             <div className="w3-pl-m">
                 <Logo b={f.b} />
                 <b>{f.title}</b>
                 <span className="w3-pl-n">
-                    {nn(p.i + 1)} / {FILMS.length}
+                    {nn(p.i + 1)} / {nn(films.length)}
                 </span>
                 <span className="w3-pl-nav">
                     <button type="button" onClick={() => p.step(-1)} aria-label="Previous film">
@@ -1211,6 +1231,7 @@ const PEOPLE_CDN = CDN + "people/"
 
 /** Meet the founder: Deepanker Mitra, on a polaroid like in the deck. */
 function Founder() {
+    const { t, photo } = useSite()
     const ref = React.useRef<HTMLElement>(null)
     // Each polaroid drops into place, like a photo put down on a table, when its part comes into view.
     React.useEffect(() => {
@@ -1233,19 +1254,19 @@ function Founder() {
             <div className="w3-pp-main" data-in="">
                 <div className="w3-pp-text">
                     <h2 className="w3-h2" id="w3-pp-h">
-                        Meet the <em>founder.</em>
+                        {t.fTop} <em>{t.fBottom}</em>
                     </h2>
-                    <p className="w3-pp-lead">11+ years. Hundreds of creator conversations. A front-row view of how influencer marketing became an industry.</p>
-                    <p>Deepanker brings deep experience across talent, brand partnerships and creator ecosystems, now channelled into building a creative world through World Media.</p>
-                    <p>His lens sits at the intersection of strategy, creativity and growth, with a focus on turning creator influence into work that moves brands forward.</p>
+                    {t.fLead ? <p className="w3-pp-lead">{t.fLead}</p> : null}
+                    {t.fText1 ? <p>{t.fText1}</p> : null}
+                    {t.fText2 ? <p>{t.fText2}</p> : null}
                 </div>
                 <figure className="w3-polaroid w3-pol-a">
                     <span className="w3-pol-img">
-                        <img src={PEOPLE_CDN + "deepanker-mitra.webp"} alt="Deepanker Mitra, smiling" loading="lazy" decoding="async" draggable={false} />
+                        <img src={photo} alt={t.fName} loading="lazy" decoding="async" draggable={false} />
                     </span>
                     <figcaption>
-                        <b>Deepanker Mitra</b>
-                        <span>Founder & CEO</span>
+                        <b>{t.fName}</b>
+                        <span>{t.fRole}</span>
                     </figcaption>
                 </figure>
             </div>
@@ -1263,19 +1284,22 @@ const ROLES = [
 
 /** The open roles: one row each, which fills with orange on hover and opens an email to apply. */
 function Careers(p: { email: string }) {
+    const { t, roles } = useSite()
     return (
         <section className="w3-sec w3-careers" id="w3-careers" aria-labelledby="w3-cr-h">
             <div className="w3-crh">
                 <h2 className="w3-h2" id="w3-cr-h">
-                    Join the <em>crew.</em>
+                    {t.crTop} <em>{t.crBottom}</em>
                 </h2>
                 <p>
-                    <b>{ROLES.length}</b>open roles · New Friends Colony, New Delhi
+                    {roles.length ? <b>{roles.length}</b> : null}
+                    {roles.length ? (roles.length === 1 ? "open role" : "open roles") : "No open roles right now"}
+                    {t.crPlace ? " · " + t.crPlace : ""}
                 </p>
             </div>
             <ul className="w3-roles">
-                {ROLES.map((r, i) => (
-                    <li key={r.role}>
+                {roles.map((r, i) => (
+                    <li key={i}>
                         <a href={"mailto:" + p.email + "?subject=" + encodeURIComponent("Application: " + r.role) + "&body=" + encodeURIComponent("Hi World Media,\n\nI’d like to apply for the " + r.role + " role. My CV (and portfolio or showreel) is attached.\n\n")}>
                             <span className="w3-rn">{nn(i + 1)}</span>
                             <b>{r.role}</b>
@@ -1825,8 +1849,166 @@ function scrollBox(el: HTMLElement | null): HTMLElement | null {
  * @framerSupportedLayoutWidth fixed
  * @framerSupportedLayoutHeight auto
  */
+/* ─────────────────────────────── What the owner can change in Framer ─────────────────────────────── */
+
+/** Every line of copy that can be changed in Framer's panel, as the site says it out of the box. */
+const COPY = {
+    heroTop: "A CREATIVE KIND",
+    heroBottom: "OF WORLD.",
+    heroSub: "Ideas, creators, production and everything in between.",
+    whyTop: "THINKING IT UP IS ONE THING.",
+    whyBottom: "PULLING IT OFF IS OUR THING.",
+    p1: TENETS[0][0],
+    p1Line: TENETS[0][1],
+    p2: TENETS[1][0],
+    p2Line: TENETS[1][1],
+    p3: TENETS[2][0],
+    p3Line: TENETS[2][1],
+    svcTop: "Five things.",
+    svcBottom: "Done properly.",
+    workTop: "Ideas don’t",
+    workBottom: "execute themselves.",
+    workSub: "We help them find their way into the world.",
+    brTop: "So far,",
+    brBottom: "so good.",
+    fTop: "Meet the",
+    fBottom: "founder.",
+    fName: "Deepanker Mitra",
+    fRole: "Founder & CEO",
+    fLead: "11+ years. Hundreds of creator conversations. A front-row view of how influencer marketing became an industry.",
+    fText1: "Deepanker brings deep experience across talent, brand partnerships and creator ecosystems, now channelled into building a creative world through World Media.",
+    fText2: "His lens sits at the intersection of strategy, creativity and growth, with a focus on turning creator influence into work that moves brands forward.",
+    cBrandTop: "Have a brief.",
+    cBrandBottom: "Or just a feeling.",
+    cBrandLine: "Tell us what you’re thinking. We’ll help figure out what it could become.",
+    cCreatorTop: "Make great content.",
+    cCreatorBottom: "Meet great brands.",
+    cCreatorLine: "Tell us your story, your style and what you bring to the feed.",
+    crTop: "Join the",
+    crBottom: "crew.",
+    crPlace: "New Friends Colony, New Delhi",
+}
+type CopyKey = keyof typeof COPY
+type Group = Record<string, unknown>
+
+/** An uploaded picture comes as a link or as { src }; a link pasted as text works too. */
+type Pic = string | { src?: string } | null | undefined
+const pic = (v: Pic) => (typeof v === "string" ? v.trim() : (v && v.src) || "")
+type FilmItem = { title?: string; brand?: string; logo?: Pic; video?: string; link?: string; cover?: Pic; shape?: string; fan?: boolean }
+type ServiceItem = { name?: string; core?: boolean; head?: string; line?: string; video?: string; link?: string; photos?: string; photo1?: Pic; photo2?: Pic; photo3?: Pic; photo4?: Pic; photo5?: Pic }
+type LogoItem = { name?: string; logo?: Pic; link?: string; size?: number }
+type RoleItem = { role?: string; team?: string; years?: string }
+
+/** The shapes a film can be. */
+const SHAPES: Record<string, number> = { "9:16": 9 / 16, "4:5": 4 / 5, "1:1": 1, "4:3": 4 / 3, "3:2": 3 / 2, "16:9": 16 / 9 }
+const SHAPE_TITLES = ["Tall 9:16", "Portrait 4:5", "Square 1:1", "Wide 4:3", "Wide 3:2", "Wide 16:9"]
+const shapeOf = (ar: number) => Object.keys(SHAPES).reduce((a, k) => (Math.abs(SHAPES[k] - ar) < Math.abs(SHAPES[a] - ar) ? k : a), "9:16")
+
+/** What the lists in Framer's panel start with: the site as it is. */
+const FILM_ITEMS: FilmItem[] = FILMS.map((f) => ({ title: f.title, brand: BRANDS[f.b].name, link: FULL(f.id), shape: shapeOf(f.ar), fan: FAN.includes(f.id) }))
+const SERVICE_ITEMS: ServiceItem[] = OFFER.map((s) => ({ name: s.name, core: s.core, head: s.head, line: s.line, link: s.film ? FULL(s.film) : "", photos: s.film ? "" : TALENT.join("\n") }))
+const LOGO_ITEMS: LogoItem[] = LOGOS.map((l) => ({ name: l.name, link: LOGO_CDN + l.file, size: l.k }))
+
+type Reel = { key: string; title: string; b: number; ar: number; full: string; loop: string; still: string; fan: boolean }
+type Mark = { name: string; logo: string; k: number; word?: boolean }
+type Service = { name: string; core: boolean; head: string; line: string; video: string; still: string; photos: string[] }
+type Site = {
+    t: Record<CopyKey, string>
+    films: Reel[]
+    brands: Mark[]
+    offer: Service[]
+    logos: { name: string; src: string; k: number }[]
+    roles: { role: string; team: string; years: string }[]
+    photo: string
+}
+
+/** A film kept on World Media's own server comes with a short preview loop and a still; any other plays as it is. */
+const ours = (url: string) => {
+    const at = CDN + "films/"
+    const m = url.indexOf(at) === 0 ? url.slice(at.length).match(/^([\w-]+)\.mp4$/) : null
+    return m ? m[1] : ""
+}
+
+/** Reads what the owner set in Framer's panel; anything left empty falls back to the site as it is. */
+function buildSite(p: Partial<Props>): Site {
+    const t = { ...COPY }
+    for (const g of [p.landing, p.why, p.whatWeDo, p.work, p.about, p.founder, p.contact, p.careers]) {
+        if (!g) continue
+        for (const k of Object.keys(g)) if (k in COPY && typeof g[k] === "string") t[k as CopyKey] = g[k] as string
+    }
+    const brands: Mark[] = []
+    const brandOf = (name: string, logo: string) => {
+        const nm = name.trim() || "World Media"
+        const low = nm.toLowerCase()
+        let i = brands.findIndex((b) => b.name.toLowerCase() === low)
+        if (i < 0) {
+            const known = BRANDS.find((b) => b.name.toLowerCase() === low)
+            brands.push({ name: known ? known.name : nm, logo: logo || (known ? CDN + "logos/" + known.logo : ""), k: known && !logo ? known.k : 1, word: known && !logo ? known.word : false })
+            i = brands.length - 1
+        } else if (logo && !brands[i].logo) brands[i].logo = logo
+        return i
+    }
+    const films: Reel[] = []
+    const fi = Array.isArray(p.films) && p.films.length ? p.films : FILM_ITEMS
+    fi.forEach((it, n) => {
+        if (!it) return
+        const full = (it.video || it.link || "").trim()
+        if (!full) return
+        const id = ours(full)
+        films.push({ key: n + ":" + full, title: it.title || "", b: brandOf(it.brand || "", pic(it.logo)), ar: SHAPES[it.shape || ""] || 9 / 16, full, loop: id ? LOOP(id) : full, still: pic(it.cover) || (id ? STILL(id) : ""), fan: !!it.fan })
+    })
+    const si = Array.isArray(p.services) && p.services.length ? p.services : SERVICE_ITEMS
+    const offer = si.filter(Boolean).map((s) => {
+        const video = (s.video || s.link || "").trim()
+        const id = ours(video)
+        const ups = [s.photo1, s.photo2, s.photo3, s.photo4, s.photo5].map(pic).filter(Boolean)
+        const links = (s.photos || "").split(/[\s,]+/).filter((x) => /^https?:\/\//.test(x))
+        return { name: s.name || "", core: !!s.core, head: s.head || "", line: s.line || "", video, still: id ? STILL(id) : "", photos: ups.length ? ups : links }
+    })
+    const li = Array.isArray(p.logos) && p.logos.length ? p.logos : LOGO_ITEMS
+    const logos = li
+        .filter(Boolean)
+        .map((l) => ({ name: l.name || "", src: pic(l.logo) || (l.link || "").trim(), k: typeof l.size === "number" && l.size > 0 ? l.size : 1 }))
+        .filter((l) => l.src)
+    const roles = (Array.isArray(p.roles) ? p.roles : ROLES).filter((r) => r && r.role).map((r) => ({ role: r.role || "", team: r.team || "", years: r.years || "" }))
+    const photo = pic((p.founder || {}).fPhoto as Pic) || PEOPLE_CDN + "deepanker-mitra.webp"
+    return { t, films, brands, offer, logos, roles, photo }
+}
+
+const SiteCtx = React.createContext<Site | null>(null)
+let SITE0: Site | null = null
+/** The site's content, as set in Framer's panel. */
+const useSite = () => React.useContext(SiteCtx) || (SITE0 = SITE0 || buildSite({}))
+
+/** A film in a frame: playing silently, or its still (a film with no still shows its first frame instead). */
+function Clip(p: { src: string; still: string; play: boolean; preload: "none" | "metadata" }) {
+    if (!p.play && p.still) return <img src={p.still} alt="" loading="lazy" draggable={false} />
+    return <video src={p.src} poster={p.still || undefined} muted loop playsInline preload={p.still ? p.preload : "metadata"} />
+}
+
+/** Photos one after another, each three seconds, fading and settling; one photo just stays. */
+function Slides(p: { photos: string[] }) {
+    const n = p.photos.length
+    const seg = 100 / Math.max(1, n)
+    const name = "w3sh" + n
+    return (
+        <div className="w3-spv w3-show" style={cssVars({ "--ar": 1.5 })}>
+            {n > 1 ? <style>{`@keyframes ${name}{0%{opacity:0;scale:1.07}${(seg * 0.25).toFixed(2)}%{opacity:1}${seg.toFixed(2)}%{opacity:1}${(seg * 1.25).toFixed(2)}%{opacity:0;scale:1}100%{opacity:0;scale:1}}`}</style> : null}
+            {p.photos.map((src, j) => (
+                <img key={j + src} src={src} alt="" loading="lazy" draggable={false} style={n > 1 ? { animation: `${name} ${n * 3}s infinite`, animationDelay: j * 3 + "s" } : { opacity: 1, animation: "none" }} />
+            ))}
+        </div>
+    )
+}
+
 export default function W3Globe(props: Props) {
     const { media = NO_MEDIA, samples = true, rest = true, email = "social@worldmedia.co.in", phone = "+91 88000 40301", endpoint = "", formKey = "", brands = "100+", creators = "10,000", style } = props
+    // Everything the owner can change in Framer's panel, read once per change.
+    const site = React.useMemo(
+        () => buildSite(props),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [props.films, props.services, props.logos, props.roles, props.landing, props.why, props.whatWeDo, props.work, props.about, props.founder, props.contact, props.careers]
+    )
     const isStatic = useIsStaticRenderer()
     const [reduce, setReduce] = React.useState(false)
     const [mounted, setMounted] = React.useState(false)
@@ -2305,7 +2487,7 @@ export default function W3Globe(props: Props) {
             if (ro) ro.disconnect()
             if (raf) cancelAnimationFrame(raf)
         }
-    }, [still, mounted, size, R, P, gyF, rw, phoneW, fanCount, shapes, brands, creators, covered])
+    }, [still, mounted, size, R, P, gyF, rw, phoneW, fanCount, shapes, brands, creators, covered, site])
 
     // The loader waits for the fonts, the logos and the first frame of each video on the globe, never
     // more than seven seconds, then lifts while the globe fades in behind it.
@@ -2502,7 +2684,7 @@ export default function W3Globe(props: Props) {
         React.startTransition(() => setFilm(-1))
         restore()
     }
-    const step = (d: number) => React.startTransition(() => setFilm((i) => mod(i + d, FILMS.length)))
+    const step = (d: number) => React.startTransition(() => setFilm((i) => mod(i + d, site.films.length)))
     const layer = film >= 0 ? 2 : gal ? 1 : 0
     const closeTop = React.useRef(closeAll)
     closeTop.current = layer === 2 ? closeFilm : closeAll
@@ -2690,6 +2872,7 @@ export default function W3Globe(props: Props) {
     const vars = cssVars({ "--R": R + "px", "--P": P + "px", "--gy": gyF * 100 + "%", "--spw": spw + "px", "--sp0w": sp0w + "px", "--rw": rw + "px" })
 
     return (
+        <SiteCtx.Provider value={site}>
         <div ref={rootRef} className={"w3" + (still ? " w3-still" : "")} style={{ ...style, ...vars }}>
             <link rel="preconnect" href="https://fonts.googleapis.com" />
             <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
@@ -2746,11 +2929,11 @@ export default function W3Globe(props: Props) {
                     <div className="w3-land" ref={landRef}>
                         <div className="w3-hero">
                             <h1 className="w3-head">
-                                A CREATIVE KIND
+                                {site.t.heroTop}
                                 <br />
-                                <em>OF WORLD.</em>
+                                <em>{site.t.heroBottom}</em>
                             </h1>
-                            <p className="w3-sl">Ideas, creators, production and everything in between.</p>
+                            <p className="w3-sl">{site.t.heroSub}</p>
                         </div>
                     </div>
                     <div className="w3-idx" ref={idxRef}>
@@ -2794,10 +2977,126 @@ export default function W3Globe(props: Props) {
                   )
                 : null}
         </div>
+        </SiteCtx.Provider>
     )
 }
 
+/** A text field that starts with what the site says. */
+const text = (title: string, key: CopyKey, area = false) => ({ type: ControlType.String, title, defaultValue: COPY[key], displayTextArea: area })
+const group = (title: string, controls: Record<string, unknown>) => ({ type: ControlType.Object, title, controls })
+
 addPropertyControls(W3Globe, {
+    landing: group("Landing", {
+        heroTop: text("Headline", "heroTop"),
+        heroBottom: text("Headline, orange", "heroBottom"),
+        heroSub: text("Line below", "heroSub", true),
+    }),
+    why: group("The why", {
+        whyTop: text("Statement", "whyTop", true),
+        whyBottom: text("Statement, orange", "whyBottom", true),
+        p1: text("Pillar 1", "p1"),
+        p1Line: text("Pillar 1 line", "p1Line", true),
+        p2: text("Pillar 2", "p2"),
+        p2Line: text("Pillar 2 line", "p2Line", true),
+        p3: text("Pillar 3", "p3"),
+        p3Line: text("Pillar 3 line", "p3Line", true),
+    }),
+    whatWeDo: group("What we do", {
+        svcTop: text("Heading", "svcTop"),
+        svcBottom: text("Heading, white", "svcBottom"),
+    }),
+    services: {
+        type: ControlType.Array,
+        title: "Services",
+        description: "One panel each on What we do. Upload a video, paste a video link, or add photos for a slideshow.",
+        maxCount: 8,
+        control: group("Service", {
+            name: { type: ControlType.String, title: "Name", defaultValue: "" },
+            core: { type: ControlType.Boolean, title: "Our core tag", defaultValue: false },
+            head: { type: ControlType.String, title: "Headline", defaultValue: "", displayTextArea: true },
+            line: { type: ControlType.String, title: "Line", defaultValue: "", displayTextArea: true },
+            video: { type: ControlType.File, title: "Video", allowedFileTypes: ["mp4", "webm", "mov"] },
+            link: { type: ControlType.String, title: "Or video link", defaultValue: "", placeholder: "https://…" },
+            photo1: { type: ControlType.ResponsiveImage, title: "Photo 1" },
+            photo2: { type: ControlType.ResponsiveImage, title: "Photo 2" },
+            photo3: { type: ControlType.ResponsiveImage, title: "Photo 3" },
+            photo4: { type: ControlType.ResponsiveImage, title: "Photo 4" },
+            photo5: { type: ControlType.ResponsiveImage, title: "Photo 5" },
+            photos: { type: ControlType.String, title: "Or photo links", defaultValue: "", displayTextArea: true, placeholder: "One link per line" },
+        }),
+        defaultValue: SERVICE_ITEMS,
+    },
+    work: group("The work", {
+        workTop: text("Heading", "workTop"),
+        workBottom: text("Heading, orange", "workBottom"),
+        workSub: text("Line below", "workSub", true),
+    }),
+    films: {
+        type: ControlType.Array,
+        title: "Films",
+        description: "The work and the gallery. Add a film, drag to reorder, or remove one. Tick On The work for the cards that fan out (up to five).",
+        control: group("Film", {
+            title: { type: ControlType.String, title: "Title", defaultValue: "" },
+            brand: { type: ControlType.String, title: "Brand", defaultValue: "" },
+            logo: { type: ControlType.ResponsiveImage, title: "Brand logo" },
+            video: { type: ControlType.File, title: "Video", allowedFileTypes: ["mp4", "webm", "mov"] },
+            link: { type: ControlType.String, title: "Or video link", defaultValue: "", placeholder: "https://…" },
+            cover: { type: ControlType.ResponsiveImage, title: "Cover" },
+            shape: { type: ControlType.Enum, title: "Shape", options: Object.keys(SHAPES), optionTitles: SHAPE_TITLES, defaultValue: "9:16" },
+            fan: { type: ControlType.Boolean, title: "On The work", defaultValue: false },
+        }),
+        defaultValue: FILM_ITEMS,
+    },
+    about: group("The brands", {
+        brTop: text("Heading", "brTop"),
+        brBottom: text("Heading, orange", "brBottom"),
+    }),
+    logos: {
+        type: ControlType.Array,
+        title: "Client logos",
+        description: "The two rolling belts on The brands: the first half on the top belt, the rest below.",
+        control: group("Logo", {
+            name: { type: ControlType.String, title: "Name", defaultValue: "" },
+            logo: { type: ControlType.ResponsiveImage, title: "Logo" },
+            link: { type: ControlType.String, title: "Or logo link", defaultValue: "", placeholder: "https://…" },
+            size: { type: ControlType.Number, title: "Size", defaultValue: 1, min: 0.4, max: 2, step: 0.05 },
+        }),
+        defaultValue: LOGO_ITEMS,
+    },
+    founder: group("Founder", {
+        fTop: text("Heading", "fTop"),
+        fBottom: text("Heading, orange", "fBottom"),
+        fPhoto: { type: ControlType.ResponsiveImage, title: "Photo" },
+        fName: text("Name", "fName"),
+        fRole: text("Role", "fRole"),
+        fLead: text("Opening line", "fLead", true),
+        fText1: text("Paragraph", "fText1", true),
+        fText2: text("Paragraph", "fText2", true),
+    }),
+    contact: group("Enquiry form", {
+        cBrandTop: text("Brands: heading", "cBrandTop"),
+        cBrandBottom: text("Brands: heading, orange", "cBrandBottom"),
+        cBrandLine: text("Brands: line", "cBrandLine", true),
+        cCreatorTop: text("Creators: heading", "cCreatorTop"),
+        cCreatorBottom: text("Creators: heading, orange", "cCreatorBottom"),
+        cCreatorLine: text("Creators: line", "cCreatorLine", true),
+    }),
+    careers: group("Careers", {
+        crTop: text("Heading", "crTop"),
+        crBottom: text("Heading, orange", "crBottom"),
+        crPlace: text("Place", "crPlace"),
+    }),
+    roles: {
+        type: ControlType.Array,
+        title: "Open roles",
+        description: "Each row opens an email to apply. Remove them all to show “No open roles right now”.",
+        control: group("Role", {
+            role: { type: ControlType.String, title: "Role", defaultValue: "" },
+            team: { type: ControlType.String, title: "Team", defaultValue: "" },
+            years: { type: ControlType.String, title: "Experience", defaultValue: "" },
+        }),
+        defaultValue: ROLES,
+    },
     media: {
         type: ControlType.Array,
         title: "Globe media",

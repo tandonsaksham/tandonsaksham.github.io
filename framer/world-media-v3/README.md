@@ -85,6 +85,24 @@ without copying it. Black and dark grey, with the orange-red `#EA5628` as the si
 
 ## Settings in Framer
 
+Select the component on the page and the right-hand panel shows everything below. Each field
+starts with what the site says now, so nothing changes until you edit it.
+
+- **Landing, The why, What we do, The work, The brands, Founder, Enquiry form, Careers**: the
+  headings and words of each section (the founder's photo too).
+- **Films**: every film on The work and in the gallery. Press + to add one: upload the video (or
+  paste a link), give it a title, a brand, a shape, and if you like a brand logo and a cover
+  picture. Tick **On The work** for the cards that fan out (up to five; none ticked, the first
+  five). A brand already on the site (Coca-Cola, Sprite, Maaza, Kinley, Tinder, OPPO, Ashiana)
+  picks up its logo by name; a new brand without a logo shows its name. Drag to reorder.
+- **Services**: the panels on What we do. Each takes a video (upload or link) or up to five photos
+  for a slideshow.
+- **Client logos**: the two rolling belts, half on each; **Size** evens out a logo that looks too
+  big or small.
+- **Open roles**: the careers list; remove them all and it says "No open roles right now".
+- Films kept on World Media's own server play a light six-second preview; an uploaded film plays
+  itself as the preview, so keep uploads short and small (under about 20 MB), and add a cover.
+
 - **Globe media**: videos and photos for the eleven video tiles, in order. Empty, the tiles play
   World Media's films.
 - **Videos**: Play, or Stills to show a still from each film instead.
